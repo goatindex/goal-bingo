@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Modal Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            width: 800px;
+            height: 600px;
+            border: 2px solid #ccc;
+            margin: 20px auto;
+        }
+        .test-controls {
+            text-align: center;
+            margin: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Modal Test</h1>
+    <div class="test-controls">
+        <button onclick="testModal()">Test Modal</button>
+        <button onclick="clearConsole()">Clear Console</button>
+    </div>
+    <div id="game-container"></div>
+
+    <script>
+        // Simple test scene
+        class TestScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'TestScene' });
+            }
+
+            create() {
+                console.log('Test scene created');
+                
+                // Add some background
+                this.add.rectangle(400, 300, 800, 600, 0xf0f0f0);
+                
+                // Add test text
+                this.add.text(400, 100, 'Simple Modal Test', {
+                    fontSize: '24px',
+                    fill: '#333',
+                    fontStyle: 'bold'
+                }).setOrigin(0.5);
+                
+                // Add instructions
+                this.add.text(400, 150, 'Click "Test Modal" button above to test', {
+                    fontSize: '16px',
+                    fill: '#666'
+                }).setOrigin(0.5);
+            }
+        }
+
+        // Create Phaser game
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            backgroundColor: '#f0f0f0',
+            scene: [TestScene],
+            dom: {
+                createContainer: true
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        // Test function
+        window.testModal = () => {
+            console.log('Testing modal creation...');
+            try {
+                const scene = game.scene.getScene('TestScene');
+                if (scene) {
+                    // Create a simple DOM element to test
+                    const domElement = scene.add.dom(400, 300, 'div', 
+                        'background-color: white; border: 2px solid #333; padding: 20px; border-radius: 8px; width: 300px; height: 200px; text-align: center;',
+                        '<h3>Test Modal</h3><p>This is a test modal</p><button onclick="this.parentElement.parentElement.remove()">Close</button>'
+                    );
+                    console.log('DOM element created successfully:', domElement);
+                } else {
+                    console.error('Test scene not found');
+                }
+            } catch (error) {
+                console.error('Error creating DOM element:', error);
+            }
+        };
+
+        window.clearConsole = () => {
+            console.clear();
+        };
+
+        // Wait for game to be ready
+        game.events.once(Phaser.Core.Events.READY, () => {
+            console.log('Game ready for testing');
+        });
+    </script>
+</body>
+</html>
+

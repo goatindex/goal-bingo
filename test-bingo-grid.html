@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Bingo - Test Bingo Grid</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 5px;
+        }
+        #game-container {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .test-instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎯 Goal Bingo - Bingo Grid Test</h1>
+        
+        <div class="test-info">
+            <h3>Phase 2 Implementation Test</h3>
+            <p><strong>Features to test:</strong></p>
+            <ul>
+                <li>✅ Interactive bingo grid (2x2 to 10x10)</li>
+                <li>✅ Goal population from state manager</li>
+                <li>✅ Click to complete goals</li>
+                <li>✅ Win detection (rows, columns, diagonals)</li>
+                <li>✅ Win celebration animations</li>
+                <li>✅ Grid repopulation after wins</li>
+                <li>✅ Grid size selector</li>
+                <li>✅ Game statistics display</li>
+            </ul>
+        </div>
+        
+        <div id="game-container"></div>
+        
+        <div class="test-instructions">
+            <h3>Test Instructions:</h3>
+            <ol>
+                <li><strong>Grid Size:</strong> Try different grid sizes using the size selector buttons</li>
+                <li><strong>Goal Completion:</strong> Click on goal cells to mark them as completed (they'll turn green)</li>
+                <li><strong>Win Detection:</strong> Complete a row, column, or diagonal to trigger a win</li>
+                <li><strong>Win Celebration:</strong> Watch the celebration animation when you get a bingo</li>
+                <li><strong>Grid Repopulation:</strong> After a win, completed goals will be cleared and replaced with new ones</li>
+                <li><strong>New Game:</strong> Use the "New Game" button to start fresh</li>
+                <li><strong>Repopulate:</strong> Use the "Repopulate" button to fill empty cells with new goals</li>
+            </ol>
+            
+            <p><strong>Expected Behavior:</strong></p>
+            <ul>
+                <li>Goals should be randomly populated from the goal library</li>
+                <li>Clicking a cell should toggle its completion state with animation</li>
+                <li>Completing a line should highlight it and show celebration</li>
+                <li>Game stats should update in real-time</li>
+                <li>All animations should be smooth and responsive</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="src/StorageManager.js"></script>
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
+

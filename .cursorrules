@@ -1,0 +1,107 @@
+# Cursor Rules for Goal Bingo
+
+## Project Overview
+Goal Bingo is a Phaser.js-based web application that gamifies goal tracking through a bingo-style interface. Users maintain a library of goals, play them in randomized grids, and earn rewards for completing rows, columns, or diagonals.
+
+## Technology Stack
+- **Frontend**: Phaser.js 3.x
+- **Build Tool**: Vite
+- **State Management**: Centralized state with event-driven updates
+- **Persistence**: Local Storage with backup system
+- **Layout**: Responsive three-panel layout
+
+## Development Guidelines
+
+### Code Style
+- Use ES6+ syntax and modern JavaScript features
+- Follow Phaser.js best practices and patterns
+- Use meaningful variable and function names
+- Add JSDoc comments for complex functions
+- Keep functions small and focused
+
+### Phaser.js Patterns
+- Use Phaser scenes for different game sections
+- Implement proper scene lifecycle methods (preload, create, update, shutdown)
+- Use Phaser game objects and containers for UI elements
+- Leverage Phaser's tween system for animations
+- Use Phaser's event system for communication between scenes
+
+### State Management
+- Centralized state management with immutable updates
+- Event-driven architecture for UI updates
+- Proper data validation and error handling
+- Local storage with autosave functionality
+
+### File Organization
+```
+src/
+├── scenes/           # Phaser scenes
+├── components/       # Reusable Phaser components
+├── managers/         # State and storage managers
+├── models/          # Data models
+├── utils/           # Utility functions
+└── main.js          # Game initialization
+```
+
+### Testing
+- Unit tests for business logic
+- Integration tests for scene interactions
+- E2E tests for complete user workflows
+- Performance testing for animations and rendering
+
+### Performance
+- Use object pooling for frequently created/destroyed objects
+- Optimize asset loading and memory usage
+- Implement efficient rendering strategies
+- Monitor frame rates and memory usage
+
+### Accessibility
+- Ensure keyboard navigation works
+- Provide screen reader support
+- Use high contrast colors
+- Implement focus management
+
+## Common Tasks
+
+### Adding New Scenes
+1. Create scene file in `src/scenes/`
+2. Extend Phaser.Scene
+3. Implement required lifecycle methods
+4. Add scene to main.js config
+5. Handle scene transitions
+
+### Creating Interactive Components
+1. Extend Phaser.GameObjects.Container
+2. Add interactive properties
+3. Implement event handlers
+4. Add visual feedback (hover, click)
+5. Integrate with state management
+
+### Managing State
+1. Update centralized state object
+2. Emit events for UI updates
+3. Handle state validation
+4. Trigger autosave when needed
+5. Update UI components reactively
+
+### Adding Animations
+1. Use Phaser's tween system
+2. Create smooth transitions
+3. Add particle effects for celebrations
+4. Implement screen shake for wins
+5. Use easing functions for natural motion
+
+## Debugging
+- Use Phaser's debug tools
+- Console logging for state changes
+- Performance monitoring
+- Memory leak detection
+- Cross-browser testing
+
+## Deployment
+- Optimize build for production
+- Minify and compress assets
+- Test on multiple devices
+- Monitor performance metrics
+- Handle errors gracefully
+

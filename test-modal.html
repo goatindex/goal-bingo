@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AddGoalModal Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            width: 800px;
+            height: 600px;
+            border: 2px solid #ccc;
+            margin: 20px auto;
+        }
+        .test-controls {
+            text-align: center;
+            margin: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>AddGoalModal Test</h1>
+    <div class="test-controls">
+        <button onclick="testModalCreation()">Test Modal Creation</button>
+        <button onclick="testModalWithData()">Test Modal with Data</button>
+        <button onclick="clearConsole()">Clear Console</button>
+    </div>
+    <div id="game-container"></div>
+
+    <script type="module">
+        // Import the AddGoalModal class
+        import { AddGoalModal } from './src/components/AddGoalModal.js';
+
+        // Create a simple Phaser scene for testing
+        class TestScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'TestScene' });
+            }
+
+            create() {
+                console.log('Test scene created');
+                
+                // Add some background
+                this.add.rectangle(400, 300, 800, 600, 0xf0f0f0);
+                
+                // Add test text
+                this.add.text(400, 100, 'AddGoalModal Test Scene', {
+                    fontSize: '24px',
+                    fill: '#333',
+                    fontStyle: 'bold'
+                }).setOrigin(0.5);
+                
+                // Add instructions
+                this.add.text(400, 150, 'Click the buttons above to test the modal', {
+                    fontSize: '16px',
+                    fill: '#666'
+                }).setOrigin(0.5);
+            }
+        }
+
+        // Create Phaser game
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            backgroundColor: '#f0f0f0',
+            scene: [TestScene],
+            dom: {
+                createContainer: true
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        // Make game globally accessible
+        window.game = game;
+        window.AddGoalModal = AddGoalModal;
+
+        // Test functions
+        window.testModalCreation = () => {
+            console.log('Testing modal creation...');
+            try {
+                const scene = game.scene.getScene('TestScene');
+                if (scene) {
+                    const modal = new AddGoalModal(scene, 400, 300);
+                    console.log('Modal created successfully:', modal);
+                } else {
+                    console.error('Test scene not found');
+                }
+            } catch (error) {
+                console.error('Error creating modal:', error);
+            }
+        };
+
+        window.testModalWithData = () => {
+            console.log('Testing modal with data...');
+            try {
+                const scene = game.scene.getScene('TestScene');
+                if (scene) {
+                    const testData = {
+                        id: 'test-123',
+                        text: 'Test Goal',
+                        category: 'personal',
+                        priority: 'high',
+                        description: 'This is a test goal',
+                        state: 'to-do'
+                    };
+                    const modal = new AddGoalModal(scene, 400, 300, testData);
+                    console.log('Modal with data created successfully:', modal);
+                } else {
+                    console.error('Test scene not found');
+                }
+            } catch (error) {
+                console.error('Error creating modal with data:', error);
+            }
+        };
+
+        window.clearConsole = () => {
+            console.clear();
+        };
+
+        // Wait for game to be ready
+        game.events.once(Phaser.Core.Events.READY, () => {
+            console.log('Game ready for testing');
+        });
+    </script>
+</body>
+</html>
+
