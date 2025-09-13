@@ -1,4 +1,19 @@
-// Main Phaser Game Configuration and Initialization
+/**
+ * Main Phaser Game Configuration and Initialization
+ * 
+ * ARCHITECTURE NOTES:
+ * - Uses Phaser's built-in game.registry for data persistence (100% native)
+ * - Uses Phaser's built-in game.events for event management (100% native)
+ * - Uses ApplicationStateManager utility class for domain logic
+ * - Only custom plugins are for legitimate extensions (DebugPlugin)
+ * - No reinvention of Phaser core functionality
+ * 
+ * KEY SYSTEMS:
+ * - game.registry: Phaser's built-in data management system
+ * - game.events: Phaser's built-in event system
+ * - game.appStateManager: ApplicationStateManager instance for domain logic
+ * - StorageManager: Handles localStorage persistence
+ */
 import Phaser from 'phaser';
 import BootScene from './scenes/BootScene.js';
 import PreloadScene from './scenes/PreloadScene.js';
@@ -7,19 +22,25 @@ import GoalLibraryScene from './scenes/GoalLibraryScene.js';
 import BingoGridScene from './scenes/BingoGridScene.js';
 import RewardsScene from './scenes/RewardsScene.js';
 import TestScene from './scenes/TestScene.js';
-import { StateManager } from './managers/StateManager.js';
+// Using Phaser's built-in game.registry and game.events for data and event management
 import { StorageManager } from './StorageManager.js';
 import { Logger } from './utils/Logger.js';
 import { PerformanceLogger } from './utils/PerformanceLogger.js';
 import { UserActionLogger } from './utils/UserActionLogger.js';
 import { DebugTools } from './utils/DebugTools.js';
 import { SceneStateLogger } from './utils/SceneStateLogger.js';
-import { eventManager } from './utils/EventManager.js';
+import { ApplicationStateManager } from './utils/ApplicationStateManager.js';
+import { pluginRegistry } from './plugins/PluginRegistry.js';
 
 // ARCHITECTURE NOTE: Game Instance Management Pattern
 // This follows the Singleton Pattern to ensure only one game instance exists
 // Prevents memory leaks and duplicate initialization during hot reload
 let activeGame = null;
+
+// Register plugins with the plugin registry (only custom plugins)
+// Note: TestPlugin removed - not a legitimate edge case per archived strategy
+
+// Using Phaser's built-in game.registry and game.events for data and event management
 
 // Phaser Game Configuration
 const config = {
@@ -73,17 +94,50 @@ const config = {
         hideVersion: false,
         hideURL: false,
         hideCopyright: false
-    }
+    },
+    // Plugin system configuration
+    plugins: pluginRegistry.getPhaserPluginConfig()
 };
+
+/**
+ * Initialize the plugin system
+ * This function sets up the plugin registry and initializes all registered plugins
+ * 
+ * @param {Phaser.Game} game - The Phaser game instance
+ * @returns {Promise<void>}
+ */
+async function initializePluginSystem(game) {
+    console.log('[PluginSystem] Initializing plugin system...');
+    
+    try {
+        // Initialize all registered plugins
+        const success = await pluginRegistry.initializePlugins(game);
+        
+        if (success) {
+            console.log('[PluginSystem] Plugin system initialized successfully');
+            
+            // Make plugin registry globally accessible for debugging
+            window.pluginRegistry = pluginRegistry;
+            
+            // Log plugin status
+            const pluginStatus = pluginRegistry.getAllPluginStatus();
+            console.log('[PluginSystem] Plugin status:', pluginStatus);
+        } else {
+            console.error('[PluginSystem] Failed to initialize plugin system');
+        }
+    } catch (error) {
+        console.error('[PluginSystem] Error initializing plugin system:', error);
+    }
+}
 
 /**
  * ARCHITECTURE NOTE: Game Creation with Cleanup
  * Always destroy previous game before creating new one
  * This prevents memory leaks and duplicate event listeners
  * 
- * @returns {Phaser.Game} The new game instance
+ * @returns {Promise<Phaser.Game>} The new game instance
  */
-function createGame() {
+async function createGame() {
     // CLEANUP: Destroy previous game instance if it exists
     if (activeGame) {
         console.log('Cleaning up previous game instance...');
@@ -95,6 +149,9 @@ function createGame() {
     // Create new game instance
     const game = new Phaser.Game(config);
     activeGame = game;
+    
+    // Initialize plugin system
+    await initializePluginSystem(game);
     
     // LOGGING: Track game creation for debugging
     if (window.logger) {
@@ -131,14 +188,14 @@ function cleanupGame(game) {
     // CLEANUP: All systems that have destroy methods
     // Each system's destroy() method follows the Phaser architecture:
     // - Logger: Cleans up logs array and state flags (uses this.game.events - Phaser handles cleanup)
-    // - StateManager: Cleans up dataManager and appState (uses this.dataManager.events - we clean this up)
+    // - ApplicationStateManager: Handled by Phaser's data system cleanup
     // - PerformanceLogger: Cleans up metrics and timers (uses this.game.events - Phaser handles cleanup)
     // - UserActionLogger: Cleans up actions array and timers (no custom events)
     // - SceneStateLogger: Cleans up scene events array and timers (uses this.game.events - Phaser handles cleanup)
     // - DebugTools: Cleans up global references (no custom events)
     // - StorageManager: Cleans up autosave timers and data (no custom events)
     const systems = [
-        'logger', 'stateManager', 'storageManager', 'performanceLogger',
+        'logger', 'storageManager', 'performanceLogger',
         'userActionLogger', 'sceneStateLogger', 'debugTools'
     ];
 
@@ -153,8 +210,15 @@ function cleanupGame(game) {
         }
     });
 
-    // CLEANUP: Event listeners (our custom EventManager)
-    eventManager.cleanup(game);
+    // CLEANUP: Event listeners (handled by Phaser's built-in game.events)
+    // Phaser's game.events handles its own cleanup automatically
+
+    // CLEANUP: Plugin system
+    if (window.pluginRegistry) {
+        console.log('Cleaning up plugin system...');
+        window.pluginRegistry.cleanup();
+        window.pluginRegistry = null;
+    }
 
     // CLEANUP: Global references
     window.game = null;
@@ -166,15 +230,15 @@ function cleanupGame(game) {
 }
 
 /**
- * PHASE 1: Core Systems Initialization
- * ARCHITECTURE NOTE: These systems only need game.events which is available at READY
- * This follows the Lazy Initialization Pattern from our timing architecture
- * Core systems have minimal dependencies and can initialize early
+ * Core Systems Initialization
+ * ARCHITECTURE NOTE: These systems initialize on Phaser's READY event
+ * This follows Phaser's standard initialization pattern
+ * All systems initialize together for simplicity and reliability
  * 
  * Systems included:
  * - Logger: Centralized logging system
  * - PerformanceLogger: Performance monitoring
- * - StateManager: Application state management using Phaser DataManager
+ * - ApplicationStateManager: Application state management using Phaser's game.registry
  * - StorageManager: Data persistence with Phaser event integration
  * 
  * @param {Phaser.Game} game - The Phaser game instance
@@ -192,12 +256,13 @@ async function initializeCoreSystems(game) {
     });
     await logger.initialize();
     
-    // Initialize StateManager with logger (needs game.events for DataManager)
-    const stateManager = new StateManager(game, logger);
-    await stateManager.initialize();
+    // Initialize ApplicationStateManager (uses Phaser's built-in game.registry)
+    // Initialize ApplicationStateManager (domain logic utility class)
+    const appStateManager = new ApplicationStateManager(game);
+    await appStateManager.initialize();
     
-    // Initialize StorageManager with stateManager and logger (needs game.events for event listeners)
-    const storageManager = new StorageManager(game, stateManager, logger);
+    // Initialize StorageManager (uses Phaser's built-in game.registry.events for change detection)
+    const storageManager = new StorageManager(game, appStateManager, logger);
     await storageManager.initialize();
     
     // Initialize PerformanceLogger (needs game.events for performance monitoring)
@@ -205,30 +270,30 @@ async function initializeCoreSystems(game) {
     await performanceLogger.initialize();
     
     // Make core systems globally accessible
-    window.stateManager = stateManager;
+    window.appStateManager = appStateManager;
     window.storageManager = storageManager;
     window.logger = logger;
     window.performanceLogger = performanceLogger;
     
     // Attach core systems to game object for easy access
-    game.stateManager = stateManager;
+    game.appStateManager = appStateManager;
     game.storageManager = storageManager;
     game.logger = logger;
     game.performanceLogger = performanceLogger;
     
     console.log('Core systems initialized:', {
         logger: !!logger,
-        stateManager: !!stateManager,
+        appStateManager: !!appStateManager,
         storageManager: !!storageManager,
         performanceLogger: !!performanceLogger
     });
 }
 
 /**
- * PHASE 2: Scene-Dependent Systems Initialization
- * ARCHITECTURE NOTE: These systems need game.scene which is only available at SYSTEM_READY
- * This follows the Event-Driven Initialization Pattern from our timing architecture
- * Scene-dependent systems require the scene manager to be fully initialized
+ * Scene-Dependent Systems Initialization
+ * ARCHITECTURE NOTE: These systems initialize after core systems on Phaser's READY event
+ * This follows Phaser's standard initialization pattern
+ * Scene-dependent systems initialize after core systems for proper dependency order
  * 
  * Systems included:
  * - UserActionLogger: User interaction tracking (scene-specific input)
@@ -241,9 +306,9 @@ async function initializeCoreSystems(game) {
 async function initializeSceneSystems(game) {
     console.log('Initializing scene-dependent systems...');
     
-    // Get references to core systems (initialized in Phase 1)
+    // Get references to core systems (initialized first)
     const logger = game.logger;
-    const stateManager = game.stateManager;
+    const appStateManager = game.appStateManager;
     const storageManager = game.storageManager;
     const performanceLogger = game.performanceLogger;
     
@@ -275,7 +340,7 @@ async function initializeSceneSystems(game) {
         debugTools: !!debugTools
     });
     
-    // Set up global error handling (requires logger from Phase 1)
+    // Set up global error handling (requires logger from core systems)
     setupGlobalErrorHandling();
     
     // Set up final system validation
@@ -284,7 +349,7 @@ async function initializeSceneSystems(game) {
 
 /**
  * Set up global error handling
- * ARCHITECTURE NOTE: This requires logger from Phase 1 to be available
+ * ARCHITECTURE NOTE: This requires logger to be available
  * Global error handling is set up after all systems are initialized
  */
 function setupGlobalErrorHandling() {
@@ -317,8 +382,8 @@ function setupGlobalErrorHandling() {
 
 /**
  * Validate that all systems are properly initialized
- * ARCHITECTURE NOTE: This provides runtime validation of the two-phase initialization
- * Helps ensure the timing system architecture is working correctly
+ * ARCHITECTURE NOTE: This provides runtime validation of system initialization
+ * Helps ensure the Phaser standard timing system is working correctly
  * 
  * @param {Phaser.Game} game - The Phaser game instance
  */
@@ -327,7 +392,7 @@ function validateSystemInitialization(game) {
     
     const coreSystems = {
         'Logger': !!game.logger,
-        'StateManager': !!game.stateManager,
+        'ApplicationStateManager': !!game.appStateManager,
         'StorageManager': !!game.storageManager,
         'PerformanceLogger': !!game.performanceLogger
     };
@@ -338,8 +403,8 @@ function validateSystemInitialization(game) {
         'DebugTools': !!game.debugTools
     };
     
-    console.log('Core systems (Phase 1):', coreSystems);
-    console.log('Scene-dependent systems (Phase 2):', sceneSystems);
+    console.log('Core systems:', coreSystems);
+    console.log('Scene-dependent systems:', sceneSystems);
     
     const allSystemsValid = Object.values(coreSystems).every(Boolean) && 
                            Object.values(sceneSystems).every(Boolean);
@@ -359,35 +424,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         // ARCHITECTURE NOTE: Game Creation with Cleanup Management
         // Use createGame() to ensure proper cleanup of previous instances
-        const game = createGame();
+        const game = await createGame();
         
         // Make game globally accessible for debugging
         window.game = game;
         
-        // ARCHITECTURE NOTE: Two-Phase Initialization Pattern Implementation
-        // This follows the Phaser 3 initialization lifecycle and our timing architecture
-        // We use SYSTEM_READY as the single entry point to ensure proper sequencing
-        // Phase 1: Core systems that only need game.events (available at SYSTEM_READY)
-        // Phase 2: Scene-dependent systems that need game.scene (available at SYSTEM_READY)
-        
-        // SINGLE EVENT LISTENER: SYSTEM_READY ensures both game.events and game.scene are available
-        // This prevents race conditions and ensures proper initialization order
-        // ARCHITECTURE NOTE: Using EventManager for centralized event listener management
-        eventManager.addListener(game, Phaser.Core.Events.SYSTEM_READY, async () => {
-            console.log('=== SYSTEM READY - INITIALIZING ALL SYSTEMS ===');
-            console.log('Game events available:', !!game.events);
-            console.log('Scene manager available:', !!game.scene);
-            
+        // ARCHITECTURE NOTE: Phaser Standard Initialization Pattern
+        // This follows Phaser's core initialization lifecycle using the READY event
+        // READY event ensures game.events is available and all core systems are ready
+        // PHASER STANDARD INITIALIZATION PATTERN
+        // Uses Phaser's built-in READY event for system initialization
+        // ARCHITECTURE NOTE: Single event listener approach (Phaser recommended)
+        game.events.once(Phaser.Core.Events.READY, async () => {
             try {
-                // PHASE 1: Initialize core systems that only need game.events
-                console.log('=== PHASE 1: CORE SYSTEMS INITIALIZATION ===');
-                await initializeCoreSystems(game);
-                console.log('=== PHASE 1 COMPLETE: Core systems initialized ===');
+                console.log('=== PHASER READY EVENT TRIGGERED ===');
                 
-                // PHASE 2: Initialize scene-dependent systems that need game.scene
-                console.log('=== PHASE 2: SCENE-DEPENDENT SYSTEMS INITIALIZATION ===');
+                // Initialize all systems at once (Phaser standard approach)
+                await initializeCoreSystems(game);
                 await initializeSceneSystems(game);
-                console.log('=== PHASE 2 COMPLETE: Scene-dependent systems initialized ===');
                 
                 console.log('=== ALL SYSTEMS INITIALIZATION COMPLETE ===');
             } catch (error) {
@@ -421,7 +475,7 @@ if (import.meta.hot) {
             activeGame = null;
         }
         // CLEANUP: All event listeners for complete cleanup
-        eventManager.cleanupAll();
+        // Phaser handles its own event system cleanup automatically
         console.log('Hot reload cleanup completed');
     });
 }
@@ -436,7 +490,7 @@ window.testCleanup = () => {
     if (activeGame) {
         console.log('Game systems available:', {
             logger: !!activeGame.logger,
-            stateManager: !!activeGame.stateManager,
+            appStateManager: !!activeGame.appStateManager,
             storageManager: !!activeGame.storageManager,
             performanceLogger: !!activeGame.performanceLogger,
             userActionLogger: !!activeGame.userActionLogger,
@@ -469,9 +523,9 @@ window.testRecreation = () => {
     }
     
     // Wait a moment then create new game
-    setTimeout(() => {
+    setTimeout(async () => {
         console.log('Creating new game...');
-        const game = createGame();
+        const game = await createGame();
         window.game = game;
         console.log('=== MANUAL RECREATION TEST COMPLETED ===');
     }, 1000);

@@ -1,4 +1,17 @@
-// Main Menu Scene - Navigation between different game sections
+/**
+ * MainMenuScene - Navigation between different game sections
+ * 
+ * ARCHITECTURE NOTES:
+ * - Uses game.appStateManager for state management (domain logic)
+ * - Uses game.registry for data persistence (Phaser native)
+ * - Uses game.events for application events (Phaser native)
+ * - No custom plugins - 100% native Phaser capabilities
+ * 
+ * KEY DEPENDENCIES:
+ * - game.appStateManager: ApplicationStateManager instance for domain logic
+ * - game.registry: Phaser's built-in data management system
+ * - game.events: Phaser's built-in event system
+ */
 export default class MainMenuScene extends Phaser.Scene {
     constructor() {
         super({ 
@@ -21,18 +34,9 @@ export default class MainMenuScene extends Phaser.Scene {
     create() {
         console.log('MainMenuScene: create() called');
         
-        // Ensure scene is visible
-        this.scene.setVisible(true);
-        
         // Configure camera
         this.cameras.main.setBackgroundColor('#ffffff');
         this.cameras.main.setViewport(0, 0, 1200, 800);
-        
-        // Validate renderer
-        if (!this.sys.renderer) {
-            console.error('Renderer not available!');
-            return;
-        }
         
         const { width, height } = this.cameras.main;
         
@@ -75,24 +79,17 @@ export default class MainMenuScene extends Phaser.Scene {
     }
 
     createNavigationButtons(width, height) {
-        const buttonStyle = {
-            fontSize: '20px',
-            fill: '#ffffff',
-            fontStyle: 'bold'
-        };
-
-        const buttonBg = {
-            fillStyle: { color: 0x667eea, alpha: 1 },
-            strokeStyle: { color: 0x5a6fd8, alpha: 1, width: 2 }
-        };
-
+        // PHASER COMPLIANT: Use DOM elements for accessibility and testing
+        // DOM elements are accessible to Playwright and other testing tools
+        
         // Goal Library Button
-        const goalLibraryBtn = this.add.rectangle(width / 2, height / 2 - 60, 300, 60, 0x667eea);
-        goalLibraryBtn.setStrokeStyle(2, 0x5a6fd8);
+        const goalLibraryBtn = this.add.dom(width / 2, height / 2 - 60, 'button', 
+            'background-color: #667eea; border: 2px solid #5a6fd8; color: white; font-size: 20px; font-weight: bold; width: 300px; height: 60px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;',
+            '📚 Goal Library'
+        );
         goalLibraryBtn.setInteractive();
         
-        this.add.text(width / 2, height / 2 - 60, '📚 Goal Library', buttonStyle).setOrigin(0.5);
-        
+        // PHASER COMPLIANT: Use Phaser's input events
         goalLibraryBtn.on(Phaser.Input.Events.POINTER_DOWN, () => {
             // Log scene transition
             if (this.game.sceneStateLogger) {
@@ -102,12 +99,13 @@ export default class MainMenuScene extends Phaser.Scene {
         });
 
         // Bingo Grid Button
-        const bingoGridBtn = this.add.rectangle(width / 2, height / 2 + 20, 300, 60, 0x4CAF50);
-        bingoGridBtn.setStrokeStyle(2, 0x45a049);
+        const bingoGridBtn = this.add.dom(width / 2, height / 2 + 20, 'button',
+            'background-color: #4CAF50; border: 2px solid #45a049; color: white; font-size: 20px; font-weight: bold; width: 300px; height: 60px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;',
+            '🎲 Play Bingo'
+        );
         bingoGridBtn.setInteractive();
         
-        this.add.text(width / 2, height / 2 + 20, '🎲 Play Bingo', buttonStyle).setOrigin(0.5);
-        
+        // PHASER COMPLIANT: Use Phaser's input events
         bingoGridBtn.on(Phaser.Input.Events.POINTER_DOWN, () => {
             // Log scene transition
             if (this.game.sceneStateLogger) {
@@ -117,12 +115,13 @@ export default class MainMenuScene extends Phaser.Scene {
         });
 
         // Rewards Button
-        const rewardsBtn = this.add.rectangle(width / 2, height / 2 + 100, 300, 60, 0xFF9800);
-        rewardsBtn.setStrokeStyle(2, 0xe68900);
+        const rewardsBtn = this.add.dom(width / 2, height / 2 + 100, 'button',
+            'background-color: #FF9800; border: 2px solid #e68900; color: white; font-size: 20px; font-weight: bold; width: 300px; height: 60px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;',
+            '🏆 Rewards'
+        );
         rewardsBtn.setInteractive();
         
-        this.add.text(width / 2, height / 2 + 100, '🏆 Rewards', buttonStyle).setOrigin(0.5);
-        
+        // PHASER COMPLIANT: Use Phaser's input events
         rewardsBtn.on(Phaser.Input.Events.POINTER_DOWN, () => {
             // Log scene transition
             if (this.game.sceneStateLogger) {
@@ -131,13 +130,13 @@ export default class MainMenuScene extends Phaser.Scene {
             this.scene.start('RewardsScene');
         });
 
-        // Add hover effects
+        // Add hover effects using Phaser input events
         [goalLibraryBtn, bingoGridBtn, rewardsBtn].forEach(btn => {
             btn.on(Phaser.Input.Events.POINTER_OVER, () => {
-                btn.setScale(1.05);
+                btn.node.style.transform = 'scale(1.05)';
             });
             btn.on(Phaser.Input.Events.POINTER_OUT, () => {
-                btn.setScale(1);
+                btn.node.style.transform = 'scale(1)';
             });
         });
     }
@@ -179,11 +178,11 @@ export default class MainMenuScene extends Phaser.Scene {
     }
 
     updateStateInfo() {
-        if (!this.game.stateManager) return;
+        if (!this.game.appStateManager) return;
 
-        const goals = this.game.stateManager.getGoals();
-        const rewards = this.game.stateManager.getRewards();
-        const gameState = this.game.stateManager.getGameState();
+        const goals = this.game.appStateManager.getGoals();
+        const rewards = this.game.appStateManager.getRewards();
+        const gameState = this.game.appStateManager.getGameState();
 
         const info = [
             `Goals: ${goals?.length || 0} total`,

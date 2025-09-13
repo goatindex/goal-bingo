@@ -1,6 +1,6 @@
 /**
  * Test Setup Configuration for Vitest with jsdom
- * ARCHITECTURE NOTE: This provides test environment setup for the current test suite
+ * ARCHITECTURE NOTE: This provides test environment setup for cleanup system tests
  * Ensures consistent test environment and proper mocking
  * 
  * Uses Vitest globals with jsdom environment

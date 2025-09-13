@@ -30,7 +30,7 @@ export class PerformanceLogger {
 
     /**
      * Initialize the performance logger
-     * ARCHITECTURE NOTE: PerformanceLogger can be initialized at SYSTEM_READY because it only needs game.events
+     * ARCHITECTURE NOTE: PerformanceLogger can be initialized at READY because it only needs game.events
      * This follows the Lazy Initialization Pattern from our timing architecture
      * Performance monitoring is a core system with minimal dependencies
      * @returns {Promise<void>}
@@ -44,7 +44,7 @@ export class PerformanceLogger {
         }
         
         // ARCHITECTURE NOTE: Performance monitoring requires game.events to be available
-        // This is safe at SYSTEM_READY timing as game.events is available at READY
+        // This is safe at READY timing as game.events is available
         this.setupPerformanceMonitoring();
         
         // Start monitoring automatically after initialization

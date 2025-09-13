@@ -28,26 +28,16 @@ export default class PreloadScene extends Phaser.Scene {
     }
 
     create() {
-        // All assets loaded, start the main menu
-        console.log('PreloadScene: create() called, transitioning to MainMenuScene');
-        
-        // Ensure scene is visible
-        this.scene.setVisible(true);
+        console.log('PreloadScene: create() called - all assets loaded');
         
         // Configure camera
         this.cameras.main.setBackgroundColor('#ffffff');
         this.cameras.main.setViewport(0, 0, 1200, 800);
         
-        // Validate renderer
-        if (!this.sys.renderer) {
-            console.error('Renderer not available!');
-            return;
-        }
-        
-        // Transition to main menu after a brief delay to ensure everything is ready
-        this.time.delayedCall(100, () => {
-            this.scene.start('MainMenuScene');
-        });
+        // PHASER STANDARD: create() is only called after loading is complete
+        // Transition to main menu immediately
+        console.log('PreloadScene: Transitioning to MainMenuScene');
+        this.scene.start('MainMenuScene');
     }
 
     createLoadingBar() {

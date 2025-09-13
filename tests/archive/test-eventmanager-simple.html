@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventManagerPlugin Simple Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .log { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>EventManagerPlugin Simple Test</h1>
+    <button onclick="testEventManager()">Test EventManager</button>
+    <button onclick="testPlugin()">Test Plugin</button>
+    <button onclick="clearLog()">Clear Log</button>
+    <div id="log" class="log"></div>
+
+    <script type="module" src="/src/main.js"></script>
+    <script type="module">
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+        }
+
+        window.testEventManager = () => {
+            log('Testing EventManager...');
+            
+            if (window.eventManager) {
+                log('✓ EventManager found');
+                
+                // Test event emission
+                const result = window.eventManager.emit('test', { message: 'Hello!' });
+                log(`Event emission result: ${result}`);
+                
+                // Test listener count
+                const count = window.eventManager.getListenerCount('test');
+                log(`Listener count: ${count}`);
+            } else {
+                log('✗ EventManager not found');
+            }
+        };
+
+        window.testPlugin = () => {
+            log('Testing EventManagerPlugin...');
+            
+            if (window.eventManagerPlugin) {
+                log('✓ EventManagerPlugin found');
+                
+                // Test event emission
+                const result = window.eventManagerPlugin.emit('test', { message: 'Hello from plugin!' });
+                log(`Plugin event emission result: ${result}`);
+                
+                // Test listener count
+                const count = window.eventManagerPlugin.getListenerCount('test');
+                log(`Plugin listener count: ${count}`);
+            } else {
+                log('✗ EventManagerPlugin not found');
+            }
+        };
+
+        window.clearLog = () => {
+            document.getElementById('log').innerHTML = '';
+        };
+
+        // Auto-test when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('=== EventManagerPlugin Test ===');
+                testEventManager();
+                testPlugin();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

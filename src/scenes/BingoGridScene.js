@@ -1,6 +1,17 @@
 /**
  * BingoGridScene - Main game area with interactive bingo grid
  * Handles grid rendering, goal population, win detection, and game mechanics
+ * 
+ * ARCHITECTURE NOTES:
+ * - Uses game.appStateManager for state management (domain logic)
+ * - Uses game.registry for data persistence (Phaser native)
+ * - Uses game.events for application events (Phaser native)
+ * - No custom plugins - 100% native Phaser capabilities
+ * 
+ * KEY DEPENDENCIES:
+ * - game.appStateManager: ApplicationStateManager instance for domain logic
+ * - game.registry: Phaser's built-in data management system
+ * - game.events: Phaser's built-in event system
  */
 import { BingoCell } from '../components/BingoCell.js';
 
@@ -247,9 +258,9 @@ export default class BingoGridScene extends Phaser.Scene {
     }
     
     populateGrid() {
-        if (!this.game.stateManager) return;
+        if (!this.game.appStateManager) return;
         
-        const availableGoals = this.game.stateManager.getAvailableGoals();
+        const availableGoals = this.game.appStateManager.getAvailableGoals();
         if (availableGoals.length === 0) {
             console.warn('No available goals to populate grid');
             return;
@@ -287,9 +298,9 @@ export default class BingoGridScene extends Phaser.Scene {
     onGoalCompleted(goal, completed) {
         if (!this.isGameActive) return;
         
-        // Update goal state in state manager
-        if (this.game.stateManager) {
-            this.game.stateManager.updateGoal(goal.id, { 
+        // Update goal state in app state manager
+        if (this.game.appStateManager) {
+            this.game.appStateManager.updateGoal(goal.id, { 
                 state: completed ? 'completed' : 'in-play' 
             });
         }
@@ -387,12 +398,12 @@ export default class BingoGridScene extends Phaser.Scene {
     
     processWins() {
         // Update game state
-        if (this.game.stateManager) {
-            const gameState = this.game.stateManager.getGameState();
+        if (this.game.appStateManager) {
+            const gameState = this.game.appStateManager.getGameState();
             const newWins = gameState.totalWins + this.winPatterns.length;
             const newStreak = gameState.currentStreak + 1;
             
-            this.game.stateManager.updateGameState({
+            this.game.appStateManager.updateGameState({
                 totalWins: newWins,
                 currentStreak: newStreak,
                 lastWinAt: new Date()
@@ -563,7 +574,7 @@ export default class BingoGridScene extends Phaser.Scene {
         }
         
         // Populate with new goals
-        const availableGoals = this.game.stateManager?.getAvailableGoals() || [];
+        const availableGoals = this.game.appStateManager?.getAvailableGoals() || [];
         emptyCells.forEach(({ cell }, index) => {
             if (availableGoals.length > 0) {
                 const randomGoal = availableGoals[Math.floor(Math.random() * availableGoals.length)];
@@ -604,8 +615,8 @@ export default class BingoGridScene extends Phaser.Scene {
     updateGameStats() {
         if (!this.gameStats) return;
         
-        const goals = this.game.stateManager?.getGoals() || [];
-        const gameState = this.game.stateManager?.getGameState() || {};
+        const goals = this.game.appStateManager?.getGoals() || [];
+        const gameState = this.game.appStateManager?.getGameState() || {};
         const completedGoals = goals.filter(g => g.state === 'completed').length;
         const inPlayGoals = goals.filter(g => g.state === 'in-play').length;
         
@@ -619,7 +630,7 @@ export default class BingoGridScene extends Phaser.Scene {
     }
     
     updateGameState() {
-        if (!this.game.stateManager) return;
+        if (!this.game.appStateManager) return;
         
         // Update current grid state
         const currentGrid = [];
@@ -630,7 +641,7 @@ export default class BingoGridScene extends Phaser.Scene {
             }
         }
         
-        this.game.stateManager.updateGameState({
+        this.game.appStateManager.updateGameState({
             gridSize: this.gridSize,
             currentGrid: currentGrid
         });

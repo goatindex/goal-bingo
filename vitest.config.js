@@ -17,9 +17,20 @@ export default defineConfig({
         
         // ARCHITECTURE NOTE: Test file patterns
         // This defines which files are considered test files
+        // ONLY run unit tests - exclude E2E and WebGL tests (handled by Playwright)
         include: [
-            'tests/**/*.test.js',
-            'tests/**/*.spec.js'
+            'tests/unit/**/*.test.js',
+            'tests/unit/**/*.spec.js'
+        ],
+        
+        // ARCHITECTURE NOTE: Exclude archived tests and Playwright tests
+        // This excludes archived/legacy test files and E2E/WebGL tests
+        exclude: [
+            'tests/archive/**/*',
+            'tests/e2e/**/*',
+            'tests/webgl/**/*',
+            'tests/integration/**/*',
+            'node_modules/**/*'
         ],
         
         // ARCHITECTURE NOTE: Coverage configuration

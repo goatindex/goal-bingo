@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plugin System Test - Goal Bingo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 3px;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        #game-container {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Goal Bingo - Plugin System Test</h1>
+        
+        <div class="test-section">
+            <h2>Plugin System Status</h2>
+            <div id="plugin-status">Checking plugin system...</div>
+            <button class="test-button" onclick="checkPluginStatus()">Refresh Status</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test Plugin Controls</h2>
+            <button class="test-button" onclick="getTestValue()">Get Test Value</button>
+            <button class="test-button" onclick="incrementTestValue()">Increment Test Value</button>
+            <button class="test-button" onclick="resetTestValue()">Reset Test Value</button>
+            <div id="test-plugin-result" class="test-result">Click a button to test the plugin</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Plugin Registry Info</h2>
+            <button class="test-button" onclick="showPluginRegistryInfo()">Show Registry Info</button>
+            <div id="registry-info" class="test-result">Click the button to see plugin registry information</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Game Container</h2>
+            <div id="game-container"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Test functions for the plugin system
+        window.checkPluginStatus = function() {
+            const statusDiv = document.getElementById('plugin-status');
+            
+            if (window.pluginRegistry) {
+                const stats = window.pluginRegistry.getStats();
+                const pluginStatus = window.pluginRegistry.getAllPluginStatus();
+                
+                let html = '<h3>Plugin Registry Stats:</h3>';
+                html += `<p>Total Registered: ${stats.totalRegistered}</p>`;
+                html += `<p>Total Instances: ${stats.totalInstances}</p>`;
+                html += `<p>Initialized: ${stats.isInitialized ? 'Yes' : 'No'}</p>`;
+                
+                html += '<h3>Plugin Status:</h3>';
+                for (const [key, status] of Object.entries(pluginStatus)) {
+                    html += `<p><strong>${key}:</strong> Ready: ${status.isReady ? 'Yes' : 'No'}`;
+                    if (status.version) html += ` | Version: ${status.version}`;
+                    html += '</p>';
+                }
+                
+                statusDiv.innerHTML = html;
+                statusDiv.className = 'test-result success';
+            } else {
+                statusDiv.innerHTML = '<p>Plugin registry not available. Make sure the game is loaded.</p>';
+                statusDiv.className = 'test-result error';
+            }
+        };
+        
+        window.getTestValue = function() {
+            const resultDiv = document.getElementById('test-plugin-result');
+            
+            if (window.game && window.game.plugins) {
+                const testPlugin = window.game.plugins.get('TestPlugin');
+                if (testPlugin) {
+                    const value = testPlugin.getTestValue();
+                    resultDiv.innerHTML = `<p>Test Value: ${value}</p>`;
+                    resultDiv.className = 'test-result success';
+                } else {
+                    resultDiv.innerHTML = '<p>TestPlugin not found</p>';
+                    resultDiv.className = 'test-result error';
+                }
+            } else {
+                resultDiv.innerHTML = '<p>Game or plugins not available</p>';
+                resultDiv.className = 'test-result error';
+            }
+        };
+        
+        window.incrementTestValue = function() {
+            const resultDiv = document.getElementById('test-plugin-result');
+            
+            if (window.game && window.game.plugins) {
+                const testPlugin = window.game.plugins.get('TestPlugin');
+                if (testPlugin) {
+                    const currentValue = testPlugin.getTestValue();
+                    testPlugin.setTestValue(currentValue + 1);
+                    const newValue = testPlugin.getTestValue();
+                    resultDiv.innerHTML = `<p>Test Value incremented: ${currentValue} → ${newValue}</p>`;
+                    resultDiv.className = 'test-result success';
+                } else {
+                    resultDiv.innerHTML = '<p>TestPlugin not found</p>';
+                    resultDiv.className = 'test-result error';
+                }
+            } else {
+                resultDiv.innerHTML = '<p>Game or plugins not available</p>';
+                resultDiv.className = 'test-result error';
+            }
+        };
+        
+        window.resetTestValue = function() {
+            const resultDiv = document.getElementById('test-plugin-result');
+            
+            if (window.game && window.game.plugins) {
+                const testPlugin = window.game.plugins.get('TestPlugin');
+                if (testPlugin) {
+                    testPlugin.resetTestValue();
+                    const value = testPlugin.getTestValue();
+                    resultDiv.innerHTML = `<p>Test Value reset to: ${value}</p>`;
+                    resultDiv.className = 'test-result success';
+                } else {
+                    resultDiv.innerHTML = '<p>TestPlugin not found</p>';
+                    resultDiv.className = 'test-result error';
+                }
+            } else {
+                resultDiv.innerHTML = '<p>Game or plugins not available</p>';
+                resultDiv.className = 'test-result error';
+            }
+        };
+        
+        window.showPluginRegistryInfo = function() {
+            const infoDiv = document.getElementById('registry-info');
+            
+            if (window.pluginRegistry) {
+                const stats = window.pluginRegistry.getStats();
+                const allPlugins = window.pluginRegistry.getAllPlugins();
+                
+                let html = '<h3>Plugin Registry Information:</h3>';
+                html += `<p><strong>Stats:</strong> ${JSON.stringify(stats, null, 2)}</p>`;
+                html += '<h3>Registered Plugins:</h3>';
+                html += '<ul>';
+                allPlugins.forEach(plugin => {
+                    html += `<li><strong>${plugin.key}:</strong> ${plugin.pluginClass.name} (Installed: ${plugin.isInstalled ? 'Yes' : 'No'})</li>`;
+                });
+                html += '</ul>';
+                
+                infoDiv.innerHTML = html;
+                infoDiv.className = 'test-result success';
+            } else {
+                infoDiv.innerHTML = '<p>Plugin registry not available</p>';
+                infoDiv.className = 'test-result error';
+            }
+        };
+        
+        // Auto-check status when page loads
+        setTimeout(() => {
+            window.checkPluginStatus();
+        }, 2000);
+    </script>
+</body>
+</html>

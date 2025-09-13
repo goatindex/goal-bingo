@@ -1,4 +1,17 @@
-// Boot Scene - Initialize game settings and load assets
+/**
+ * BootScene - Initialize game settings and load assets
+ * 
+ * ARCHITECTURE NOTES:
+ * - Uses game.appStateManager for state management (domain logic)
+ * - Uses game.registry for data persistence (Phaser native)
+ * - Uses game.events for application events (Phaser native)
+ * - No custom plugins - 100% native Phaser capabilities
+ * 
+ * KEY DEPENDENCIES:
+ * - game.appStateManager: ApplicationStateManager instance for domain logic
+ * - game.registry: Phaser's built-in data management system
+ * - game.events: Phaser's built-in event system
+ */
 export default class BootScene extends Phaser.Scene {
     constructor() {
         super({ 
@@ -25,51 +38,22 @@ export default class BootScene extends Phaser.Scene {
     }
 
     create() {
+        console.log('BootScene: create() called');
+        
         // Set up game configuration
         this.cameras.main.setBackgroundColor('#f8f9fa');
         
-        // Wait for StateManager to be ready before proceeding
-        this.waitForStateManager();
-    }
-
-    waitForStateManager() {
-        // Check if both StateManager and StorageManager are available
-        if (this.game.stateManager && this.game.storageManager && 
-            this.game.stateManager.isInitialized && this.game.storageManager.isInitialized) {
-            this.proceedToPreload();
-        } else {
-            // Wait for both managers to be ready
-            this.game.events.once('stateInitialized', () => {
-                // Check if storage manager is also ready
-                if (this.game.storageManager && this.game.storageManager.isInitialized) {
-                    this.proceedToPreload();
-                }
-            });
-            
-            // Set a timeout to prevent infinite waiting
-            this.time.delayedCall(5000, () => {
-                console.warn('Manager initialization timeout, proceeding anyway');
-                this.proceedToPreload();
-            });
-        }
-    }
-
-    proceedToPreload() {
+        // PHASER STANDARD: Transition immediately to next scene
+        // Let Phaser handle the scene lifecycle naturally
         console.log('BootScene: Proceeding to PreloadScene');
-        // Defer the scene transition slightly to allow current scene to complete
-        this.time.delayedCall(100, () => {
-            this.scene.start('PreloadScene');
-        });
+        this.scene.start('PreloadScene');
     }
 
     shutdown() {
-        // Clean up event listeners
-        this.game.events.off('stateInitialized');
-        
         // Clean up timers
         this.time.removeAllEvents();
         
-        // Fallback cleanup
+        // Clean up scene events
         this.events.removeAllListeners();
     }
 }

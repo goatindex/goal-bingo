@@ -70,7 +70,7 @@ export class UserActionLogger {
      */
     setupUserActionLogging() {
         // Check if game and scene manager are available
-        // With SYSTEM_READY event, this should always be available when called
+        // With READY event, this should always be available when called
         if (!this.game || !this.game.scene) {
             this.logger.warn('Scene manager not available during setup - will retry', null, 'UserActionLogger');
             // Retry after a short delay using setTimeout

@@ -16,7 +16,7 @@ export class SceneStateLogger {
      */
     /**
      * ARCHITECTURE NOTE: SceneStateLogger requires game.scene to be available
-     * This is safe at SYSTEM_READY timing as scene manager is available then
+     * This is safe at READY timing as scene manager is available
      * Scene events are accessed through game.events, not game.scene.events
      */
     async initialize() {
@@ -50,9 +50,8 @@ export class SceneStateLogger {
         
         this.logger.info('Starting scene state monitoring', {}, 'SceneStateLogger');
         
-        // ARCHITECTURE NOTE: Scene manager events are accessed through game.events, not game.scene.events
-        // This is a fundamental Phaser 3 architecture constraint
-        // Scene events are global and emitted by the game's event system
+        // PHASER STANDARD: Use game.events for scene manager events
+        // This follows Phaser's documented approach for global scene events
         this.game.events.on(Phaser.Scenes.Events.START, this.onSceneStart, this);
         this.game.events.on(Phaser.Scenes.Events.STOP, this.onSceneStop, this);
         this.game.events.on(Phaser.Scenes.Events.PAUSE, this.onScenePause, this);
@@ -61,6 +60,10 @@ export class SceneStateLogger {
         this.game.events.on(Phaser.Scenes.Events.WAKE, this.onSceneWake, this);
         this.game.events.on(Phaser.Scenes.Events.CREATE, this.onSceneCreate, this);
         this.game.events.on(Phaser.Scenes.Events.DESTROY, this.onSceneDestroy, this);
+
+        // PHASER STANDARD: Register shutdown and destroy event handlers
+        this.game.events.once('shutdown', this.handleShutdown, this);
+        this.game.events.once('destroy', this.handleDestroy, this);
 
         // Monitor individual scene events
         this.monitorIndividualScenes();
@@ -118,6 +121,12 @@ export class SceneStateLogger {
     }
 
     onSceneStart(scene) {
+        // PHASER STANDARD: Validate scene object before accessing properties
+        if (!scene || !scene.scene || !scene.scene.key) {
+            // Silently return during destruction - this is expected behavior
+            return;
+        }
+        
         const sceneKey = scene.scene.key;
         this.logSceneManagerEvent('START', sceneKey, 'Scene started via scene manager');
         this.updateSceneState(sceneKey, 'STARTED');
@@ -125,6 +134,12 @@ export class SceneStateLogger {
     }
 
     onSceneStop(scene) {
+        // PHASER STANDARD: Validate scene object before accessing properties
+        if (!scene || !scene.scene || !scene.scene.key) {
+            // Silently return during destruction - this is expected behavior
+            return;
+        }
+        
         const sceneKey = scene.scene.key;
         this.logSceneManagerEvent('STOP', sceneKey, 'Scene stopped via scene manager');
         this.updateSceneState(sceneKey, 'STOPPED');
@@ -132,30 +147,60 @@ export class SceneStateLogger {
     }
 
     onScenePause(scene) {
+        // PHASER STANDARD: Validate scene object before accessing properties
+        if (!scene || !scene.scene || !scene.scene.key) {
+            // Silently return during destruction - this is expected behavior
+            return;
+        }
+        
         const sceneKey = scene.scene.key;
         this.logSceneManagerEvent('PAUSE', sceneKey, 'Scene paused via scene manager');
         this.updateSceneState(sceneKey, 'PAUSED');
     }
 
     onSceneResume(scene) {
+        // PHASER STANDARD: Validate scene object before accessing properties
+        if (!scene || !scene.scene || !scene.scene.key) {
+            // Silently return during destruction - this is expected behavior
+            return;
+        }
+        
         const sceneKey = scene.scene.key;
         this.logSceneManagerEvent('RESUME', sceneKey, 'Scene resumed via scene manager');
         this.updateSceneState(sceneKey, 'RESUMED');
     }
 
     onSceneSleep(scene) {
+        // PHASER STANDARD: Validate scene object before accessing properties
+        if (!scene || !scene.scene || !scene.scene.key) {
+            // Silently return during destruction - this is expected behavior
+            return;
+        }
+        
         const sceneKey = scene.scene.key;
         this.logSceneManagerEvent('SLEEP', sceneKey, 'Scene put to sleep via scene manager');
         this.updateSceneState(sceneKey, 'SLEEPING');
     }
 
     onSceneWake(scene) {
+        // PHASER STANDARD: Validate scene object before accessing properties
+        if (!scene || !scene.scene || !scene.scene.key) {
+            // Silently return during destruction - this is expected behavior
+            return;
+        }
+        
         const sceneKey = scene.scene.key;
         this.logSceneManagerEvent('WAKE', sceneKey, 'Scene woken via scene manager');
         this.updateSceneState(sceneKey, 'WAKING');
     }
 
     onSceneCreate(scene) {
+        // PHASER STANDARD: Validate scene object before accessing properties
+        if (!scene || !scene.scene || !scene.scene.key) {
+            // Silently return during destruction - this is expected behavior
+            return;
+        }
+        
         const sceneKey = scene.scene.key;
         this.logSceneManagerEvent('CREATE', sceneKey, 'Scene created via scene manager');
         this.updateSceneState(sceneKey, 'CREATED');
@@ -163,6 +208,12 @@ export class SceneStateLogger {
     }
 
     onSceneDestroy(scene) {
+        // PHASER STANDARD: Validate scene object before accessing properties
+        if (!scene || !scene.scene || !scene.scene.key) {
+            // Silently return during destruction - this is expected behavior
+            return;
+        }
+        
         const sceneKey = scene.scene.key;
         this.logSceneManagerEvent('DESTROY', sceneKey, 'Scene destroyed via scene manager');
         this.updateSceneState(sceneKey, 'DESTROYED');
@@ -190,13 +241,28 @@ export class SceneStateLogger {
 
     updateSceneState(sceneKey, state) {
         const previousState = this.sceneStates.get(sceneKey);
+        
+        // PHASER STANDARD: Add null safety checks during scene destruction
+        let isActive = false;
+        let isVisible = false;
+        
+        try {
+            if (this.game && this.game.scene) {
+                isActive = this.game.scene.isActive(sceneKey);
+                isVisible = this.game.scene.isVisible(sceneKey);
+            }
+        } catch (error) {
+            // PHASER STANDARD: Silently handle errors during scene destruction
+            // This is expected behavior when scenes are being destroyed
+        }
+        
         this.sceneStates.set(sceneKey, {
             state,
             previousState,
             timestamp: Date.now(),
-            isActive: this.game.scene.isActive(sceneKey),
-            isVisible: this.game.scene.isVisible(sceneKey),
-            isSleeping: this.game.scene.isSleeping(sceneKey)
+            isActive,
+            isVisible,
+            isSleeping: this.game && this.game.scene ? this.game.scene.isSleeping(sceneKey) : false
         });
     }
 
@@ -216,7 +282,19 @@ export class SceneStateLogger {
     }
 
     getActiveScenes() {
-        return this.game.scene.scenes.filter(scene => scene.scene.isActive());
+        // PHASER STANDARD: Use proper null safety checks during scene destruction
+        if (!this.game || !this.game.scene || !this.game.scene.scenes) {
+            return [];
+        }
+        
+        // PHASER STANDARD: Filter scenes safely, checking for null references
+        return this.game.scene.scenes.filter(scene => {
+            // Check if scene exists and has the required properties before calling isActive()
+            return scene && 
+                   scene.scene && 
+                   typeof scene.scene.isActive === 'function' && 
+                   scene.scene.isActive();
+        });
     }
 
     getSceneStates() {
@@ -269,6 +347,13 @@ export class SceneStateLogger {
             // CLEANUP: Clear scene events array
             this.sceneEvents = [];
             
+            // CLEANUP: Clear data structures
+            this.sceneStates.clear();
+            this.transitionHistory = [];
+            
+            // CLEANUP: Remove any remaining event listeners from individual scenes
+            this.cleanupIndividualSceneListeners();
+            
             // CLEANUP: Reset state flags
             this.isMonitoring = false;
             this.isInitialized = false;
@@ -286,5 +371,52 @@ export class SceneStateLogger {
             console.error('SceneStateLogger: Error during cleanup:', error);
             throw error;
         }
+    }
+
+    /**
+     * PHASER STANDARD: Handle shutdown event
+     * This follows Phaser's documented approach for cleanup during shutdown
+     */
+    handleShutdown() {
+        console.log('SceneStateLogger: Handling shutdown event');
+        this.stopMonitoring();
+        this.cleanupIndividualSceneListeners();
+    }
+
+    /**
+     * PHASER STANDARD: Handle destroy event
+     * This follows Phaser's documented approach for final cleanup
+     */
+    handleDestroy() {
+        console.log('SceneStateLogger: Handling destroy event');
+        this.destroy();
+    }
+
+    /**
+     * PHASER STANDARD: Clean up individual scene event listeners
+     * This follows Phaser's recommended cleanup patterns for scene destruction
+     */
+    cleanupIndividualSceneListeners() {
+        // PHASER STANDARD: Check if game and scene manager are still available
+        if (!this.game || !this.game.scene || !this.game.scene.scenes) {
+            return;
+        }
+        
+        // PHASER STANDARD: Safely iterate through scenes during destruction
+        this.game.scene.scenes.forEach(scene => {
+            // PHASER STANDARD: Check for null scenes and valid event objects
+            if (scene && scene.events && typeof scene.events.off === 'function') {
+                try {
+                    // PHASER STANDARD: Remove event listeners safely
+                    scene.events.off(Phaser.Scenes.Events.CREATE);
+                    scene.events.off(Phaser.Scenes.Events.DESTROY);
+                    scene.events.off(Phaser.Scenes.Events.START);
+                    scene.events.off(Phaser.Scenes.Events.STOP);
+                } catch (error) {
+                    // PHASER STANDARD: Silently handle cleanup errors during destruction
+                    // This is expected behavior when scenes are being destroyed
+                }
+            }
+        });
     }
 }

@@ -72,6 +72,8 @@ export class DebugTools {
             // Scene management tools
             transitionToScene: (sceneKey) => this.transitionToScene(sceneKey),
             getSceneInfo: () => this.getSceneInfo(),
+            getSceneInstance: (sceneKey) => this.getSceneInstance(sceneKey),
+            callSceneMethod: (sceneKey, methodName, ...args) => this.callSceneMethod(sceneKey, methodName, ...args),
             
             // Utility tools
             exportDebugData: () => this.exportDebugData(),
@@ -92,11 +94,11 @@ export class DebugTools {
      */
     getGameState() {
         try {
-            const stateManager = this.game.stateManager;
-            if (stateManager && stateManager.getApplicationState) {
-                return stateManager.getApplicationState();
+            const appStateManager = this.game.appStateManager;
+            if (appStateManager && appStateManager.getApplicationState) {
+                return appStateManager.getApplicationState();
             }
-            return { error: 'StateManager not available' };
+            return { error: 'ApplicationStateManager not available' };
         } catch (error) {
             this.logger.error('Error getting game state', { error: error.message }, 'DebugTools');
             return { error: error.message };
@@ -105,11 +107,29 @@ export class DebugTools {
 
     /**
      * Get active scenes
+     * 
+     * PHASER SCENE ACCESS PATTERN:
+     * - game.scene.scenes returns array of Scene Systems objects
+     * - Each Scene Systems object has a 'scene' property that references the actual Scene class instance
+     * - Scene class instance has methods like create(), init(), preload(), etc.
+     * - Scene Systems object has methods like isActive(), isPaused(), isVisible(), etc.
      */
     getActiveScenes() {
         try {
+            // PHASER STANDARD: Add null safety checks during scene destruction
+            if (!this.game || !this.game.scene || !this.game.scene.scenes) {
+                return [];
+            }
+            
             const activeScenes = this.game.scene.scenes
-                .filter(scene => scene.scene.isActive())
+                .filter(scene => {
+                    // PHASER STANDARD: Check for null scenes and valid methods
+                    // scene.scene is the Scene Systems object, not the Scene class instance
+                    return scene && 
+                           scene.scene && 
+                           typeof scene.scene.isActive === 'function' && 
+                           scene.scene.isActive();
+                })
                 .map(scene => ({
                     key: scene.scene.key,
                     isRunning: scene.scene.isActive(),
@@ -171,21 +191,20 @@ export class DebugTools {
      */
     getDataManagerInfo() {
         try {
-            const stateManager = this.game.stateManager;
-            if (stateManager && stateManager.dataManager) {
-                const dataManager = stateManager.dataManager;
+            const appStateManager = this.game.appStateManager;
+            if (appStateManager) {
                 return {
-                    hasDataManager: true,
-                    dataKeys: Object.keys(dataManager.list),
-                    dataCount: Object.keys(dataManager.list).length,
-                    hasAppState: dataManager.has('appState'),
-                    hasGoals: dataManager.has('goals'),
-                    hasRewards: dataManager.has('rewards'),
-                    hasCategories: dataManager.has('categories'),
-                    hasGameState: dataManager.has('gameState')
+                    hasAppStateManager: true,
+                    isInitialized: appStateManager.isInitialized,
+                    dataKeys: Object.keys(this.game.registry.list),
+                    dataCount: Object.keys(this.game.registry.list).length,
+                    hasGoals: this.game.registry.has('goals'),
+                    hasRewards: this.game.registry.has('rewards'),
+                    hasCategories: this.game.registry.has('categories'),
+                    hasGameState: this.game.registry.has('gameState')
                 };
             }
-            return { hasDataManager: false, error: 'DataManager not available' };
+            return { hasAppStateManager: false, error: 'ApplicationStateManager not available' };
         } catch (error) {
             this.logger.error('Error getting data manager info', { error: error.message }, 'DebugTools');
             return { error: error.message };
@@ -256,6 +275,76 @@ export class DebugTools {
             };
         } catch (error) {
             this.logger.error('Error getting scene info', { error: error.message }, 'DebugTools');
+            return { error: error.message };
+        }
+    }
+
+    /**
+     * Get Scene class instance for a specific scene key
+     * 
+     * PHASER SCENE ACCESS PATTERN:
+     * - This method provides access to the actual Scene class instance
+     * - Scene class instance has methods like create(), init(), preload(), update(), etc.
+     * - Use this when you need to call Scene lifecycle methods directly
+     * 
+     * @param {string} sceneKey - The scene key to get the instance for
+     * @returns {Phaser.Scene|null} The Scene class instance or null if not found
+     */
+    getSceneInstance(sceneKey) {
+        try {
+            if (!this.game || !this.game.scene || !this.game.scene.scenes) {
+                return null;
+            }
+            
+            const sceneSystems = this.game.scene.scenes.find(scene => 
+                scene && scene.scene && scene.scene.key === sceneKey
+            );
+            
+            if (!sceneSystems || !sceneSystems.scene) {
+                return null;
+            }
+            
+            // PHASER STANDARD: Return the actual Scene class instance
+            // This is the object that has create(), init(), preload(), etc. methods
+            return sceneSystems.scene;
+        } catch (error) {
+            this.logger.error('Error getting scene instance', { error: error.message, sceneKey }, 'DebugTools');
+            return null;
+        }
+    }
+
+    /**
+     * Call a method on a Scene class instance
+     * 
+     * PHASER SCENE ACCESS PATTERN:
+     * - This method safely calls methods on the actual Scene class instance
+     * - Use this for calling Scene lifecycle methods like create(), init(), etc.
+     * 
+     * @param {string} sceneKey - The scene key
+     * @param {string} methodName - The method name to call
+     * @param {...any} args - Arguments to pass to the method
+     * @returns {any} The result of the method call or error information
+     */
+    callSceneMethod(sceneKey, methodName, ...args) {
+        try {
+            const sceneInstance = this.getSceneInstance(sceneKey);
+            
+            if (!sceneInstance) {
+                return { error: `Scene instance not found for key: ${sceneKey}` };
+            }
+            
+            if (typeof sceneInstance[methodName] !== 'function') {
+                return { error: `Method ${methodName} not found on scene ${sceneKey}` };
+            }
+            
+            const result = sceneInstance[methodName](...args);
+            return { success: true, result };
+        } catch (error) {
+            this.logger.error('Error calling scene method', { 
+                error: error.message, 
+                sceneKey, 
+                methodName 
+            }, 'DebugTools');
             return { error: error.message };
         }
     }
@@ -367,6 +456,8 @@ export class DebugTools {
                 'getStorageInfo()': 'Get storage information',
                 'transitionToScene(sceneKey)': 'Transition to specific scene',
                 'getSceneInfo()': 'Get detailed scene information',
+                'getSceneInstance(sceneKey)': 'Get Scene class instance for direct method access',
+                'callSceneMethod(sceneKey, methodName, ...args)': 'Call a method on a Scene class instance',
                 'exportDebugData()': 'Export comprehensive debug data',
                 'simulateError()': 'Simulate an error for testing',
                 'getSystemInfo()': 'Get system information',
@@ -376,7 +467,9 @@ export class DebugTools {
                 'debugTools.getLogs({ level: "error" })': 'Get only error logs',
                 'debugTools.getActions({ action: "scene_transition" })': 'Get scene transition actions',
                 'debugTools.setLogLevel("debug")': 'Set log level to debug',
-                'debugTools.transitionToScene("MainMenuScene")': 'Go to main menu'
+                'debugTools.transitionToScene("MainMenuScene")': 'Go to main menu',
+                'debugTools.getSceneInstance("GoalLibraryScene")': 'Get GoalLibraryScene class instance',
+                'debugTools.callSceneMethod("GoalLibraryScene", "create")': 'Call create() on GoalLibraryScene'
             }
         };
         

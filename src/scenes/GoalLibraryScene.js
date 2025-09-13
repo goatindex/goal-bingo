@@ -1,5 +1,18 @@
-// Goal Library Scene - Manage goals and categories
-// Comprehensive goal management interface following Phaser best practices
+/**
+ * GoalLibraryScene - Manage goals and categories
+ * Comprehensive goal management interface following Phaser best practices
+ * 
+ * ARCHITECTURE NOTES:
+ * - Uses game.appStateManager for state management (domain logic)
+ * - Uses game.registry for data persistence (Phaser native)
+ * - Uses game.events for application events (Phaser native)
+ * - No custom plugins - 100% native Phaser capabilities
+ * 
+ * KEY DEPENDENCIES:
+ * - game.appStateManager: ApplicationStateManager instance for domain logic
+ * - game.registry: Phaser's built-in data management system
+ * - game.events: Phaser's built-in event system
+ */
 import { GoalCard } from '../components/GoalCard.js';
 import { AddGoalModal } from '../components/AddGoalModal.js';
 
@@ -330,9 +343,9 @@ export default class GoalLibraryScene extends Phaser.Scene {
     }
 
     loadGoals() {
-        // Load goals from StateManager
-        if (this.game.stateManager) {
-            const goals = this.game.stateManager.getGoals();
+        // Load goals from AppStateManager
+        if (this.game.appStateManager) {
+            const goals = this.game.appStateManager.getGoals();
             this.updateStats(goals);
             this.renderGoalCards(goals);
         }
@@ -561,7 +574,7 @@ export default class GoalLibraryScene extends Phaser.Scene {
 
     onGoalSaved(goalData) {
         console.log('Goal saved:', goalData);
-        // Goals will be automatically updated via StateManager events
+        // Goals will be automatically updated via ApplicationStateManager events
         // No need to manually refresh - the onGoalsChanged event will handle it
     }
 

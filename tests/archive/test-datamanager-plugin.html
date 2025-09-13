@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataManagerPlugin Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .info {
+            color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DataManagerPlugin Test</h1>
+        <p>This page tests the DataManagerPlugin functionality after migrating from StateManager.</p>
+        
+        <div class="test-section">
+            <h3>Game Controls</h3>
+            <button onclick="window.testCleanup()">Cleanup Game</button>
+            <button onclick="window.testRecreation()">Recreate Game</button>
+            <button onclick="testPluginStatus()">Check Plugin Status</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>DataManagerPlugin Tests</h3>
+            <button onclick="testDataManagerPlugin()">Test DataManagerPlugin</button>
+            <button onclick="testDataOperations()">Test Data Operations</button>
+            <button onclick="testEventSystem()">Test Event System</button>
+            <button onclick="testGoalOperations()">Test Goal Operations</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Output</h3>
+            <div id="output" class="output">Ready to test...</div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+    <script type="module">
+        let outputDiv = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            outputDiv.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
+        function clearOutput() {
+            outputDiv.innerHTML = '';
+        }
+        
+        window.testPluginStatus = function() {
+            clearOutput();
+            log('=== Plugin Status Check ===');
+            
+            if (window.game) {
+                log('Game instance found', 'success');
+                
+                // Check if DataManagerPlugin is available
+                const dataManagerPlugin = window.game.plugins.get('DataManagerPlugin');
+                if (dataManagerPlugin) {
+                    log('DataManagerPlugin found', 'success');
+                    log(`Plugin enabled: ${dataManagerPlugin.isPluginEnabled}`, 'info');
+                    log(`Plugin status: ${JSON.stringify(dataManagerPlugin.getStatus())}`, 'info');
+                } else {
+                    log('DataManagerPlugin NOT found', 'error');
+                }
+                
+                // Check if old StateManager is still there
+                if (window.game.stateManager) {
+                    log('WARNING: Old StateManager still present', 'error');
+                } else {
+                    log('Old StateManager properly removed', 'success');
+                }
+                
+                // Check global references
+                if (window.dataManagerPlugin) {
+                    log('Global dataManagerPlugin reference found', 'success');
+                } else {
+                    log('Global dataManagerPlugin reference NOT found', 'error');
+                }
+                
+            } else {
+                log('No game instance found', 'error');
+            }
+        };
+        
+        window.testDataManagerPlugin = function() {
+            clearOutput();
+            log('=== DataManagerPlugin Basic Test ===');
+            
+            if (!window.game) {
+                log('No game instance found', 'error');
+                return;
+            }
+            
+            const dataManagerPlugin = window.game.plugins.get('DataManagerPlugin');
+            if (!dataManagerPlugin) {
+                log('DataManagerPlugin not found', 'error');
+                return;
+            }
+            
+            try {
+                // Test basic functionality
+                log('Testing basic plugin functionality...', 'info');
+                
+                // Test getApplicationState
+                const appState = dataManagerPlugin.getApplicationState();
+                if (appState) {
+                    log('getApplicationState() works', 'success');
+                } else {
+                    log('getApplicationState() returned null', 'error');
+                }
+                
+                // Test getGoals
+                const goals = dataManagerPlugin.getGoals();
+                log(`getGoals() returned ${goals.length} goals`, 'info');
+                
+                // Test getGameState
+                const gameState = dataManagerPlugin.getGameState();
+                log(`getGameState() returned: ${JSON.stringify(gameState)}`, 'info');
+                
+                // Test getSettings
+                const settings = dataManagerPlugin.getSettings();
+                log(`getSettings() returned: ${JSON.stringify(settings)}`, 'info');
+                
+                log('DataManagerPlugin basic test completed', 'success');
+                
+            } catch (error) {
+                log(`Error testing DataManagerPlugin: ${error.message}`, 'error');
+            }
+        };
+        
+        window.testDataOperations = function() {
+            clearOutput();
+            log('=== Data Operations Test ===');
+            
+            if (!window.game) {
+                log('No game instance found', 'error');
+                return;
+            }
+            
+            const dataManagerPlugin = window.game.plugins.get('DataManagerPlugin');
+            if (!dataManagerPlugin) {
+                log('DataManagerPlugin not found', 'error');
+                return;
+            }
+            
+            try {
+                // Test data setting and getting
+                log('Testing data operations...', 'info');
+                
+                // Test setData/getData
+                dataManagerPlugin.setData('testKey', 'testValue');
+                const retrievedValue = dataManagerPlugin.getData('testKey');
+                if (retrievedValue === 'testValue') {
+                    log('setData/getData works', 'success');
+                } else {
+                    log(`setData/getData failed: expected 'testValue', got '${retrievedValue}'`, 'error');
+                }
+                
+                // Test batch data setting
+                dataManagerPlugin.setData({
+                    testKey1: 'value1',
+                    testKey2: 'value2',
+                    testKey3: { nested: 'object' }
+                });
+                
+                const value1 = dataManagerPlugin.getData('testKey1');
+                const value2 = dataManagerPlugin.getData('testKey2');
+                const value3 = dataManagerPlugin.getData('testKey3');
+                
+                if (value1 === 'value1' && value2 === 'value2' && value3.nested === 'object') {
+                    log('Batch data setting works', 'success');
+                } else {
+                    log('Batch data setting failed', 'error');
+                }
+                
+                log('Data operations test completed', 'success');
+                
+            } catch (error) {
+                log(`Error testing data operations: ${error.message}`, 'error');
+            }
+        };
+        
+        window.testEventSystem = function() {
+            clearOutput();
+            log('=== Event System Test ===');
+            
+            if (!window.game) {
+                log('No game instance found', 'error');
+                return;
+            }
+            
+            const dataManagerPlugin = window.game.plugins.get('DataManagerPlugin');
+            if (!dataManagerPlugin) {
+                log('DataManagerPlugin not found', 'error');
+                return;
+            }
+            
+            try {
+                log('Testing event system...', 'info');
+                
+                // Test event listening
+                let eventReceived = false;
+                const testCallback = (key, value, oldValue) => {
+                    log(`Event received: ${key} = ${value} (was: ${oldValue})`, 'success');
+                    eventReceived = true;
+                };
+                
+                // Listen for data changes
+                window.game.events.on('dataChanged', testCallback);
+                
+                // Trigger a data change
+                dataManagerPlugin.setData('eventTestKey', 'eventTestValue');
+                
+                // Wait a bit for the event
+                setTimeout(() => {
+                    if (eventReceived) {
+                        log('Event system works', 'success');
+                    } else {
+                        log('Event system failed - no event received', 'error');
+                    }
+                    
+                    // Clean up
+                    window.game.events.off('dataChanged', testCallback);
+                }, 100);
+                
+            } catch (error) {
+                log(`Error testing event system: ${error.message}`, 'error');
+            }
+        };
+        
+        window.testGoalOperations = function() {
+            clearOutput();
+            log('=== Goal Operations Test ===');
+            
+            if (!window.game) {
+                log('No game instance found', 'error');
+                return;
+            }
+            
+            const dataManagerPlugin = window.game.plugins.get('DataManagerPlugin');
+            if (!dataManagerPlugin) {
+                log('DataManagerPlugin not found', 'error');
+                return;
+            }
+            
+            try {
+                log('Testing goal operations...', 'info');
+                
+                // Test adding a goal
+                const testGoal = {
+                    id: 'test-goal-' + Date.now(),
+                    text: 'Test Goal',
+                    category: 'test',
+                    priority: 'medium',
+                    state: 'to-do',
+                    createdAt: new Date().toISOString()
+                };
+                
+                const addedGoal = dataManagerPlugin.addGoal(testGoal);
+                if (addedGoal) {
+                    log('addGoal() works', 'success');
+                } else {
+                    log('addGoal() failed', 'error');
+                }
+                
+                // Test getting goals
+                const goals = dataManagerPlugin.getGoals();
+                const foundGoal = goals.find(g => g.id === testGoal.id);
+                if (foundGoal) {
+                    log('Goal found in getGoals()', 'success');
+                } else {
+                    log('Goal not found in getGoals()', 'error');
+                }
+                
+                // Test updating a goal
+                const updatedGoal = dataManagerPlugin.updateGoal(testGoal.id, { 
+                    text: 'Updated Test Goal',
+                    state: 'in-play'
+                });
+                if (updatedGoal && updatedGoal.text === 'Updated Test Goal') {
+                    log('updateGoal() works', 'success');
+                } else {
+                    log('updateGoal() failed', 'error');
+                }
+                
+                // Test removing a goal
+                const removedGoal = dataManagerPlugin.removeGoal(testGoal.id);
+                if (removedGoal) {
+                    log('removeGoal() works', 'success');
+                } else {
+                    log('removeGoal() failed', 'error');
+                }
+                
+                log('Goal operations test completed', 'success');
+                
+            } catch (error) {
+                log(`Error testing goal operations: ${error.message}`, 'error');
+            }
+        };
+        
+        // Auto-run basic test when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('Page loaded, running basic test...', 'info');
+                testPluginStatus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -25,7 +25,7 @@ export class Logger {
 
     /**
      * Initialize the logger after game systems are ready
-     * ARCHITECTURE NOTE: Logger can be initialized at SYSTEM_READY because it only needs game.events
+     * ARCHITECTURE NOTE: Logger can be initialized at READY because it only needs game.events
      * This follows the Lazy Initialization Pattern from our timing architecture
      * Logger is a core system with minimal dependencies
      * @returns {Promise<void>}
@@ -38,7 +38,7 @@ export class Logger {
         }
         
         // ARCHITECTURE NOTE: Phaser event logging requires game.events to be available
-        // This is safe at SYSTEM_READY timing as game.events is available at READY
+        // This is safe at READY timing as game.events is available
         if (this.config.enablePhaserEvents) {
             this.setupPhaserEventLogging();
         }

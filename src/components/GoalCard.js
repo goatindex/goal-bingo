@@ -1,355 +1,238 @@
 /**
- * GoalCard - Individual goal display component
- * Extends Phaser.GameObjects.Container for proper organization and interaction
+ * GoalCard - Phaser-based goal card component
+ * 
+ * PHASER COMPLIANCE:
+ * - Extends Phaser.GameObjects.Container for proper scene integration
+ * - Uses native Phaser input events and interaction patterns
+ * - Follows Phaser component lifecycle and event emission patterns
+ * - No custom plugins - 100% native Phaser capabilities
+ * 
+ * ARCHITECTURE NOTES:
+ * - Container-based component for easy management and positioning
+ * - Event-driven design using Phaser's EventEmitter
+ * - Proper cleanup and destruction following Phaser patterns
+ * - Interactive elements using Phaser input system
  */
+
 export class GoalCard extends Phaser.GameObjects.Container {
-    constructor(scene, x, y, goal, options = {}) {
+    constructor(scene, x, y, goalData, options = {}) {
         super(scene, x, y);
         
-        // Store references
-        this.scene = scene;
-        this.goal = goal;
+        // Store configuration
+        this.goalData = goalData;
+        this.options = {
+            width: 300,
+            height: 120,
+            padding: 10,
+            ...options
+        };
         
-        // Card dimensions and styling
-        this.cardWidth = options.width || 300;
-        this.cardHeight = options.height || 120;
+        // Component state
         this.isSelected = false;
         this.isHovered = false;
         
-        // Create card elements
-        this.createBackground();
-        this.createTextElements();
-        this.createStateIndicator();
-        this.createActionButtons();
+        // Create the card visual elements
+        this.createCardElements();
         
-        // Set up interactions
-        this.setupInteractions();
+        // Set up interactivity
+        this.setupInteractivity();
         
-        // Add to scene
+        // Add to scene (Phaser pattern)
         scene.add.existing(this);
-    }
-
-    createBackground() {
-        // Main card background
-        this.background = this.scene.add.rectangle(0, 0, this.cardWidth, this.cardHeight, 0xffffff);
-        this.background.setStrokeStyle(2, 0xdee2e6);
         
-        // State indicator bar (top edge)
-        this.stateBar = this.scene.add.rectangle(0, -this.cardHeight/2 + 3, this.cardWidth, 6, this.getStateColor());
-        
-        // Add background elements to container
-        this.add([this.background, this.stateBar]);
+        // Enable data management
+        this.setDataEnabled();
+        this.setData('goalData', goalData);
     }
-
-    createTextElements() {
+    
+    createCardElements() {
+        const { width, height, padding } = this.options;
+        
+        // Card background
+        this.cardBackground = this.scene.add.rectangle(0, 0, width, height, 0xffffff);
+        this.cardBackground.setStrokeStyle(2, 0xe9ecef);
+        this.add(this.cardBackground);
+        
+        // Status indicator (colored bar on left)
+        const statusColor = this.getStatusColor(this.goalData.state);
+        this.statusBar = this.scene.add.rectangle(-width/2 + 5, 0, 6, height - 10, statusColor);
+        this.add(this.statusBar);
+        
         // Goal title
-        this.titleText = this.scene.add.text(0, -20, this.goal.text || 'Untitled Goal', {
+        this.titleText = this.scene.add.text(-width/2 + 20, -height/2 + 15, this.goalData.text || 'Untitled Goal', {
             fontSize: '16px',
             fill: '#333333',
             fontStyle: 'bold',
-            wordWrap: { width: this.cardWidth - 40 },
-            align: 'center'
-        }).setOrigin(0.5);
+            wordWrap: { width: width - 40 }
+        }).setOrigin(0, 0);
+        this.add(this.titleText);
         
-        // Goal state
-        this.stateText = this.scene.add.text(0, 10, this.goal.state || 'to-do', {
+        // Goal description
+        this.descriptionText = this.scene.add.text(-width/2 + 20, -height/2 + 35, this.goalData.description || 'No description', {
             fontSize: '12px',
             fill: '#666666',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
+            wordWrap: { width: width - 40 }
+        }).setOrigin(0, 0);
+        this.add(this.descriptionText);
         
-        // Create category tags and date info first
-        this.createCategoryTags();
-        this.createDateInfo();
-        
-        // Collect all text elements for adding to container
-        const textElements = [this.titleText, this.stateText];
-        
-        // Add category tags if they exist
-        if (this.categoryTags && this.categoryTags.length > 0) {
-            textElements.push(...this.categoryTags);
-        }
-        
-        // Add date elements if they exist
-        if (this.createdText) textElements.push(this.createdText);
-        if (this.completedText) textElements.push(this.completedText);
-        
-        // Add all text elements to container
-        this.add(textElements);
-    }
-
-    createCategoryTags() {
-        this.categoryTags = [];
-        
-        if (this.goal.categories && this.goal.categories.length > 0) {
-            this.goal.categories.forEach((category, index) => {
-                const tag = this.scene.add.rectangle(
-                    -this.cardWidth/2 + 20 + (index * 60), 
-                    30, 
-                    50, 
-                    20, 
-                    this.getCategoryColor(category)
-                );
-                tag.setStrokeStyle(1, 0xffffff);
-                
-                const tagText = this.scene.add.text(tag.x, tag.y, category, {
-                    fontSize: '10px',
-                    fill: '#ffffff',
-                    fontStyle: 'bold'
-                }).setOrigin(0.5);
-                
-                // Store for later addition to container
-                this.categoryTags.push(tag, tagText);
-            });
-        }
-    }
-
-    createDateInfo() {
-        const dateY = 40;
-        
-        // Created date
-        if (this.goal.createdAt) {
-            this.createdText = this.scene.add.text(-this.cardWidth/2 + 10, dateY, 
-                `Created: ${this.formatDate(this.goal.createdAt)}`, {
+        // Category badge
+        if (this.goalData.category) {
+            this.categoryBadge = this.scene.add.rectangle(width/2 - 15, -height/2 + 15, 60, 20, 0x007bff);
+            this.categoryBadge.setStrokeStyle(1, 0x0056b3);
+            this.add(this.categoryBadge);
+            
+            this.categoryText = this.scene.add.text(width/2 - 15, -height/2 + 15, this.goalData.category, {
                 fontSize: '10px',
-                fill: '#999999'
-            }).setOrigin(0, 0.5);
+                fill: '#ffffff',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            this.add(this.categoryText);
         }
         
-        // Completed date
-        if (this.goal.completedAt) {
-            this.completedText = this.scene.add.text(this.cardWidth/2 - 10, dateY, 
-                `Completed: ${this.formatDate(this.goal.completedAt)}`, {
-                fontSize: '10px',
-                fill: '#28a745'
-            }).setOrigin(1, 0.5);
-        }
-    }
-
-    createStateIndicator() {
-        // State icon
-        const stateIcon = this.getStateIcon();
-        this.stateIcon = this.scene.add.text(this.cardWidth/2 - 15, -this.cardHeight/2 + 15, stateIcon, {
-            fontSize: '16px'
-        }).setOrigin(1, 0);
+        // Action buttons container
+        this.createActionButtons();
         
-        // Add state indicator to container
-        this.add([this.stateIcon]);
+        // Set initial state
+        this.updateVisualState();
     }
-
+    
     createActionButtons() {
-        this.actionButtons = [];
+        const { width, height } = this.options;
+        const buttonY = height/2 - 20;
         
         // Edit button
-        this.editBtn = this.scene.add.rectangle(this.cardWidth/2 - 30, this.cardHeight/2 - 15, 20, 20, 0x007bff);
-        this.editBtn.setStrokeStyle(1, 0xffffff);
-        this.editBtn.setInteractive();
+        this.editButton = this.scene.add.rectangle(-width/2 + 30, buttonY, 50, 25, 0x28a745);
+        this.editButton.setStrokeStyle(1, 0x1e7e34);
+        this.editButton.setInteractive();
+        this.add(this.editButton);
         
-        const editIcon = this.scene.add.text(this.editBtn.x, this.editBtn.y, '✏️', {
-            fontSize: '10px'
+        this.editText = this.scene.add.text(-width/2 + 30, buttonY, 'Edit', {
+            fontSize: '10px',
+            fill: '#ffffff',
+            fontStyle: 'bold'
         }).setOrigin(0.5);
+        this.add(this.editText);
         
         // Delete button
-        this.deleteBtn = this.scene.add.rectangle(this.cardWidth/2 - 5, this.cardHeight/2 - 15, 20, 20, 0xdc3545);
-        this.deleteBtn.setStrokeStyle(1, 0xffffff);
-        this.deleteBtn.setInteractive();
+        this.deleteButton = this.scene.add.rectangle(width/2 - 30, buttonY, 50, 25, 0xdc3545);
+        this.deleteButton.setStrokeStyle(1, 0xc82333);
+        this.deleteButton.setInteractive();
+        this.add(this.deleteButton);
         
-        const deleteIcon = this.scene.add.text(this.deleteBtn.x, this.deleteBtn.y, '🗑️', {
-            fontSize: '10px'
+        this.deleteText = this.scene.add.text(width/2 - 30, buttonY, 'Delete', {
+            fontSize: '10px',
+            fill: '#ffffff',
+            fontStyle: 'bold'
         }).setOrigin(0.5);
-        
-        // Store action buttons for later addition
-        this.actionButtons.push(this.editBtn, editIcon, this.deleteBtn, deleteIcon);
-        
-        // Add all action buttons to container at once
-        this.add(this.actionButtons);
-        
-        // Initially hide action buttons
-        this.actionButtons.forEach(btn => btn.setVisible(false));
+        this.add(this.deleteText);
     }
-
-    setupInteractions() {
-        // CORRECT - use proper hit area geometry
-        this.setInteractive(
-            new Phaser.Geom.Rectangle(0, 0, this.cardWidth, this.cardHeight),
-            Phaser.Geom.Rectangle.Contains
-        );
+    
+    setupInteractivity() {
+        // Make the entire card interactive
+        this.setInteractive(new Phaser.Geom.Rectangle(-this.options.width/2, -this.options.height/2, this.options.width, this.options.height), Phaser.Geom.Rectangle.Contains);
         
-        // Main card interactions
-        this.on('pointerdown', () => {
+        // Card selection
+        this.on(Phaser.Input.Events.POINTER_DOWN, () => {
             this.toggleSelection();
         });
         
-        this.on('pointerover', () => {
+        // Hover effects
+        this.on(Phaser.Input.Events.POINTER_OVER, () => {
             this.setHovered(true);
         });
         
-        this.on('pointerout', () => {
+        this.on(Phaser.Input.Events.POINTER_OUT, () => {
             this.setHovered(false);
         });
         
-        // Action button interactions
-        this.editBtn.on('pointerdown', (event) => {
-            event.stopPropagation();
-            this.editGoal();
+        // Action button events
+        this.editButton.on(Phaser.Input.Events.POINTER_DOWN, (event) => {
+            event.stopPropagation(); // Prevent card selection
+            this.emit('goalCardEdit', this.goalData);
         });
         
-        this.deleteBtn.on('pointerdown', (event) => {
-            event.stopPropagation();
-            this.deleteGoal();
+        this.deleteButton.on(Phaser.Input.Events.POINTER_DOWN, (event) => {
+            event.stopPropagation(); // Prevent card selection
+            this.emit('goalCardDelete', this.goalData);
+        });
+        
+        // Button hover effects
+        this.setupButtonHoverEffects();
+    }
+    
+    setupButtonHoverEffects() {
+        // Edit button hover
+        this.editButton.on(Phaser.Input.Events.POINTER_OVER, () => {
+            this.editButton.setScale(1.05);
+            this.editButton.setFillStyle(0x218838);
+        });
+        
+        this.editButton.on(Phaser.Input.Events.POINTER_OUT, () => {
+            this.editButton.setScale(1);
+            this.editButton.setFillStyle(0x28a745);
+        });
+        
+        // Delete button hover
+        this.deleteButton.on(Phaser.Input.Events.POINTER_OVER, () => {
+            this.deleteButton.setScale(1.05);
+            this.deleteButton.setFillStyle(0xc82333);
+        });
+        
+        this.deleteButton.on(Phaser.Input.Events.POINTER_OUT, () => {
+            this.deleteButton.setScale(1);
+            this.deleteButton.setFillStyle(0xdc3545);
         });
     }
-
-    setHovered(hovered) {
-        this.isHovered = hovered;
-        this.updateAppearance();
+    
+    getStatusColor(state) {
+        const colors = {
+            'to-do': 0x6c757d,      // Gray
+            'in-play': 0x007bff,    // Blue
+            'completed': 0x28a745   // Green
+        };
+        return colors[state] || colors['to-do'];
     }
-
-    setSelected(selected) {
-        this.isSelected = selected;
-        this.updateAppearance();
-    }
-
+    
     toggleSelection() {
         this.setSelected(!this.isSelected);
-        
-        // Emit selection event
-        this.scene.events.emit('goalCardSelected', this.goal, this.isSelected);
     }
-
-    updateAppearance() {
+    
+    setSelected(selected) {
+        this.isSelected = selected;
+        this.updateVisualState();
+        this.emit('goalCardSelected', this.goalData, selected);
+    }
+    
+    setHovered(hovered) {
+        this.isHovered = hovered;
+        this.updateVisualState();
+    }
+    
+    updateVisualState() {
         if (this.isSelected) {
-            this.background.setFillStyle(0xe3f2fd);
-            this.background.setStrokeStyle(3, 0x2196f3);
-            this.actionButtons.forEach(btn => btn.setVisible(true));
+            this.cardBackground.setStrokeStyle(3, 0x007bff);
+            this.cardBackground.setFillStyle(0xf8f9ff);
         } else if (this.isHovered) {
-            this.background.setFillStyle(0xf8f9fa);
-            this.background.setStrokeStyle(2, 0x007bff);
-            this.actionButtons.forEach(btn => btn.setVisible(true));
+            this.cardBackground.setStrokeStyle(2, 0x007bff);
+            this.cardBackground.setFillStyle(0xffffff);
         } else {
-            this.background.setFillStyle(0xffffff);
-            this.background.setStrokeStyle(2, 0xdee2e6);
-            this.actionButtons.forEach(btn => btn.setVisible(false));
+            this.cardBackground.setStrokeStyle(2, 0xe9ecef);
+            this.cardBackground.setFillStyle(0xffffff);
         }
     }
-
-    updateGoal(goal) {
-        this.goal = goal;
-        this.titleText.setText(goal.text || 'Untitled Goal');
-        this.stateText.setText(goal.state || 'to-do');
-        this.stateBar.setFillStyle(this.getStateColor());
-        this.stateIcon.setText(this.getStateIcon());
-        
-        // Update category tags
-        this.updateCategoryTags();
-        
-        // Update date info
-        this.updateDateInfo();
-    }
-
-    updateCategoryTags() {
-        // Clear existing tags
-        this.categoryTags.forEach(tag => tag.destroy());
-        this.categoryTags = [];
-        
-        if (this.goal.categories && this.goal.categories.length > 0) {
-            // Create all tag objects first
-            this.goal.categories.forEach((category, index) => {
-                const tag = this.scene.add.rectangle(
-                    -this.cardWidth/2 + 20 + (index * 60), 
-                    30, 
-                    50, 
-                    20, 
-                    this.getCategoryColor(category)
-                );
-                tag.setStrokeStyle(1, 0xffffff);
-                
-                const tagText = this.scene.add.text(tag.x, tag.y, category, {
-                    fontSize: '10px',
-                    fill: '#ffffff',
-                    fontStyle: 'bold'
-                }).setOrigin(0.5);
-                
-                // Store for later addition to container
-                this.categoryTags.push(tag, tagText);
-            });
-            
-            // Add all tags to container at once (following Phaser Container pattern)
-            this.add(this.categoryTags);
-        }
-    }
-
-    updateDateInfo() {
-        // Update created date
-        if (this.createdText) {
-            this.createdText.setText(`Created: ${this.formatDate(this.goal.createdAt)}`);
-        }
-        
-        // Update completed date
-        if (this.completedText) {
-            if (this.goal.completedAt) {
-                this.completedText.setText(`Completed: ${this.formatDate(this.goal.completedAt)}`);
-                this.completedText.setVisible(true);
-            } else {
-                this.completedText.setVisible(false);
-            }
-        }
-    }
-
-    editGoal() {
-        // Emit edit event
-        this.scene.events.emit('goalCardEdit', this.goal);
-    }
-
-    deleteGoal() {
-        // Emit delete event
-        this.scene.events.emit('goalCardDelete', this.goal);
-    }
-
-    getStateColor() {
-        switch (this.goal.state) {
-            case 'completed':
-                return 0x28a745; // Green
-            case 'in-play':
-                return 0xffc107; // Yellow
-            case 'to-do':
-                return 0x6c757d; // Gray
-            default:
-                return 0x6c757d;
-        }
-    }
-
-    getStateIcon() {
-        switch (this.goal.state) {
-            case 'completed':
-                return '✅';
-            case 'in-play':
-                return '🎯';
-            case 'to-do':
-                return '📝';
-            default:
-                return '📝';
-        }
-    }
-
-    getCategoryColor(category) {
-        // Simple color mapping - could be enhanced with actual category colors
-        const colors = [0x007bff, 0x28a745, 0xffc107, 0xdc3545, 0x6f42c1, 0xfd7e14];
-        const hash = category.split('').reduce((a, b) => {
-            a = ((a << 5) - a) + b.charCodeAt(0);
-            return a & a;
-        }, 0);
-        return colors[Math.abs(hash) % colors.length];
-    }
-
-    formatDate(date) {
-        if (!date) return 'Unknown';
-        return new Date(date).toLocaleDateString();
-    }
-
-    // Animation methods
+    
     animateAppearance() {
-        this.setScale(0);
+        // Fade in animation
+        this.setAlpha(0);
+        this.scene.tweens.add({
+            targets: this,
+            alpha: 1,
+            duration: 300,
+            ease: 'Power2'
+        });
+        
+        // Scale animation
+        this.setScale(0.8);
         this.scene.tweens.add({
             targets: this,
             scaleX: 1,
@@ -358,36 +241,51 @@ export class GoalCard extends Phaser.GameObjects.Container {
             ease: 'Back.easeOut'
         });
     }
-
-    animateRemoval() {
-        this.scene.tweens.add({
-            targets: this,
-            alpha: 0,
-            scaleX: 0.8,
-            scaleY: 0.8,
-            duration: 200,
-            ease: 'Power2',
-            onComplete: () => {
-                this.destroy();
+    
+    updateGoalData(newGoalData) {
+        this.goalData = newGoalData;
+        this.setData('goalData', newGoalData);
+        
+        // Update visual elements
+        this.titleText.setText(newGoalData.text || 'Untitled Goal');
+        this.descriptionText.setText(newGoalData.description || 'No description');
+        
+        // Update status bar color
+        const statusColor = this.getStatusColor(newGoalData.state);
+        this.statusBar.setFillStyle(statusColor);
+        
+        // Update category badge
+        if (newGoalData.category) {
+            if (this.categoryBadge) {
+                this.categoryText.setText(newGoalData.category);
+            } else {
+                this.createCategoryBadge();
             }
-        });
+        } else if (this.categoryBadge) {
+            this.categoryBadge.destroy();
+            this.categoryText.destroy();
+            this.categoryBadge = null;
+            this.categoryText = null;
+        }
     }
-
-    animateUpdate() {
-        this.scene.tweens.add({
-            targets: this,
-            scaleX: 1.05,
-            scaleY: 1.05,
-            duration: 150,
-            yoyo: true,
-            ease: 'Power2'
-        });
+    
+    createCategoryBadge() {
+        const { width } = this.options;
+        this.categoryBadge = this.scene.add.rectangle(width/2 - 15, -this.options.height/2 + 15, 60, 20, 0x007bff);
+        this.categoryBadge.setStrokeStyle(1, 0x0056b3);
+        this.add(this.categoryBadge);
+        
+        this.categoryText = this.scene.add.text(width/2 - 15, -this.options.height/2 + 15, this.goalData.category, {
+            fontSize: '10px',
+            fill: '#ffffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        this.add(this.categoryText);
     }
-
+    
     destroy() {
-        // Clean up references
-        this.goal = null;
-        this.scene = null;
+        // Clean up event listeners
+        this.removeAllListeners();
         
         // Call parent destroy
         super.destroy();

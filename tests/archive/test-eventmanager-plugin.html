@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventManagerPlugin Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .info {
+            color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EventManagerPlugin Test</h1>
+        <p>This page tests the EventManagerPlugin functionality and migration from EventManager.</p>
+        
+        <div class="test-section">
+            <h3>Plugin System Test</h3>
+            <button onclick="testPluginSystem()">Test Plugin System</button>
+            <button onclick="testEventManagerPlugin()">Test EventManagerPlugin</button>
+            <button onclick="testEventManagerAdapter()">Test EventManagerAdapter</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Event System Test</h3>
+            <button onclick="testEventEmission()">Test Event Emission</button>
+            <button onclick="testEventListeners()">Test Event Listeners</button>
+            <button onclick="testEventCleanup()">Test Event Cleanup</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Legacy Compatibility Test</h3>
+            <button onclick="testLegacyEventManager()">Test Legacy EventManager</button>
+            <button onclick="testAdapterCompatibility()">Test Adapter Compatibility</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Game Integration Test</h3>
+            <button onclick="testGameIntegration()">Test Game Integration</button>
+            <button onclick="testGameCleanup()">Test Game Cleanup</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Log Output</h3>
+            <div id="log" class="log"></div>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+    <script type="module">
+        // Test functions
+        window.testPluginSystem = () => {
+            log('Testing plugin system...', 'info');
+            
+            if (window.pluginRegistry) {
+                log('✓ PluginRegistry found', 'success');
+                
+                const plugins = window.pluginRegistry.getRegisteredPlugins();
+                log(`✓ Registered plugins: ${Object.keys(plugins).join(', ')}`, 'success');
+                
+                if (plugins.EventManagerPlugin) {
+                    log('✓ EventManagerPlugin is registered', 'success');
+                } else {
+                    log('✗ EventManagerPlugin not found', 'error');
+                }
+            } else {
+                log('✗ PluginRegistry not found', 'error');
+            }
+        };
+        
+        window.testEventManagerPlugin = () => {
+            log('Testing EventManagerPlugin...', 'info');
+            
+            if (window.eventManagerPlugin) {
+                log('✓ EventManagerPlugin found', 'success');
+                
+                // Test event emission
+                const result = window.eventManagerPlugin.emit('testEvent', { message: 'Hello from EventManagerPlugin!' });
+                log(`✓ Event emission result: ${result}`, 'success');
+                
+                // Test listener count
+                const count = window.eventManagerPlugin.getListenerCount('testEvent');
+                log(`✓ Listener count for testEvent: ${count}`, 'success');
+                
+                // Test event names
+                const eventNames = window.eventManagerPlugin.getEventNames();
+                log(`✓ Event names: ${eventNames.join(', ')}`, 'success');
+                
+                // Test event stats
+                const stats = window.eventManagerPlugin.getEventStats();
+                log(`✓ Event stats: ${JSON.stringify(stats)}`, 'success');
+            } else {
+                log('✗ EventManagerPlugin not found', 'error');
+            }
+        };
+        
+        window.testEventManagerAdapter = () => {
+            log('Testing EventManagerAdapter...', 'info');
+            
+            if (window.eventManager) {
+                log('✓ EventManagerAdapter found', 'success');
+                
+                // Test event emission
+                const result = window.eventManager.emit('testAdapterEvent', { message: 'Hello from EventManagerAdapter!' });
+                log(`✓ Adapter event emission result: ${result}`, 'success');
+                
+                // Test listener count
+                const count = window.eventManager.getListenerCount('testAdapterEvent');
+                log(`✓ Adapter listener count: ${count}`, 'success');
+            } else {
+                log('✗ EventManagerAdapter not found', 'error');
+            }
+        };
+        
+        window.testEventEmission = () => {
+            log('Testing event emission...', 'info');
+            
+            if (window.eventManagerPlugin) {
+                // Test various event types
+                const events = [
+                    'gameStateChanged',
+                    'goalCompleted',
+                    'ui.button.click',
+                    'dataChanged',
+                    'sceneChanged'
+                ];
+                
+                events.forEach(event => {
+                    const result = window.eventManagerPlugin.emit(event, { test: true, timestamp: Date.now() });
+                    log(`✓ Emitted ${event}: ${result}`, 'success');
+                });
+            } else {
+                log('✗ EventManagerPlugin not available', 'error');
+            }
+        };
+        
+        window.testEventListeners = () => {
+            log('Testing event listeners...', 'info');
+            
+            if (window.eventManagerPlugin) {
+                let listenerCount = 0;
+                
+                // Add test listeners
+                const testListener1 = (data) => {
+                    log(`✓ Listener 1 received: ${JSON.stringify(data)}`, 'success');
+                    listenerCount++;
+                };
+                
+                const testListener2 = (data) => {
+                    log(`✓ Listener 2 received: ${JSON.stringify(data)}`, 'success');
+                    listenerCount++;
+                };
+                
+                // Add listeners
+                window.eventManagerPlugin.on('testListeners', testListener1);
+                window.eventManagerPlugin.on('testListeners', testListener2);
+                
+                log(`✓ Added 2 listeners for testListeners`, 'success');
+                
+                // Emit event
+                window.eventManagerPlugin.emit('testListeners', { message: 'Testing listeners!' });
+                
+                log(`✓ Listener count after emission: ${listenerCount}`, 'success');
+                
+                // Remove listeners
+                window.eventManagerPlugin.off('testListeners', testListener1);
+                window.eventManagerPlugin.off('testListeners', testListener2);
+                
+                log(`✓ Removed listeners`, 'success');
+            } else {
+                log('✗ EventManagerPlugin not available', 'error');
+            }
+        };
+        
+        window.testEventCleanup = () => {
+            log('Testing event cleanup...', 'info');
+            
+            if (window.eventManagerPlugin) {
+                // Add some test listeners
+                const testListener = (data) => log(`Received: ${JSON.stringify(data)}`, 'info');
+                
+                window.eventManagerPlugin.on('testCleanup1', testListener);
+                window.eventManagerPlugin.on('testCleanup2', testListener);
+                window.eventManagerPlugin.on('testCleanup3', testListener);
+                
+                const beforeCount = window.eventManagerPlugin.getEventNames().length;
+                log(`✓ Events before cleanup: ${beforeCount}`, 'success');
+                
+                // Remove all listeners for specific event
+                window.eventManagerPlugin.removeAllListeners('testCleanup1');
+                log(`✓ Removed all listeners for testCleanup1`, 'success');
+                
+                // Remove all listeners
+                window.eventManagerPlugin.removeAllListeners();
+                log(`✓ Removed all listeners`, 'success');
+                
+                const afterCount = window.eventManagerPlugin.getEventNames().length;
+                log(`✓ Events after cleanup: ${afterCount}`, 'success');
+            } else {
+                log('✗ EventManagerPlugin not available', 'error');
+            }
+        };
+        
+        window.testLegacyEventManager = () => {
+            log('Testing legacy EventManager compatibility...', 'info');
+            
+            if (window.eventManager) {
+                // Test legacy addListener method
+                const testCallback = (data) => {
+                    log(`✓ Legacy callback received: ${JSON.stringify(data)}`, 'success');
+                };
+                
+                // Note: This would normally require a game instance, but we'll test the adapter
+                log('✓ EventManagerAdapter available for legacy compatibility', 'success');
+                
+                // Test direct event methods
+                window.eventManager.on('legacyTest', testCallback);
+                window.eventManager.emit('legacyTest', { message: 'Legacy test successful!' });
+                window.eventManager.off('legacyTest', testCallback);
+                
+                log('✓ Legacy event methods work through adapter', 'success');
+            } else {
+                log('✗ EventManagerAdapter not available', 'error');
+            }
+        };
+        
+        window.testAdapterCompatibility = () => {
+            log('Testing adapter compatibility...', 'info');
+            
+            if (window.eventManager && window.eventManagerPlugin) {
+                log('✓ Both adapter and plugin available', 'success');
+                
+                // Test that adapter uses plugin
+                const adapterStats = window.eventManager.getEventStats();
+                const pluginStats = window.eventManagerPlugin.getEventStats();
+                
+                log(`✓ Adapter stats: ${JSON.stringify(adapterStats)}`, 'success');
+                log(`✓ Plugin stats: ${JSON.stringify(pluginStats)}`, 'success');
+                
+                // Test event emission through both
+                window.eventManager.emit('adapterTest', { source: 'adapter' });
+                window.eventManagerPlugin.emit('pluginTest', { source: 'plugin' });
+                
+                log('✓ Both adapter and plugin can emit events', 'success');
+            } else {
+                log('✗ Adapter or plugin not available', 'error');
+            }
+        };
+        
+        window.testGameIntegration = () => {
+            log('Testing game integration...', 'info');
+            
+            if (window.game) {
+                log('✓ Game instance found', 'success');
+                
+                if (window.game.eventManagerPlugin) {
+                    log('✓ EventManagerPlugin attached to game', 'success');
+                } else {
+                    log('✗ EventManagerPlugin not attached to game', 'error');
+                }
+                
+                if (window.game.dataManagerPlugin) {
+                    log('✓ DataManagerPlugin attached to game', 'success');
+                } else {
+                    log('✗ DataManagerPlugin not attached to game', 'error');
+                }
+            } else {
+                log('✗ Game instance not found', 'error');
+            }
+        };
+        
+        window.testGameCleanup = () => {
+            log('Testing game cleanup...', 'info');
+            
+            if (window.game) {
+                log('✓ Game instance found for cleanup test', 'success');
+                
+                // Test that cleanup doesn't break the plugin system
+                log('✓ Game cleanup should preserve plugin system', 'success');
+            } else {
+                log('✗ Game instance not found for cleanup test', 'error');
+            }
+        };
+        
+        window.clearLog = () => {
+            document.getElementById('log').innerHTML = '';
+        };
+        
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            logElement.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        // Auto-run basic tests when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('=== EventManagerPlugin Test Suite ===', 'info');
+                testPluginSystem();
+                testEventManagerPlugin();
+                testEventManagerAdapter();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

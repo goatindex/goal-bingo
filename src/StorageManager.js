@@ -1,13 +1,24 @@
 /**
  * StorageManager - Handles data persistence with Phaser Data Manager integration
  * Integrates with Phaser's event system for automatic saving
+ * 
+ * ARCHITECTURE NOTES:
+ * - Uses game.registry for data access (Phaser native)
+ * - Uses game.registry.events for change detection (Phaser native)
+ * - Uses ApplicationStateManager for domain logic
+ * - No custom plugins - 100% native Phaser capabilities
+ * 
+ * KEY DEPENDENCIES:
+ * - game.registry: Phaser's built-in data management system
+ * - game.registry.events: Phaser's built-in data change events
+ * - appStateManager: ApplicationStateManager instance for domain logic
  */
 import { ApplicationState } from './models/ApplicationState.js';
 
 export class StorageManager {
-    constructor(game, stateManager, logger = null) {
+    constructor(game, appStateManager, logger = null) {
         this.game = game;
-        this.stateManager = stateManager;
+        this.appStateManager = appStateManager;
         this.logger = logger;
         this.storageKey = 'goal-bingo-data';
         this.backupKey = 'goal-bingo-backup';
@@ -70,16 +81,16 @@ export class StorageManager {
 
     // Set up event listeners for Phaser data changes
     setupEventListeners() {
-        // Listen for Phaser data events from the StateManager's data manager
-        this.stateManager.dataManager.events.on(Phaser.Data.Events.SET_DATA, (parent, key, data) => {
+        // Listen for Phaser data events from game.registry
+        this.game.registry.events.on(Phaser.Data.Events.SET_DATA, (parent, key, data) => {
             this.handleDataChange(parent, key, data, null);
         });
 
-        this.stateManager.dataManager.events.on(Phaser.Data.Events.CHANGE_DATA, (parent, key, data, previousData) => {
+        this.game.registry.events.on(Phaser.Data.Events.CHANGE_DATA, (parent, key, data, previousData) => {
             this.handleDataChange(parent, key, data, previousData);
         });
 
-        this.stateManager.dataManager.events.on(Phaser.Data.Events.REMOVE_DATA, (parent, key, data) => {
+        this.game.registry.events.on(Phaser.Data.Events.REMOVE_DATA, (parent, key, data) => {
             this.handleDataChange(parent, key, null, data);
         });
         
@@ -142,8 +153,8 @@ export class StorageManager {
         this.saveInProgress = true;
         
         try {
-            // Get current app state from state manager if not provided
-            const currentAppState = appState || this.stateManager.getApplicationState();
+            // Get current app state from app state manager if not provided
+            const currentAppState = appState || this.appStateManager.getApplicationState();
             
             // Update metadata
             currentAppState.lastModified = new Date();
