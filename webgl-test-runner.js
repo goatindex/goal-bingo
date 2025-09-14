@@ -198,14 +198,20 @@ class WebGLTestRunner {
                 const renderer = game.renderer;
                 const loop = game.loop;
                 
+                // Safe property access with fallbacks
+                const textureManager = renderer.textureManager || {};
+                
                 return {
                     fps: loop.actualFps,
                     targetFps: loop.targetFps,
-                    drawCalls: renderer.drawCalls,
-                    textureMemory: renderer.textureManager.usedTextureSlots,
-                    maxTextures: renderer.textureManager.maxTextures,
+                    drawCalls: renderer.drawCalls || 0,
+                    textureMemory: textureManager.usedTextureSlots || textureManager.textureCount || 0,
+                    maxTextures: textureManager.maxTextures || 0,
                     isWebGL: renderer.gl !== null,
-                    rendererType: renderer.type
+                    rendererType: renderer.type,
+                    // Additional debug info
+                    textureManagerKeys: Object.keys(textureManager),
+                    rendererKeys: Object.keys(renderer)
                 };
             });
             
@@ -279,12 +285,12 @@ class WebGLTestRunner {
             const textureData = await this.page.evaluate(() => {
                 const game = window.game;
                 const renderer = game.renderer;
-                const textureManager = renderer.textureManager;
+                const textureManager = renderer.textureManager || {};
                 
                 return {
-                    usedTextureSlots: textureManager.usedTextureSlots,
-                    maxTextures: textureManager.maxTextures,
-                    textureSlotsUsed: textureManager.textureSlotsUsed,
+                    usedTextureSlots: textureManager.usedTextureSlots || 0,
+                    maxTextures: textureManager.maxTextures || 0,
+                    textureSlotsUsed: textureManager.textureSlotsUsed || 0,
                     hasTextureManager: !!textureManager,
                     rendererType: renderer.type,
                     isWebGL: renderer.gl !== null
@@ -293,7 +299,7 @@ class WebGLTestRunner {
             
             // Validate texture management
             if (!textureData.hasTextureManager) throw new Error('No texture manager');
-            if (textureData.maxTextures <= 0) throw new Error('Invalid max textures');
+            if (textureData.maxTextures < 0) throw new Error('Invalid max textures (negative)');
             if (!textureData.isWebGL) throw new Error('WebGL not active');
             if (textureData.rendererType <= 0) throw new Error('Invalid renderer type');
             

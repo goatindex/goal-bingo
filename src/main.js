@@ -59,7 +59,7 @@ const config = {
         TestScene
     ],
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         min: { width: 320, height: 240 },
         max: { width: 1920, height: 1080 }
@@ -74,9 +74,10 @@ const config = {
     input: {
         activePointers: 3
     },
-    dom: {
-        createContainer: true
-    },
+    // PHASER STANDARD: No DOM container needed for Game Object-based UI
+    // dom: {
+    //     createContainer: true  // REMOVED: Not needed for Game Objects
+    // },
     render: {
         antialias: true,
         pixelArt: false
@@ -96,7 +97,22 @@ const config = {
         hideCopyright: false
     },
     // Plugin system configuration
-    plugins: pluginRegistry.getPhaserPluginConfig()
+    plugins: pluginRegistry.getPhaserPluginConfig(),
+    // PHASER STANDARD: Use postBoot for core systems initialization
+    callbacks: {
+        postBoot: async (game) => {
+            try {
+                console.log('=== PHASER POSTBOOT CALLBACK TRIGGERED ===');
+                
+                // Initialize core systems (don't need scene manager)
+                await initializeCoreSystems(game);
+                
+                console.log('Core systems initialized');
+            } catch (error) {
+                console.error('Failed to initialize core systems in postBoot:', error);
+            }
+        }
+    }
 };
 
 /**
@@ -231,9 +247,9 @@ function cleanupGame(game) {
 
 /**
  * Core Systems Initialization
- * ARCHITECTURE NOTE: These systems initialize on Phaser's READY event
- * This follows Phaser's standard initialization pattern
- * All systems initialize together for simplicity and reliability
+ * ARCHITECTURE NOTE: These systems initialize in Phaser's postBoot callback
+ * This follows Phaser's documented initialization pattern for systems that don't need scene manager
+ * postBoot runs after all game systems have started and plugins are loaded
  * 
  * Systems included:
  * - Logger: Centralized logging system
@@ -291,9 +307,9 @@ async function initializeCoreSystems(game) {
 
 /**
  * Scene-Dependent Systems Initialization
- * ARCHITECTURE NOTE: These systems initialize after core systems on Phaser's READY event
- * This follows Phaser's standard initialization pattern
- * Scene-dependent systems initialize after core systems for proper dependency order
+ * ARCHITECTURE NOTE: These systems initialize on Phaser's SYSTEM_READY event
+ * This follows Phaser's documented initialization pattern for systems that need scene manager
+ * SYSTEM_READY fires when Scene Manager has created the System Scene (Phaser 3.70.0+)
  * 
  * Systems included:
  * - UserActionLogger: User interaction tracking (scene-specific input)
@@ -419,8 +435,9 @@ function validateSystemInitialization(game) {
     console.log('=== VALIDATION COMPLETE ===');
 }
 
-// Initialize the game when DOM is loaded
-document.addEventListener('DOMContentLoaded', async () => {
+// PHASER STANDARD: Single initialization function
+// This follows Phaser's documented initialization pattern
+async function initializeGame() {
     try {
         // ARCHITECTURE NOTE: Game Creation with Cleanup Management
         // Use createGame() to ensure proper cleanup of previous instances
@@ -430,37 +447,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.game = game;
         
         // ARCHITECTURE NOTE: Phaser Standard Initialization Pattern
-        // This follows Phaser's core initialization lifecycle using the READY event
-        // READY event ensures game.events is available and all core systems are ready
-        // PHASER STANDARD INITIALIZATION PATTERN
-        // Uses Phaser's built-in READY event for system initialization
-        // ARCHITECTURE NOTE: Single event listener approach (Phaser recommended)
-        game.events.once(Phaser.Core.Events.READY, async () => {
+        // This follows Phaser's documented initialization lifecycle:
+        // 1. postBoot callback (in config) - initializes core systems
+        // 2. SYSTEM_READY event (after game creation) - initializes scene-dependent systems
+        // This ensures proper timing and follows Phaser's documented patterns
+        game.events.once(Phaser.Core.Events.SYSTEM_READY, async (sys) => {
             try {
-                console.log('=== PHASER READY EVENT TRIGGERED ===');
+                console.log('=== PHASER SYSTEM_READY EVENT TRIGGERED ===');
                 
-                // Initialize all systems at once (Phaser standard approach)
-                await initializeCoreSystems(game);
+                // Initialize scene-dependent systems (needs scene manager)
                 await initializeSceneSystems(game);
                 
                 console.log('=== ALL SYSTEMS INITIALIZATION COMPLETE ===');
             } catch (error) {
-                console.error('Failed to initialize systems:', error);
+                console.error('Failed to initialize scene systems:', error);
             }
         });
         
+        console.log('Game initialization completed');
     } catch (error) {
         console.error('Failed to create game:', error);
     }
-});
+}
 
-// Also try to initialize immediately if DOM is already loaded
+// PHASER STANDARD: Initialize when DOM is ready
 if (document.readyState === 'loading') {
     console.log('DOM still loading - waiting for DOMContentLoaded');
+    document.addEventListener('DOMContentLoaded', initializeGame);
 } else {
-    console.log('DOM already loaded - starting game initialization immediately');
-    // Trigger the same initialization logic
-    document.dispatchEvent(new Event('DOMContentLoaded'));
+    console.log('DOM already loaded - initializing game immediately');
+    initializeGame();
 }
 
 // ARCHITECTURE NOTE: Hot Reload Integration

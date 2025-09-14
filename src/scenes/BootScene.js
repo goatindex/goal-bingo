@@ -49,6 +49,7 @@ export default class BootScene extends Phaser.Scene {
         this.scene.start('PreloadScene');
     }
 
+
     shutdown() {
         // Clean up timers
         this.time.removeAllEvents();

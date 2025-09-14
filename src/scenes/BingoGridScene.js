@@ -19,17 +19,22 @@ export default class BingoGridScene extends Phaser.Scene {
     constructor() {
         super({ 
             key: 'BingoGridScene',
-            plugins: ['TweenManager', 'InputPlugin', 'Clock'],
+            plugins: ['TweenManager', 'InputPlugin'],
             data: {
                 defaultData: 'value',
                 sceneType: 'gameplay',
                 hasAnimations: true,
-                hasInput: true,
-                gridSize: 5,
-                isGameActive: false
+                hasInput: true
             }
         });
         
+        // Container references following Level 2 template
+        this.backgroundContainer = null;
+        this.mainContainer = null;
+        this.uiContainer = null;
+        this.modalContainer = null;
+        
+        // Game state
         this.gridSize = 5;
         this.cells = [];
         this.gridContainer = null;
@@ -54,29 +59,189 @@ export default class BingoGridScene extends Phaser.Scene {
         }
     }
 
+    preload() {
+        // ============================================================================
+        // PHASER ASSET LOADING: Initial scene asset setup
+        // ============================================================================
+        // PHASER PATTERN: Load assets needed for this scene
+        // - this.load.image() loads image assets
+        // - this.load.audio() loads audio assets
+        // - this.load.json() loads JSON data
+        // - Assets are cached and available in create()
+        
+        // Load initial assets for this scene
+        // this.load.image('background', 'assets/background.png');
+        // this.load.image('ui-button', 'assets/ui/button.png');
+        // this.load.audio('theme', 'assets/theme.mp3');
+    }
+
     create() {
+        console.log('BingoGridScene: create() called');
         const { width, height } = this.cameras.main;
         
-        // Background
-        this.add.rectangle(width / 2, height / 2, width, height, 0xf8f9fa);
+        // ============================================================================
+        // PHASER INITIAL SCENE CONFIG: Common initial scene setup patterns
+        // ============================================================================
+        // PHASER PATTERN: These patterns are commonly used in initial scene setup
+        // - Camera configuration for proper viewport setup
+        // - Input configuration for initial interaction setup
+        // - Event setup for initial scene communication
+        
+        // Configure camera
+        this.cameras.main.setBackgroundColor('#ffffff');
+        this.cameras.main.setViewport(0, 0, 1200, 800);
+        this.cameras.main.setZoom(1);
+        
+        // Configure input
+        this.input.keyboard.createCursorKeys();
+        this.input.on('pointerdown', this.handleClick, this);
+        
+        // Set up initial event listeners
+        this.events.on('shutdown', this.onShutdown, this);
+        this.events.on('pause', this.onPause, this);
+        this.events.on('resume', this.onResume, this);
+        
+        // ============================================================================
+        // PHASER CONTAINER ARCHITECTURE: Complex UI with proper container management
+        // ============================================================================
+        // PHASER PATTERN: Create containers with proper registration and depth management
+        // - this.add.container() creates container but doesn't add to scene
+        // - this.add.existing(container) adds container to scene display list
+        // - setDepth() ensures proper layering order
+        // - Without this.add.existing(), containers are invisible
+        
+        // 1. Create containers with proper depths
+        this.createContainers(width, height);
+        
+        // 2. Create UI elements in appropriate containers
+        this.createBackground(width, height);
+        this.createMainContent(width, height);
+        this.createUIOverlay(width, height);
+        
+        // 3. Set up interactions
+        this.setupEventListeners();
+        
+        // 4. Initialize game
+        this.initializeGame();
+    }
 
-        // Create UI elements
+    createContainers(width, height) {
+        // ============================================================================
+        // PHASER CONTAINER CREATION: Proper container setup
+        // ============================================================================
+        // PHASER PATTERN: Containers must be registered with scene display list to render
+        // - this.add.container() creates the container but doesn't add it to scene
+        // - this.add.existing(container) adds container to scene's display list
+        // - Without this.add.existing(), containers are invisible (not rendered)
+        // - setDepth() ensures proper layering order
+        
+        // Background container (behind everything)
+        this.backgroundContainer = this.add.container(0, 0);
+        this.backgroundContainer.setDepth(-1);
+        this.add.existing(this.backgroundContainer);
+
+        // Main content container
+        this.mainContainer = this.add.container(0, 0);
+        this.mainContainer.setDepth(0);
+        this.add.existing(this.mainContainer);
+
+        // UI overlay container
+        this.uiContainer = this.add.container(0, 0);
+        this.uiContainer.setDepth(10);
+        this.add.existing(this.uiContainer);
+
+        // Modal container (above everything)
+        this.modalContainer = this.add.container(0, 0);
+        this.modalContainer.setDepth(1000);
+        this.add.existing(this.modalContainer);
+        
+        // ============================================================================
+        // PHASER CONTAINER LIFECYCLE: Container scene events
+        // ============================================================================
+        // PHASER PATTERN: Containers have lifecycle events for scene management
+        // - addedToScene() called when container is added to scene
+        // - removedFromScene() called when container is removed from scene
+        // - These events are useful for initial setup and cleanup
+        
+        // Listen for container lifecycle events
+        this.backgroundContainer.on('addedToScene', this.onContainerAdded, this);
+        this.backgroundContainer.on('removedFromScene', this.onContainerRemoved, this);
+        
+        this.mainContainer.on('addedToScene', this.onContainerAdded, this);
+        this.mainContainer.on('removedFromScene', this.onContainerRemoved, this);
+        
+        this.uiContainer.on('addedToScene', this.onContainerAdded, this);
+        this.uiContainer.on('removedFromScene', this.onContainerRemoved, this);
+        
+        this.modalContainer.on('addedToScene', this.onContainerAdded, this);
+        this.modalContainer.on('removedFromScene', this.onContainerRemoved, this);
+    }
+
+    onContainerAdded(container) {
+        console.log('Container added to scene:', container);
+        // Perform initial setup when container is added
+    }
+
+    onContainerRemoved(container) {
+        console.log('Container removed from scene:', container);
+        // Perform cleanup when container is removed
+    }
+
+    onShutdown() {
+        console.log('BingoGridScene: shutdown event received');
+    }
+
+    onPause() {
+        console.log('BingoGridScene: pause event received');
+    }
+
+    onResume() {
+        console.log('BingoGridScene: resume event received');
+    }
+
+    handleClick(pointer) {
+        // Handle general click events
+        console.log('BingoGridScene: Click detected at', pointer.x, pointer.y);
+    }
+
+    createBackground(width, height) {
+        // ============================================================================
+        // PHASER ELEMENT ADDITION: Adding elements to containers
+        // ============================================================================
+        // PHASER PATTERN: Elements created with this.add.* are automatically added to scene
+        // - this.add.rectangle() adds element to scene display list
+        // - container.add(element) moves element from scene to container
+        // - This is the correct pattern for adding elements to containers
+        
+        const background = this.add.rectangle(width / 2, height / 2, width, height, 0xf8f9fa);
+        this.backgroundContainer.add(background);
+    }
+
+    createMainContent(width, height) {
+        // Create main content elements in mainContainer
         this.createHeader(width, height);
         this.createGridSizeSelector(width, height);
         this.createGameStats(width, height);
         this.createGrid(width, height);
         this.createActionButtons(width, height);
-        
-        // Set up event listeners
-        this.setupEventListeners();
-        
-        // Initialize game
-        this.initializeGame();
+    }
+
+    createUIOverlay(width, height) {
+        // Create UI overlay elements in uiContainer
+        // Additional UI elements can be added here
     }
     
     createHeader(width, height) {
+        // ============================================================================
+        // PHASER ELEMENT ADDITION: Adding elements to containers
+        // ============================================================================
+        // PHASER PATTERN: Elements created with this.add.* are automatically added to scene
+        // - this.add.rectangle() adds element to scene display list
+        // - container.add(element) moves element from scene to container
+        // - This is the correct pattern for adding elements to containers
+        
         // Title
-        this.add.text(width / 2, 30, '🎲 Bingo Grid', {
+        const title = this.add.text(width / 2, 30, '🎲 Bingo Grid', {
             fontSize: '28px',
             fill: '#333333',
             fontStyle: 'bold'
@@ -87,10 +252,13 @@ export default class BingoGridScene extends Phaser.Scene {
         backBtn.setStrokeStyle(2, 0x555555);
         backBtn.setInteractive();
         
-        this.add.text(80, 30, '← Back', {
+        const backText = this.add.text(80, 30, '← Back', {
             fontSize: '14px',
             fill: '#ffffff'
         }).setOrigin(0.5);
+        
+        // Add elements to main container
+        this.mainContainer.add([title, backBtn, backText]);
         
         backBtn.on('pointerdown', () => {
             this.scene.start('MainMenuScene');
@@ -104,8 +272,16 @@ export default class BingoGridScene extends Phaser.Scene {
     createGridSizeSelector(width, height) {
         const y = 70;
         
+        // ============================================================================
+        // PHASER ELEMENT ADDITION: Adding elements to containers
+        // ============================================================================
+        // PHASER PATTERN: Elements created with this.add.* are automatically added to scene
+        // - this.add.rectangle() adds element to scene display list
+        // - container.add(element) moves element from scene to container
+        // - This is the correct pattern for adding elements to containers
+        
         // Label
-        this.add.text(20, y, 'Grid Size:', {
+        const label = this.add.text(20, y, 'Grid Size:', {
             fontSize: '16px',
             fill: '#333333',
             fontStyle: 'bold'
@@ -114,6 +290,7 @@ export default class BingoGridScene extends Phaser.Scene {
         // Size buttons
         const sizes = [2, 3, 4, 5, 6, 7, 8, 9, 10];
         this.gridSizeButtons = [];
+        const buttonElements = [label];
         
         sizes.forEach((size, index) => {
             const x = 120 + (index * 35);
@@ -121,7 +298,7 @@ export default class BingoGridScene extends Phaser.Scene {
             btn.setStrokeStyle(2, size === this.gridSize ? 0x45a049 : 0x999999);
             btn.setInteractive();
             
-            this.add.text(x, y, size.toString(), {
+            const btnText = this.add.text(x, y, size.toString(), {
                 fontSize: '12px',
                 fill: size === this.gridSize ? '#ffffff' : '#333333'
             }).setOrigin(0.5);
@@ -131,17 +308,32 @@ export default class BingoGridScene extends Phaser.Scene {
             });
             
             this.gridSizeButtons.push(btn);
+            buttonElements.push(btn, btnText);
         });
+        
+        // Add all elements to main container
+        this.mainContainer.add(buttonElements);
     }
     
     createGameStats(width, height) {
         const y = 110;
+        
+        // ============================================================================
+        // PHASER ELEMENT ADDITION: Adding elements to containers
+        // ============================================================================
+        // PHASER PATTERN: Elements created with this.add.* are automatically added to scene
+        // - this.add.rectangle() adds element to scene display list
+        // - container.add(element) moves element from scene to container
+        // - This is the correct pattern for adding elements to containers
         
         this.gameStats = this.add.text(20, y, '', {
             fontSize: '14px',
             fill: '#666666',
             wordWrap: { width: width - 40 }
         });
+        
+        // Add to main container
+        this.mainContainer.add(this.gameStats);
         
         this.updateGameStats();
     }
@@ -152,8 +344,19 @@ export default class BingoGridScene extends Phaser.Scene {
         const gridWidth = this.gridSize * cellSize;
         const gridX = (width - gridWidth) / 2;
         
+        // ============================================================================
+        // PHASER CONTAINER REGISTRATION: Grid Container Setup
+        // ============================================================================
+        // PHASER PATTERN: Containers must be registered with scene display list to render
+        // - this.add.container() creates the container but doesn't add it to scene
+        // - this.add.existing(container) adds container to scene's display list
+        // - Without this.add.existing(), containers are invisible (not rendered)
+        // - setDepth() ensures proper layering order
+        
         // Create grid container
         this.gridContainer = this.add.container(gridX, gridY);
+        this.gridContainer.setDepth(1); // Main content layer (above background, below UI)
+        this.add.existing(this.gridContainer); // REQUIRED: Add to scene display list
         
         // Create cells
         this.cells = [];
@@ -163,9 +366,17 @@ export default class BingoGridScene extends Phaser.Scene {
                 const x = col * cellSize + cellSize / 2;
                 const y = row * cellSize + cellSize / 2;
                 
+                // ============================================================================
+                // PHASER CUSTOM COMPONENT ADDITION: Adding BingoCell to container
+                // ============================================================================
+                // PHASER PATTERN: Custom components (like BingoCell) are added to containers
+                // - BingoCell extends Phaser.GameObjects.Container
+                // - gridContainer.add(cell) adds the cell to the grid container
+                // - This allows collective management of all grid cells
+                
                 const cell = new BingoCell(this, x, y, null, cellSize);
-                this.gridContainer.add(cell);
-                this.cells[row][col] = cell;
+                this.gridContainer.add(cell); // Add cell to grid container
+                this.cells[row][col] = cell; // Store reference for game logic
             }
         }
         
@@ -176,12 +387,20 @@ export default class BingoGridScene extends Phaser.Scene {
     createActionButtons(width, height) {
         const y = height - 60;
         
+        // ============================================================================
+        // PHASER ELEMENT ADDITION: Adding elements to containers
+        // ============================================================================
+        // PHASER PATTERN: Elements created with this.add.* are automatically added to scene
+        // - this.add.rectangle() adds element to scene display list
+        // - container.add(element) moves element from scene to container
+        // - This is the correct pattern for adding elements to containers
+        
         // New Game button
         const newGameBtn = this.add.rectangle(width / 2 - 80, y, 120, 40, 0x4CAF50);
         newGameBtn.setStrokeStyle(2, 0x45a049);
         newGameBtn.setInteractive();
         
-        this.add.text(width / 2 - 80, y, 'New Game', {
+        const newGameText = this.add.text(width / 2 - 80, y, 'New Game', {
             fontSize: '14px',
             fill: '#ffffff'
         }).setOrigin(0.5);
@@ -195,7 +414,7 @@ export default class BingoGridScene extends Phaser.Scene {
         repopulateBtn.setStrokeStyle(2, 0xe68900);
         repopulateBtn.setInteractive();
         
-        this.add.text(width / 2 + 80, y, 'Repopulate', {
+        const repopulateText = this.add.text(width / 2 + 80, y, 'Repopulate', {
             fontSize: '14px',
             fill: '#ffffff'
         }).setOrigin(0.5);
@@ -203,6 +422,9 @@ export default class BingoGridScene extends Phaser.Scene {
         repopulateBtn.on('pointerdown', () => {
             this.repopulateGrid();
         });
+        
+        // Add all elements to main container
+        this.mainContainer.add([newGameBtn, newGameText, repopulateBtn, repopulateText]);
         
         // Add hover effects
         [newGameBtn, repopulateBtn].forEach(btn => {
@@ -246,6 +468,14 @@ export default class BingoGridScene extends Phaser.Scene {
     
     recreateGrid() {
         // Clear existing grid
+        // ============================================================================
+        // PHASER CONTAINER CLEANUP: Proper container destruction
+        // ============================================================================
+        // PHASER PATTERN: Containers must be properly destroyed to prevent memory leaks
+        // - container.destroy() removes container and all its children from display list
+        // - This prevents memory leaks and ensures proper cleanup
+        // - Always check if container exists before destroying
+        
         if (this.gridContainer) {
             this.gridContainer.destroy();
         }
@@ -422,12 +652,30 @@ export default class BingoGridScene extends Phaser.Scene {
     showWinCelebration() {
         const { width, height } = this.cameras.main;
         
+        // ============================================================================
+        // PHASER CONTAINER REGISTRATION: Celebration Modal Setup
+        // ============================================================================
+        // PHASER PATTERN: Modal containers need highest depth and proper registration
+        // - Modal containers should be above all other content
+        // - this.add.existing() is required for visibility
+        // - High depth value ensures modal appears on top
+        
         // Create win celebration container
         const celebrationContainer = this.add.container(width / 2, height / 2);
+        celebrationContainer.setDepth(1000); // Above everything else (modal layer)
+        this.add.existing(celebrationContainer); // REQUIRED: Add to scene display list
+        
+        // ============================================================================
+        // PHASER ELEMENT ADDITION: Adding elements to container
+        // ============================================================================
+        // PHASER PATTERN: Elements created with this.add.* are automatically added to scene
+        // - this.add.rectangle() adds element to scene display list
+        // - container.add(element) moves element from scene to container
+        // - This is the correct pattern for adding elements to containers
         
         // Background overlay
         const overlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.3);
-        celebrationContainer.add(overlay);
+        celebrationContainer.add(overlay); // Move from scene to container
         
         // Win text
         const winText = this.add.text(0, -50, `🎉 BINGO!`, {
@@ -435,14 +683,14 @@ export default class BingoGridScene extends Phaser.Scene {
             fill: '#4CAF50',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        celebrationContainer.add(winText);
+        celebrationContainer.add(winText); // Move from scene to container
         
         // Win count text
         const winCountText = this.add.text(0, 20, `${this.winPatterns.length} win${this.winPatterns.length > 1 ? 's' : ''}!`, {
             fontSize: '24px',
             fill: '#ffffff'
         }).setOrigin(0.5);
-        celebrationContainer.add(winCountText);
+        celebrationContainer.add(winCountText); // Move from scene to container
         
         // Celebration particles
         this.createCelebrationParticles(celebrationContainer);
@@ -457,6 +705,14 @@ export default class BingoGridScene extends Phaser.Scene {
     }
     
     createCelebrationParticles(container) {
+        // ============================================================================
+        // PHASER PARTICLE CREATION: Adding particles to container
+        // ============================================================================
+        // PHASER PATTERN: Particles follow same element addition pattern
+        // - this.add.circle() creates particle and adds to scene display list
+        // - container.add(particle) moves particle from scene to container
+        // - All particles become children of the container for collective management
+        
         // Create particle effects around the win text
         for (let i = 0; i < 20; i++) {
             const particle = this.add.circle(
@@ -465,7 +721,7 @@ export default class BingoGridScene extends Phaser.Scene {
                 Phaser.Math.Between(3, 8),
                 Phaser.Math.RND.pick([0xFFD700, 0xFF6B6B, 0x4ECDC4, 0x45B7D1, 0x96CEB4])
             );
-            container.add(particle);
+            container.add(particle); // Move from scene to container
             
             // Animate particles
             this.tweens.add({
@@ -646,8 +902,109 @@ export default class BingoGridScene extends Phaser.Scene {
             currentGrid: currentGrid
         });
     }
-    
+
+    /**
+     * Enhanced scene state management following Phaser best practices
+     * Provides comprehensive scene state validation and management
+     */
+    validateSceneState() {
+        // Check if scene exists and is active
+        if (!this || !this.sys) {
+            console.warn('BingoGridScene: Scene or scene.sys not available');
+            return false;
+        }
+
+        // Check if scene is active
+        if (!this.sys.isActive()) {
+            console.warn('BingoGridScene: Scene is not active');
+            return false;
+        }
+
+        // Check if scene is visible
+        if (!this.sys.isVisible()) {
+            console.warn('BingoGridScene: Scene is not visible');
+            return false;
+        }
+
+        // Check if scene is shutting down
+        if (this.sys.isShuttingDown()) {
+            console.warn('BingoGridScene: Scene is shutting down');
+            return false;
+        }
+
+        // Check if cameras are available
+        if (!this.cameras || !this.cameras.main) {
+            console.warn('BingoGridScene: Cameras not available');
+            return false;
+        }
+
+        // Check if add method is available (scene is fully initialized)
+        if (typeof this.add !== 'function') {
+            console.warn('BingoGridScene: Scene.add method not available');
+            return false;
+        }
+
+        // All checks passed - scene is ready
+        return true;
+    }
+
+    /**
+     * Get current scene state information
+     * Following Phaser best practices for scene state debugging
+     */
+    getSceneState() {
+        return {
+            status: this.sys.getStatus(),
+            isActive: this.sys.isActive(),
+            isVisible: this.sys.isVisible(),
+            isSleeping: this.sys.isSleeping(),
+            isShuttingDown: this.sys.isShuttingDown(),
+            childrenCount: this.children.list.length,
+            gameState: {
+                gridSize: this.gridSize,
+                isGameActive: this.isGameActive,
+                cellsCount: this.cells.length,
+                winPatterns: this.winPatterns.length
+            },
+            containers: {
+                background: this.backgroundContainer ? this.backgroundContainer.list.length : 0,
+                main: this.mainContainer ? this.mainContainer.list.length : 0,
+                ui: this.uiContainer ? this.uiContainer.list.length : 0,
+                modal: this.modalContainer ? this.modalContainer.list.length : 0,
+                grid: this.gridContainer ? this.gridContainer.list.length : 0
+            },
+            camera: {
+                x: this.cameras.main.x,
+                y: this.cameras.main.y,
+                width: this.cameras.main.width,
+                height: this.cameras.main.height,
+                zoom: this.cameras.main.zoom
+            }
+        };
+    }
+
     shutdown() {
+        // ============================================================================
+        // PHASER CONTAINER CLEANUP: Proper container destruction
+        // ============================================================================
+        // PHASER PATTERN: Containers must be properly destroyed to prevent memory leaks
+        // - container.destroy() removes container and all its children from display list
+        // - This prevents memory leaks and ensures proper cleanup
+        // - Always check if container exists before destroying
+        
+        if (this.backgroundContainer) {
+            this.backgroundContainer.destroy();
+        }
+        if (this.mainContainer) {
+            this.mainContainer.destroy();
+        }
+        if (this.uiContainer) {
+            this.uiContainer.destroy();
+        }
+        if (this.modalContainer) {
+            this.modalContainer.destroy();
+        }
+        
         // Clean up event listeners
         this.game.events.off('goalsChanged', this.updateGameStats, this);
         this.game.events.off('gameStateChanged', this.updateGameStats, this);

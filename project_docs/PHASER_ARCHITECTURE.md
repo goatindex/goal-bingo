@@ -33,8 +33,14 @@ This document serves as the **single source of truth** for Phaser architecture, 
 
 ### **Event System (`Phaser.Events.EventEmitter`)**
 - **Global Events**: `game.events.on()`, `game.events.emit()`, `game.events.off()`
-- **Core Events**: `Phaser.Core.Events.READY`, `DESTROY`
+- **Core Events**: `Phaser.Core.Events.READY`, `SYSTEM_READY`, `DESTROY`
 - **Scene Events**: `Phaser.Scenes.Events.CREATE`, `UPDATE`, `SHUTDOWN`
+
+### **Initialization Timing (Phaser 3.70.0+)**
+- **postBoot callback**: Runs after all game systems have started and plugins are loaded
+- **READY event**: Game instance has finished booting and all local systems are ready
+- **SYSTEM_READY event**: Scene Manager has created the System Scene (3.70.0+)
+- **Timing Order**: postBoot → READY → SYSTEM_READY
 
 ---
 
@@ -47,12 +53,18 @@ This document serves as the **single source of truth** for Phaser architecture, 
 │                    Goal Bingo App                       │
 ├─────────────────────────────────────────────────────────┤
 │  Phaser Scenes (Presentation Layer)                     │
-│  ├── BootScene (Initialization)                         │
-│  ├── PreloadScene (Asset Loading)                       │
-│  ├── MainMenuScene (Navigation)                         │
-│  ├── GoalLibraryScene (Goal Management)                 │
-│  ├── BingoGridScene (Game Play)                         │
-│  └── RewardsScene (Reward Management)                   │
+│  ├── BootScene (Level 3: Utility)                       │
+│  ├── PreloadScene (Level 1: Simple UI)                  │
+│  ├── MainMenuScene (Level 1: Simple UI)                 │
+│  ├── GoalLibraryScene (Level 2: Complex UI + Containers)│
+│  ├── BingoGridScene (Level 2: Complex UI + Containers)  │
+│  └── RewardsScene (Level 1: Simple UI)                  │
+├─────────────────────────────────────────────────────────┤
+│  Container Architecture (Level 2 Scenes Only)           │
+│  ├── Background Container (depth: -1)                   │
+│  ├── Main Content Container (depth: 0-10)               │
+│  ├── UI Overlay Container (depth: 10-100)               │
+│  └── Modal Container (depth: 1000+)                     │
 ├─────────────────────────────────────────────────────────┤
 │  Phaser Native Systems (Core Layer)                     │
 │  ├── game.registry (Data Persistence)                   │
@@ -76,9 +88,147 @@ This document serves as the **single source of truth** for Phaser architecture, 
 └─────────────────────────────────────────────────────────┘
 ```
 
+### **Scene Complexity Architecture**
+
+**Level 1: Simple UI Scenes (4 scenes)**
+- **Pattern**: Direct element addition to scene
+- **Method**: `this.add.rectangle()`, `this.add.text()`, `this.add.dom()`
+- **Examples**: MainMenuScene, RewardsScene, PreloadScene, TestScene
+- **Status**: ✅ **COMPLIANT** - No containers needed
+
+**Level 2: Complex UI Scenes (2 scenes)**
+- **Pattern**: Container-based architecture with proper registration
+- **Method**: `this.add.container()` + `this.add.existing(container)`
+- **Examples**: GoalLibraryScene, BingoGridScene
+- **Status**: ✅ **FIXED** - All containers properly registered
+
+**Level 3: Utility Scenes (1 scene)**
+- **Pattern**: Minimal or no UI, focus on functionality
+- **Method**: No UI elements, just system initialization
+- **Examples**: BootScene
+- **Status**: ✅ **COMPLIANT** - Appropriate for utility purpose
+
+### **Container Management Patterns (Level 2 Scenes)**
+
+#### **1. Container Registration Pattern**
+```javascript
+// ============================================================================
+// PHASER CONTAINER REGISTRATION: Proper container setup
+// ============================================================================
+// PHASER PATTERN: Containers must be registered with scene display list to render
+// - this.add.container() creates the container but doesn't add it to scene
+// - this.add.existing(container) adds container to scene's display list
+// - Without this.add.existing(), containers are invisible (not rendered)
+// - setDepth() ensures proper layering order
+
+// Create container
+const container = this.add.container(x, y);
+container.setDepth(depth);
+
+// REQUIRED: Add to scene display list
+this.add.existing(container);
+```
+
+#### **2. Element Addition to Containers**
+```javascript
+// ============================================================================
+// PHASER ELEMENT ADDITION: Adding elements to containers
+// ============================================================================
+// PHASER PATTERN: Elements created with this.add.* are automatically added to scene
+// - this.add.rectangle() adds element to scene display list
+// - container.add(element) moves element from scene to container
+// - This is the correct pattern for adding elements to containers
+
+// Create element (automatically added to scene)
+const element = this.add.rectangle(x, y, w, h, color);
+
+// Move element from scene to container
+container.add(element);
+```
+
+#### **3. Container Cleanup Pattern**
+```javascript
+// ============================================================================
+// PHASER CONTAINER CLEANUP: Proper container destruction
+// ============================================================================
+// PHASER PATTERN: Containers must be properly destroyed to prevent memory leaks
+// - container.destroy() removes container and all its children from display list
+// - This prevents memory leaks and ensures proper cleanup
+// - Always check if container exists before destroying
+
+if (container) {
+    container.destroy();
+}
+```
+
+#### **4. Double-Rendering Prevention**
+```javascript
+// ❌ WRONG PATTERN (DO NOT USE - CAUSES DOUBLE-RENDERING):
+// This creates objects that exist in BOTH scene display list AND container
+const element = this.scene.add.rectangle(x, y, w, h, color);
+container.add(element); // DOUBLE-RENDERING = INVISIBLE OBJECTS
+
+// ✅ CORRECT PATTERN (USE THIS - PREVENTS DOUBLE-RENDERING):
+// This creates objects that exist ONLY in container display list
+const element = this.add.rectangle(x, y, w, h, color);
+container.add(element); // SINGLE RENDERING = VISIBLE OBJECTS
+```
+
 ### **Key Implementation Patterns**
 
-#### **1. Game Initialization**
+#### **1. Correct Game Initialization (Phaser 3.70.0+)**
+```javascript
+// main.js - Phaser Game Configuration with proper timing
+const config = {
+    type: Phaser.AUTO,
+    width: 1200,
+    height: 800,
+    parent: 'game-container',
+    scene: [BootScene, PreloadScene, MainMenuScene, GoalLibraryScene, BingoGridScene, RewardsScene],
+    // PHASER STANDARD: Use postBoot for core systems initialization
+    callbacks: {
+        postBoot: async (game) => {
+            try {
+                console.log('=== PHASER POSTBOOT CALLBACK TRIGGERED ===');
+                
+                // Initialize core systems (don't need scene manager)
+                await initializeCoreSystems(game);
+                
+                console.log('Core systems initialized');
+            } catch (error) {
+                console.error('Failed to initialize core systems in postBoot:', error);
+            }
+        }
+    }
+};
+
+// Create game instance
+const game = new Phaser.Game(config);
+
+// PHASER STANDARD: Set up SYSTEM_READY listener after game creation
+// This follows the documented approach for scene-dependent systems
+game.events.once(Phaser.Core.Events.SYSTEM_READY, async (sys) => {
+    try {
+        console.log('=== PHASER SYSTEM_READY EVENT TRIGGERED ===');
+        
+        // Initialize scene-dependent systems (needs scene manager)
+        await initializeSceneSystems(game);
+        
+        console.log('=== ALL SYSTEMS INITIALIZATION COMPLETE ===');
+    } catch (error) {
+        console.error('Failed to initialize scene systems:', error);
+    }
+});
+```
+
+#### **2. Initialization Timing Explanation**
+- **postBoot callback**: Runs after all game systems have started and plugins are loaded
+  - Use for: Core systems that don't need scene manager (Logger, EventManager, etc.)
+- **SYSTEM_READY event**: Fires when Scene Manager has created the System Scene
+  - Use for: Scene-dependent systems (SceneStateLogger, DebugTools, etc.)
+- **Why this approach**: Ensures proper timing and follows Phaser's documented patterns
+
+#### **3. Legacy Game Initialization (Deprecated)**
 ```javascript
 // main.js - Phaser Game Configuration
 const config = {

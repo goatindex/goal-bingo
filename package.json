@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
+    "dev:clean": "node scripts/dev-clean.js",
     "build": "vite build",
+    "build:clean": "npm run clean && vite build",
+    "clean": "node scripts/clean-cache.js",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",

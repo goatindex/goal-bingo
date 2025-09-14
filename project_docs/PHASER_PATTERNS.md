@@ -8,9 +8,9 @@ This document provides comprehensive Phaser.js patterns, best practices, and ant
 
 ## **🏗️ GAME INITIALIZATION PATTERNS**
 
-### **✅ Correct Game Initialization**
+### **✅ Correct Game Initialization (Phaser 3.70.0+)**
 ```javascript
-// main.js - Proper game initialization
+// main.js - Proper game initialization with correct timing
 const config = {
     type: Phaser.AUTO,
     width: 1200,
@@ -21,38 +21,68 @@ const config = {
         global: [
             { key: 'DebugPlugin', plugin: DebugPlugin, start: true }
         ]
+    },
+    // PHASER STANDARD: Use postBoot for core systems initialization
+    callbacks: {
+        postBoot: async (game) => {
+            try {
+                console.log('=== PHASER POSTBOOT CALLBACK TRIGGERED ===');
+                
+                // Initialize core systems (don't need scene manager)
+                await initializeCoreSystems(game);
+                
+                console.log('Core systems initialized');
+            } catch (error) {
+                console.error('Failed to initialize core systems in postBoot:', error);
+            }
+        }
     }
 };
 
 const game = new Phaser.Game(config);
 
-// ✅ CORRECT - Wait for READY event before initializing systems
-game.events.once(Phaser.Core.Events.READY, async () => {
-    console.log('Game ready - initializing systems');
-    
+// PHASER STANDARD: Set up SYSTEM_READY listener after game creation
+// This follows the documented approach for scene-dependent systems
+game.events.once(Phaser.Core.Events.SYSTEM_READY, async (sys) => {
     try {
-        // Initialize ApplicationStateManager (domain logic utility)
-        const appStateManager = new ApplicationStateManager(game);
-        await appStateManager.initialize();
+        console.log('=== PHASER SYSTEM_READY EVENT TRIGGERED ===');
         
-        // Initialize StorageManager (persistence utility)
-        const storageManager = new StorageManager(game, appStateManager);
-        await storageManager.initialize();
+        // Initialize scene-dependent systems (needs scene manager)
+        await initializeSceneSystems(game);
         
-        // Attach to game object for easy access
-        game.appStateManager = appStateManager;
-        game.storageManager = storageManager;
-        
-        console.log('All systems initialized successfully');
+        console.log('=== ALL SYSTEMS INITIALIZATION COMPLETE ===');
     } catch (error) {
-        console.error('Failed to initialize systems:', error);
+        console.error('Failed to initialize scene systems:', error);
     }
 });
 ```
 
-### **❌ Anti-Pattern: Immediate Event Access**
+### **📋 Initialization Timing Guide**
+- **postBoot callback**: Runs after all game systems have started and plugins are loaded
+  - Use for: Core systems that don't need scene manager (Logger, EventManager, ApplicationStateManager, StorageManager)
+- **SYSTEM_READY event**: Fires when Scene Manager has created the System Scene (Phaser 3.70.0+)
+  - Use for: Scene-dependent systems (SceneStateLogger, DebugTools, scene monitoring)
+- **Timing Order**: postBoot → READY → SYSTEM_READY
+- **Why this approach**: Ensures proper timing and follows Phaser's documented patterns
+
+### **❌ Anti-Pattern: Incorrect Initialization Timing**
 ```javascript
-// ❌ WRONG - game.events not available immediately
+// ❌ WRONG - Using READY event for scene-dependent systems
+const game = new Phaser.Game(config);
+game.events.once(Phaser.Core.Events.READY, async () => {
+    // Scene manager might not be fully available yet
+    await initializeSceneSystems(game); // May fail!
+});
+
+// ❌ WRONG - Setting up SYSTEM_READY listener inside postBoot
+callbacks: {
+    postBoot: async (game) => {
+        // This is too late - SYSTEM_READY may have already fired
+        game.events.once(Phaser.Core.Events.SYSTEM_READY, callback);
+    }
+}
+
+// ❌ WRONG - Immediate event access
 const game = new Phaser.Game(config);
 game.events.on('ready', callback); // Will fail!
 
@@ -244,6 +274,149 @@ game.scene.scenes = [
 2. **Assuming scene.scene is the Scene class instance** - It's actually the Scene Systems object
 3. **Not checking for null references** - Always validate scene objects before accessing properties
 4. **Using wrong object for different purposes** - Use Scene Systems for state, Scene Class Instance for lifecycle
+
+---
+
+## **📦 CONTAINER MANAGEMENT PATTERNS**
+
+### **✅ Container Registration Pattern (Level 2 Scenes)**
+```javascript
+// ============================================================================
+// PHASER CONTAINER REGISTRATION: Proper container setup
+// ============================================================================
+// PHASER PATTERN: Containers must be registered with scene display list to render
+// - this.add.container() creates the container but doesn't add it to scene
+// - this.add.existing(container) adds container to scene's display list
+// - Without this.add.existing(), containers are invisible (not rendered)
+// - setDepth() ensures proper layering order
+
+// Create container
+const container = this.add.container(x, y);
+container.setDepth(depth);
+
+// REQUIRED: Add to scene display list
+this.add.existing(container);
+```
+
+### **✅ Element Addition to Containers**
+```javascript
+// ============================================================================
+// PHASER ELEMENT ADDITION: Adding elements to containers
+// ============================================================================
+// PHASER PATTERN: Elements created with this.add.* are automatically added to scene
+// - this.add.rectangle() adds element to scene display list
+// - container.add(element) moves element from scene to container
+// - This is the correct pattern for adding elements to containers
+
+// Create element (automatically added to scene)
+const element = this.add.rectangle(x, y, w, h, color);
+
+// Move element from scene to container
+container.add(element);
+```
+
+### **✅ Container Cleanup Pattern**
+```javascript
+// ============================================================================
+// PHASER CONTAINER CLEANUP: Proper container destruction
+// ============================================================================
+// PHASER PATTERN: Containers must be properly destroyed to prevent memory leaks
+// - container.destroy() removes container and all its children from display list
+// - This prevents memory leaks and ensures proper cleanup
+// - Always check if container exists before destroying
+
+if (container) {
+    container.destroy();
+}
+```
+
+### **✅ Double-Rendering Prevention**
+```javascript
+// ❌ WRONG PATTERN (DO NOT USE - CAUSES DOUBLE-RENDERING):
+// This creates objects that exist in BOTH scene display list AND container
+const element = this.scene.add.rectangle(x, y, w, h, color);
+container.add(element); // DOUBLE-RENDERING = INVISIBLE OBJECTS
+
+// ✅ CORRECT PATTERN (USE THIS - PREVENTS DOUBLE-RENDERING):
+// This creates objects that exist ONLY in container display list
+const element = this.add.rectangle(x, y, w, h, color);
+container.add(element); // SINGLE RENDERING = VISIBLE OBJECTS
+```
+
+### **✅ Custom Component Integration**
+```javascript
+// Custom components should extend Phaser.GameObjects.Container
+export class CustomComponent extends Phaser.GameObjects.Container {
+    constructor(scene, x, y, data, options = {}) {
+        super(scene, x, y);
+        
+        // Create internal elements using constructors (not scene.add.*)
+        this.element = new Phaser.GameObjects.Rectangle(scene, 0, 0, w, h, color);
+        this.add(this.element);
+    }
+}
+
+// Adding custom components to scenes
+const component = new CustomComponent(this, x, y, data, options);
+container.add(component); // Add to container for rendering
+```
+
+### **✅ Scene Complexity Decision Tree**
+```javascript
+// Level 1: Simple UI Scenes (4 scenes)
+// Pattern: Direct element addition to scene
+// Method: this.add.rectangle(), this.add.text(), this.add.dom()
+// Examples: MainMenuScene, RewardsScene, PreloadScene, TestScene
+// Status: ✅ COMPLIANT - No containers needed
+
+// Level 2: Complex UI Scenes (2 scenes)
+// Pattern: Container-based architecture with proper registration
+// Method: this.add.container() + this.add.existing(container)
+// Examples: GoalLibraryScene, BingoGridScene
+// Status: ✅ FIXED - All containers properly registered
+
+// Level 3: Utility Scenes (1 scene)
+// Pattern: Minimal or no UI, focus on functionality
+// Method: No UI elements, just system initialization
+// Examples: BootScene
+// Status: ✅ COMPLIANT - Appropriate for utility purpose
+```
+
+### **❌ Anti-Pattern: Missing Container Registration**
+```javascript
+// ❌ WRONG - Container is invisible (not in scene display list)
+const container = this.add.container(x, y);
+// Missing: this.add.existing(container);
+
+// ❌ WRONG - No depth management
+const container = this.add.container(x, y);
+// Missing: container.setDepth(depth);
+```
+
+### **❌ Anti-Pattern: Double-Rendering in Custom Components**
+```javascript
+// ❌ WRONG - Custom component with double-rendering
+export class GoalCard extends Phaser.GameObjects.Container {
+    constructor(scene, x, y, data) {
+        super(scene, x, y);
+        
+        // This creates double-rendering (invisible objects)
+        this.element = this.scene.add.rectangle(0, 0, w, h, color);
+        this.add(this.element); // Element exists in both scene and container
+    }
+}
+
+// ✅ CORRECT - Custom component without double-rendering
+export class GoalCard extends Phaser.GameObjects.Container {
+    constructor(scene, x, y, data) {
+        super(scene, x, y);
+        
+        // This prevents double-rendering (visible objects)
+        this.element = new Phaser.GameObjects.Rectangle(scene, 0, 0, w, h, color);
+        this.add(this.element); // Element exists only in container
+    }
+}
+```
 
 ---
 

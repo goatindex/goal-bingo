@@ -17,6 +17,7 @@ This document serves as the central index for all Goal Bingo documentation, opti
 | **non-compliances.md** | Issue tracking | ⭐ | ❌ Remove | **DELETE** - Fixed issues | LOW |
 | **phaser-facts.md** | Phaser misconceptions | ⭐⭐⭐⭐⭐ | ✅ Keep | **ENHANCE** - Add more patterns | HIGH |
 | **phaser-patterns.md** | Correct Phaser patterns | ⭐⭐⭐⭐⭐ | ✅ Keep | **ENHANCE** - Add more examples | HIGH |
+| **INITIALIZATION_TIMING.md** | Initialization timing guide | ⭐⭐⭐⭐⭐ | ✅ Keep | **KEEP** - Critical for AI | HIGH |
 | **phaserdocs.md** | Phaser documentation | ⭐⭐ | ❌ Remove | **DELETE** - Use Context7 MCP | LOW |
 | **plugin-architecture.md** | Plugin system guide | ⭐⭐⭐⭐⭐ | ✅ Keep | **ENHANCE** - Add more anti-patterns | HIGH |
 | **plugin-conversion.md** | Migration strategy | ⭐⭐⭐ | ✅ Keep | **ARCHIVE** - Mark as completed | MEDIUM |
@@ -34,8 +35,9 @@ This document serves as the central index for all Goal Bingo documentation, opti
 ## **🏗️ PROPOSED DOCUMENTATION STRUCTURE**
 
 ### **1. CORE PHASER REFERENCE (AI Priority)**
-- **`PHASER_ARCHITECTURE.md`** - Consolidated architecture + patterns + facts
-- **`PHASER_PATTERNS.md`** - Enhanced patterns and best practices
+- **`PHASER_ARCHITECTURE.md`** - ✅ **UPDATED** - Consolidated architecture + container patterns + scene complexity levels
+- **`PHASER_PATTERNS.md`** - ✅ **UPDATED** - Enhanced patterns + container management + double-rendering prevention
+- **`PHASER_SCENE_CREATION_PLAYBOOK.md`** - ✅ **NEW** - Comprehensive scene creation guide with templates
 - **`PLUGIN_ARCHITECTURE.md`** - Enhanced plugin system guide
 
 ### **2. PROJECT DOCUMENTATION**
@@ -59,9 +61,10 @@ This document serves as the central index for all Goal Bingo documentation, opti
 ## **🎯 AI CONTEXT MANAGEMENT PRIORITIES**
 
 ### **HIGH PRIORITY (Must Have)**
-1. **`PHASER_ARCHITECTURE.md`** - Single source of truth for Phaser architecture
-2. **`PHASER_PATTERNS.md`** - Correct patterns and anti-patterns
-3. **`PLUGIN_ARCHITECTURE.md`** - Plugin system guidance
+1. **`PHASER_ARCHITECTURE.md`** - ✅ **UPDATED** - Single source of truth for Phaser architecture + container patterns
+2. **`PHASER_PATTERNS.md`** - ✅ **UPDATED** - Correct patterns + container management + double-rendering prevention
+3. **`PHASER_SCENE_CREATION_PLAYBOOK.md`** - ✅ **NEW** - Comprehensive scene creation guide with templates
+4. **`PLUGIN_ARCHITECTURE.md`** - Plugin system guidance
 
 ### **MEDIUM PRIORITY (Should Have)**
 4. **`IMPLEMENTATION_PLAN.md`** - Updated project roadmap
@@ -86,6 +89,10 @@ This document serves as the central index for all Goal Bingo documentation, opti
 - **`this.add.particles()`** - Particle systems
 - **`game.scene.scenes`** - Scene management (Scene Systems objects)
 - **`scene.scene`** - Scene class instances (lifecycle methods)
+- **`this.add.container()`** - Container creation
+- **`this.add.existing(container)`** - Container registration
+- **`container.add(element)`** - Element addition to containers
+- **`container.setDepth(depth)`** - Container depth management
 
 ### **Custom Extensions (5% Usage)**
 - **`ApplicationStateManager`** - Domain logic utility
@@ -101,6 +108,9 @@ This document serves as the central index for all Goal Bingo documentation, opti
 - Custom input managers
 - Custom camera managers
 - Custom particle managers
+- **Double-rendering patterns** - Adding elements to both scene and containers
+- **Missing container registration** - Creating containers without `this.add.existing()`
+- **Incorrect scene complexity patterns** - Using containers for simple UI scenes
 
 ---
 

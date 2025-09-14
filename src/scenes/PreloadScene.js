@@ -3,12 +3,12 @@ export default class PreloadScene extends Phaser.Scene {
     constructor() {
         super({ 
             key: 'PreloadScene',
-            plugins: ['TweenManager', 'InputPlugin', 'Clock'],
+            plugins: ['TweenManager', 'InputPlugin'],
             data: {
                 defaultData: 'value',
                 sceneType: 'loading',
                 hasAnimations: true,
-                isPreloadScene: true
+                hasInput: true
             }
         });
     }

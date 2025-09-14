@@ -1,138 +1,106 @@
-import { defineConfig, devices } from '@playwright/test';
+// @ts-check
+const { defineConfig, devices } = require('@playwright/test');
 
 /**
- * Playwright Configuration for Goal Bingo Application
+ * Playwright Configuration for Phaser Scene Testing
  * 
- * ARCHITECTURE NOTES:
- * - Configured for E2E and integration testing only
- * - Uses Vite dev server on port 3008 (matches current setup)
- * - Supports UI testing and user interaction validation
- * - WebGL tests are handled by a separate tool (not Playwright)
- * - Includes proper browser flags for game testing
+ * This configuration follows Playwright best practices for testing
+ * Phaser-based games and applications.
+ * 
+ * @see https://playwright.dev/docs/test-configuration
  */
-export default defineConfig({
-  // Test directory structure - include ONLY E2E and integration tests
-  // WebGL tests should be handled by a different tool (not Playwright)
-  testDir: './tests',
-  testIgnore: [
-    '**/archive/**',
-    '**/unit/**',
-    '**/webgl/**',
-    '**/setup.js'
-  ],
+module.exports = defineConfig({
+  // Test directory
+  testDir: './tests/phaser',
   
-  // Parallel execution for faster testing
+  // Global test timeout
+  timeout: 30 * 1000,
+  
+  // Expect timeout for assertions
+  expect: {
+    timeout: 5000,
+  },
+  
+  // Run tests in files in parallel
   fullyParallel: true,
   
-  // Fail build on CI if test.only is left in code
+  // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: !!process.env.CI,
   
-  // Retry failed tests on CI
+  // Retry on CI only
   retries: process.env.CI ? 2 : 0,
   
-  // Limit workers on CI to avoid resource issues
+  // Opt out of parallel tests on CI
   workers: process.env.CI ? 1 : undefined,
   
-  // HTML reporter for detailed test results
-  reporter: 'html',
+  // Reporter to use
+  reporter: [
+    ['html'],
+    ['json', { outputFile: 'test-results/results.json' }],
+    ['junit', { outputFile: 'test-results/results.xml' }]
+  ],
   
-  // Global test configuration
+  // Global setup and teardown
+  globalSetup: require.resolve('./tests/config/global-setup.js'),
+  globalTeardown: require.resolve('./tests/config/global-teardown.js'),
+  
+  // Shared settings for all the projects below
   use: {
-    // Base URL matches Vite dev server
-    baseURL: 'http://localhost:3008',
+    // Base URL to use in actions like `await page.goto('/')`
+    baseURL: 'http://localhost:3000',
     
-    // Trace on first retry for debugging
+    // Collect trace when retrying the failed test
     trace: 'on-first-retry',
     
-    // Screenshots on failure for visual debugging
+    // Take screenshot on failure
     screenshot: 'only-on-failure',
     
-    // Video recording for failed tests
+    // Record video on failure
     video: 'retain-on-failure',
     
-    // Timeout for individual actions
-    actionTimeout: 10000,
+    // Browser context options
+    viewport: { width: 1200, height: 800 },
+    ignoreHTTPSErrors: true,
     
-    // Timeout for navigation
+    // Timeout for each action
+    actionTimeout: 10000,
     navigationTimeout: 30000,
   },
   
-  // Browser projects for cross-browser testing
+  // Configure projects for major browsers
   projects: [
     {
       name: 'chromium',
-      use: { 
-        ...devices['Desktop Chrome'],
-        // WebGL and GPU acceleration flags
-        launchOptions: {
-          args: [
-            '--enable-webgl',
-            '--enable-gpu',
-            '--enable-gpu-rasterization',
-            '--enable-zero-copy',
-            '--disable-web-security',
-            '--disable-features=VizDisplayCompositor'
-          ]
-        }
-      },
+      use: { ...devices['Desktop Chrome'] },
     },
+    
     {
       name: 'firefox',
-      use: { 
-        ...devices['Desktop Firefox'],
-        // Firefox WebGL support
-        launchOptions: {
-          firefoxUserPrefs: {
-            'webgl.force-enabled': true,
-            'webgl.disabled': false,
-            'gfx.webrender.all': true
-          }
-        }
-      },
+      use: { ...devices['Desktop Firefox'] },
     },
+    
     {
       name: 'webkit',
-      use: { 
-        ...devices['Desktop Safari'],
-        // WebKit WebGL support
-        launchOptions: {
-          args: ['--enable-webgl']
-        }
-      },
+      use: { ...devices['Desktop Safari'] },
+    },
+    
+    // Test against mobile viewports
+    {
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
     },
   ],
   
-  // Web server configuration
+  // Run your local dev server before starting the tests
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3008',
+    url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
-  
-  // Test timeout (30 seconds per test)
-  timeout: 30000,
-  
-  // Global setup and teardown
-  globalSetup: require.resolve('./tests/setup/global-setup.js'),
-  globalTeardown: require.resolve('./tests/setup/global-teardown.js'),
-  
-  // Test output directory
-  outputDir: 'test-results/',
-  
-  // Test artifacts
-  expect: {
-    // Screenshot comparison threshold
-    threshold: 0.2,
-    // Animation handling
-    toHaveScreenshot: { 
-      animations: 'disabled',
-      threshold: 0.2 
-    },
-    toMatchSnapshot: { 
-      threshold: 0.2 
-    },
   },
 });

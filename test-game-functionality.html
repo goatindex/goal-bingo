@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Bingo - Functionality Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: white;
+            margin: 20px auto;
+            display: block;
+        }
+        .test-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .test-results {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-pass { color: green; }
+        .test-fail { color: red; }
+        .test-info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Goal Bingo - Functionality Test</h1>
+    
+    <div class="test-controls">
+        <button class="test-button" onclick="testGameInitialization()">Test Game Init</button>
+        <button class="test-button" onclick="testSceneTransitions()">Test Scene Transitions</button>
+        <button class="test-button" onclick="testButtonClicks()">Test Button Clicks</button>
+        <button class="test-button" onclick="testBingoGrid()">Test Bingo Grid</button>
+        <button class="test-button" onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div id="game-container"></div>
+
+    <div class="test-results" id="test-results">
+        <h3>Test Results:</h3>
+        <div id="test-output">Ready to test...</div>
+    </div>
+
+    <script type="module">
+        let game = null;
+        let testResults = [];
+
+        function logTest(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = `test-${type}`;
+            const output = document.getElementById('test-output');
+            output.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            testResults.push({ message, type, timestamp });
+        }
+
+        function clearResults() {
+            document.getElementById('test-output').innerHTML = '';
+            testResults = [];
+        }
+
+        async function testGameInitialization() {
+            logTest('Starting game initialization test...', 'info');
+            
+            try {
+                // Check if game container exists
+                const container = document.getElementById('game-container');
+                if (!container) {
+                    throw new Error('Game container not found');
+                }
+                logTest('✅ Game container found', 'pass');
+
+                // Check if Phaser is available
+                if (typeof Phaser === 'undefined') {
+                    throw new Error('Phaser not loaded');
+                }
+                logTest('✅ Phaser library loaded', 'pass');
+
+                // Check if game is already running
+                if (game) {
+                    logTest('⚠️ Game already running, destroying previous instance', 'info');
+                    game.destroy(true);
+                }
+
+                // Initialize game
+                const config = {
+                    type: Phaser.AUTO,
+                    width: 1200,
+                    height: 800,
+                    parent: 'game-container',
+                    scene: {
+                        preload: function() {
+                            logTest('✅ Preload scene started', 'pass');
+                        },
+                        create: function() {
+                            logTest('✅ Create scene started', 'pass');
+                        }
+                    }
+                };
+
+                game = new Phaser.Game(config);
+                logTest('✅ Game initialized successfully', 'pass');
+
+            } catch (error) {
+                logTest(`❌ Game initialization failed: ${error.message}`, 'fail');
+            }
+        }
+
+        async function testSceneTransitions() {
+            logTest('Starting scene transition test...', 'info');
+            
+            try {
+                if (!game) {
+                    throw new Error('Game not initialized');
+                }
+
+                // Test scene switching
+                const scenes = game.scene.getScenes();
+                logTest(`✅ Found ${scenes.length} scenes`, 'pass');
+
+                // Test scene start
+                game.scene.start('BootScene');
+                logTest('✅ BootScene started', 'pass');
+
+            } catch (error) {
+                logTest(`❌ Scene transition test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        async function testButtonClicks() {
+            logTest('Starting button click test...', 'info');
+            
+            try {
+                if (!game) {
+                    throw new Error('Game not initialized');
+                }
+
+                // Check if buttons are clickable
+                const buttons = document.querySelectorAll('button');
+                logTest(`✅ Found ${buttons.length} buttons on page`, 'pass');
+
+                // Test button click events
+                buttons.forEach((button, index) => {
+                    button.addEventListener('click', () => {
+                        logTest(`✅ Button ${index + 1} clicked successfully`, 'pass');
+                    });
+                });
+
+                logTest('✅ Button click handlers attached', 'pass');
+
+            } catch (error) {
+                logTest(`❌ Button click test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        async function testBingoGrid() {
+            logTest('Starting bingo grid test...', 'info');
+            
+            try {
+                if (!game) {
+                    throw new Error('Game not initialized');
+                }
+
+                // Check if bingo grid scene exists
+                const bingoScene = game.scene.getScene('BingoGridScene');
+                if (bingoScene) {
+                    logTest('✅ BingoGridScene found', 'pass');
+                } else {
+                    logTest('⚠️ BingoGridScene not found (may not be loaded)', 'info');
+                }
+
+                // Check if grid container exists
+                const gridContainer = document.querySelector('.bingo-grid');
+                if (gridContainer) {
+                    logTest('✅ Bingo grid container found', 'pass');
+                } else {
+                    logTest('⚠️ Bingo grid container not found (may not be rendered yet)', 'info');
+                }
+
+            } catch (error) {
+                logTest(`❌ Bingo grid test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        // Make functions globally available
+        window.testGameInitialization = testGameInitialization;
+        window.testSceneTransitions = testSceneTransitions;
+        window.testButtonClicks = testButtonClicks;
+        window.testBingoGrid = testBingoGrid;
+        window.clearResults = clearResults;
+
+        // Auto-start basic test
+        logTest('🚀 Test page loaded, ready for testing', 'info');
+    </script>
+
+    <!-- Load Phaser from CDN for testing -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.87.0/dist/phaser.min.js"></script>
+</body>
+</html>

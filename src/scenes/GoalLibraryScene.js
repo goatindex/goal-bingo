@@ -56,8 +56,13 @@ export default class GoalLibraryScene extends Phaser.Scene {
     }
 
     init(data) {
-        // Initialize scene with data
+        // PHASER SCENE LIFECYCLE DEBUG: Track scene initialization
+        console.log('=== GOAL LIBRARY SCENE LIFECYCLE DEBUG ===');
         console.log('GoalLibraryScene: init() called with data:', data);
+        console.log('Current scene state:', this.sys.getStatus());
+        console.log('Scene is active:', this.sys.isActive());
+        console.log('Scene is visible:', this.sys.isVisible());
+        
         // Set up scene properties, validate data, etc.
         if (data) {
             // Handle any data passed from other scenes
@@ -71,10 +76,57 @@ export default class GoalLibraryScene extends Phaser.Scene {
                 this.selectedGoal = data.selectedGoal;
             }
         }
+        
+        console.log('GoalLibraryScene: init() completed');
+    }
+
+    preload() {
+        // ============================================================================
+        // PHASER ASSET LOADING: Initial scene asset setup
+        // ============================================================================
+        // PHASER PATTERN: Load assets needed for this scene
+        // - this.load.image() loads image assets
+        // - this.load.audio() loads audio assets
+        // - this.load.json() loads JSON data
+        // - Assets are cached and available in create()
+        
+        // Load initial assets for this scene
+        // this.load.image('background', 'assets/background.png');
+        // this.load.image('ui-button', 'assets/ui/button.png');
+        // this.load.audio('theme', 'assets/theme.mp3');
     }
 
     create() {
+        // PHASER SCENE LIFECYCLE DEBUG: Track scene creation
+        console.log('GoalLibraryScene: create() called');
+        console.log('Current scene state:', this.sys.getStatus());
+        console.log('Scene is active:', this.sys.isActive());
+        console.log('Scene is visible:', this.sys.isVisible());
+        console.log('Scene children count before create:', this.children.list.length);
+        
         const { width, height } = this.cameras.main;
+        
+        // ============================================================================
+        // PHASER INITIAL SCENE CONFIG: Common initial scene setup patterns
+        // ============================================================================
+        // PHASER PATTERN: These patterns are commonly used in initial scene setup
+        // - Camera configuration for proper viewport setup
+        // - Input configuration for initial interaction setup
+        // - Event setup for initial scene communication
+        
+        // Configure camera
+        this.cameras.main.setBackgroundColor(0xf8f9fa);
+        this.cameras.main.setViewport(0, 0, 1200, 800);
+        this.cameras.main.setZoom(1);
+        
+        // Configure input
+        this.input.keyboard.createCursorKeys();
+        this.input.on('pointerdown', this.handleClick, this);
+        
+        // Set up initial event listeners
+        this.events.on('shutdown', this.onShutdown, this);
+        this.events.on('pause', this.onPause, this);
+        this.events.on('resume', this.onResume, this);
         
         // Set up the scene
         this.setupScene(width, height);
@@ -105,11 +157,21 @@ export default class GoalLibraryScene extends Phaser.Scene {
         
         // Load initial data
         this.loadGoals();
+        
+        // PHASER SCENE LIFECYCLE DEBUG: Track scene creation completion
+        console.log('GoalLibraryScene: create() completed');
+        console.log('Final scene state:', this.sys.getStatus());
+        console.log('Scene is active:', this.sys.isActive());
+        console.log('Scene is visible:', this.sys.isVisible());
+        console.log('Scene children count after create:', this.children.list.length);
+        console.log('Containers count:', this.children.list.filter(child => child.type === 'Container').length);
+        console.log('=== GOAL LIBRARY SCENE LIFECYCLE DEBUG END ===');
     }
 
     setupScene(width, height) {
-        // Background
-        this.add.rectangle(width / 2, height / 2, width, height, 0xf8f9fa);
+        // Background - PHASER COMPLIANT: Set depth to back so other objects render on top
+        const background = this.add.rectangle(width / 2, height / 2, width, height, 0xf8f9fa);
+        background.setDepth(-1); // Put background behind all other objects
         
         // Set up camera
         this.cameras.main.setBackgroundColor(0xf8f9fa);
@@ -119,30 +181,119 @@ export default class GoalLibraryScene extends Phaser.Scene {
     }
 
     createContainers(width, height) {
+        // ============================================================================
+        // PHASER CONTAINER MANAGEMENT: Proper container creation and registration
+        // ============================================================================
+        // PHASER PATTERN: Containers are Game Objects that can hold other Game Objects
+        // They provide depth management, grouping, and transform operations for UI elements
+        // 
+        // CRITICAL PHASER RULE: Containers must be added to scene display list to render
+        // - this.add.container() creates the container but doesn't add it to scene
+        // - this.add.existing(container) adds container to scene's display list
+        // - Without this.add.existing(), containers are invisible (not rendered)
+        
+        // Background container (behind everything)
+        // AI NOTE: Background elements go in their own container for proper depth management
+        this.backgroundContainer = this.add.container(0, 0);
+        this.backgroundContainer.setDepth(-1); // Behind all other elements
+        this.add.existing(this.backgroundContainer); // REQUIRED: Add to scene display list
+        
         // Header container for title, back button, and stats
+        // AI NOTE: Header elements are grouped together for easy management and transforms
         this.headerContainer = this.add.container(0, 0);
-        this.headerContainer.setDepth(10);
+        this.headerContainer.setDepth(10); // Above main content
+        this.add.existing(this.headerContainer); // REQUIRED: Add to scene display list
         
         // Filters container for search and filter buttons
+        // AI NOTE: Filter UI elements are grouped for consistent positioning and visibility
         this.filtersContainer = this.add.container(0, 0);
-        this.filtersContainer.setDepth(9);
+        this.filtersContainer.setDepth(9); // Below header, above content
+        this.add.existing(this.filtersContainer); // REQUIRED: Add to scene display list
         
         // Goals list container for goal cards
+        // AI NOTE: Main content area where goal cards will be rendered
         this.goalsListContainer = this.add.container(0, 0);
-        this.goalsListContainer.setDepth(8);
+        this.goalsListContainer.setDepth(8); // Main content layer
+        this.add.existing(this.goalsListContainer); // REQUIRED: Add to scene display list
         
         // Add goal container for add button and modal
+        // AI NOTE: Action buttons and modals go in highest depth container
         this.addGoalContainer = this.add.container(0, 0);
-        this.addGoalContainer.setDepth(11);
+        this.addGoalContainer.setDepth(11); // Above everything except modals
+        this.add.existing(this.addGoalContainer); // REQUIRED: Add to scene display list
+        
+        // ============================================================================
+        // PHASER GROUP MANAGEMENT: Collections for managing similar objects
+        // ============================================================================
+        // PHASER PATTERN: Groups are used for managing collections of objects
+        // Groups provide methods like add(), remove(), clear(), forEach()
+        // Groups are NOT display lists - they're collection managers
+        // Objects in groups must still be added to scene or containers for rendering
+        
+        this.goalCardsGroup = this.add.group(); // Manages goal card collection
+        this.filterButtonsGroup = this.add.group(); // Manages filter button collection
+        this.actionButtonsGroup = this.add.group(); // Manages action button collection
+        
+        // ============================================================================
+        // PHASER CONTAINER LIFECYCLE: Container scene events
+        // ============================================================================
+        // PHASER PATTERN: Containers have lifecycle events for scene management
+        // - addedToScene() called when container is added to scene
+        // - removedFromScene() called when container is removed from scene
+        // - These events are useful for initial setup and cleanup
+        
+        // Listen for container lifecycle events
+        this.headerContainer.on('addedToScene', this.onContainerAdded, this);
+        this.headerContainer.on('removedFromScene', this.onContainerRemoved, this);
+        
+        this.filtersContainer.on('addedToScene', this.onContainerAdded, this);
+        this.filtersContainer.on('removedFromScene', this.onContainerRemoved, this);
+        
+        this.goalsListContainer.on('addedToScene', this.onContainerAdded, this);
+        this.goalsListContainer.on('removedFromScene', this.onContainerRemoved, this);
+        
+        this.addGoalContainer.on('addedToScene', this.onContainerAdded, this);
+        this.addGoalContainer.on('removedFromScene', this.onContainerRemoved, this);
+        
+        console.log('GoalLibraryScene: All containers registered with scene display list');
+    }
+
+    onContainerAdded(container) {
+        console.log('Container added to scene:', container);
+        // Perform initial setup when container is added
+    }
+
+    onContainerRemoved(container) {
+        console.log('Container removed from scene:', container);
+        // Perform cleanup when container is removed
+    }
+
+    onShutdown() {
+        console.log('GoalLibraryScene: shutdown event received');
+    }
+
+    onPause() {
+        console.log('GoalLibraryScene: pause event received');
+    }
+
+    onResume() {
+        console.log('GoalLibraryScene: resume event received');
+    }
+
+    handleClick(pointer) {
+        // Handle general click events
+        console.log('GoalLibraryScene: Click detected at', pointer.x, pointer.y);
     }
 
     createHeader(width, height) {
         const headerY = 60;
         
+        // PHASER CONTAINER PATTERN: Create elements and add directly to container
+        // According to Phaser docs, container.add() handles display list management automatically
+        
         // Background for header
         const headerBg = this.add.rectangle(width / 2, headerY, width, 80, 0xffffff);
         headerBg.setStrokeStyle(1, 0xe9ecef);
-        this.headerContainer.add(headerBg);
         
         // Title
         const title = this.add.text(width / 2, headerY - 10, '📚 Goal Library', {
@@ -150,27 +301,30 @@ export default class GoalLibraryScene extends Phaser.Scene {
             fill: '#333333',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        this.headerContainer.add(title);
         
         // Back button
         const backBtn = this.add.rectangle(100, headerY, 100, 35, 0x6c757d);
         backBtn.setStrokeStyle(2, 0x5a6268);
         backBtn.setInteractive();
-        this.headerContainer.add(backBtn);
         
         const backText = this.add.text(100, headerY, '← Back', {
             fontSize: '14px',
             fill: '#ffffff',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        this.headerContainer.add(backText);
         
         // Stats text
         this.statsText = this.add.text(width - 20, headerY, '', {
             fontSize: '14px',
-            fill: '#666666'
+            fill: '#666666',
+            fontStyle: 'bold'
         }).setOrigin(1, 0.5);
-        this.headerContainer.add(this.statsText);
+        
+        // PHASER CONTAINER.ADD PATTERN: Add elements to container using array syntax
+        // This removes elements from scene display list and adds them to container
+        // ❌ WRONG: this.headerContainer.add(headerBg); this.headerContainer.add(title); // Individual adds
+        // ✅ CORRECT: this.headerContainer.add([headerBg, title, backBtn, backText, this.statsText]); // Array add
+        this.headerContainer.add([headerBg, title, backBtn, backText, this.statsText]);
         
         // Back button interaction
         backBtn.on(Phaser.Input.Events.POINTER_DOWN, () => {
@@ -196,12 +350,18 @@ export default class GoalLibraryScene extends Phaser.Scene {
     createFilters(width, height) {
         const filtersY = 120;
         
+        // PHASER DOUBLE-RENDERING FIX: Create elements but don't add to scene directly
+        // All elements created with this.add.* are automatically added to scene display list
+        
         // Background for filters
         const filtersBg = this.add.rectangle(width / 2, filtersY, width, 60, 0xffffff);
         filtersBg.setStrokeStyle(1, 0xe9ecef);
-        this.filtersContainer.add(filtersBg);
+        // NOTE: filtersBg is now on scene display list automatically
         
-        // Filter buttons group (not added to container)
+        // PHASER GROUP vs CONTAINER: Groups are for managing collections, not rendering
+        // Groups don't have display lists - they're just organizational tools
+        // ❌ WRONG: this.filterButtonsGroup.add(btn); // This doesn't add to display list
+        // ✅ CORRECT: Use groups for management, containers for rendering
         this.filterButtonsGroup = this.add.group();
         
         // Filter buttons
@@ -212,9 +372,14 @@ export default class GoalLibraryScene extends Phaser.Scene {
             { key: 'completed', label: 'Completed', x: 400 }
         ];
         
+        const filterButtons = [];
         filters.forEach(filter => {
-            const btn = this.createFilterButton(filter.x, filtersY, filter.label, filter.key);
-            this.filterButtonsGroup.add(btn);
+            const buttonElements = this.createFilterButton(filter.x, filtersY, filter.label, filter.key);
+            // PHASER GROUP PATTERN: Groups are for management, not display
+            // Add button (first element) to group for management
+            this.filterButtonsGroup.add(buttonElements[0]);
+            // Collect all button elements for container addition
+            filterButtons.push(...buttonElements);
         });
         
         // Search input placeholder (will be implemented in 3.3.2)
@@ -222,24 +387,39 @@ export default class GoalLibraryScene extends Phaser.Scene {
             fontSize: '14px',
             fill: '#999999'
         }).setOrigin(0.5);
-        this.filtersContainer.add(searchPlaceholder);
+        // NOTE: searchPlaceholder is now on scene display list automatically
+        
+        // PHASER CONTAINER.ADD PATTERN: Add all elements to container using array syntax
+        // This removes elements from scene display list and adds them to container
+        // ❌ WRONG: this.filtersContainer.add(filtersBg); this.filtersContainer.add(btn1); // Individual adds
+        // ✅ CORRECT: this.filtersContainer.add([filtersBg, ...filterButtons, searchPlaceholder]); // Array add
+        this.filtersContainer.add([filtersBg, ...filterButtons, searchPlaceholder]);
     }
 
     createFilterButton(x, y, label, filterKey) {
         const isActive = filterKey === this.currentFilter;
+        
+        // PHASER DOUBLE-RENDERING FIX: Create elements but don't add to scene directly
+        // Elements created with this.add.* are automatically added to scene display list
         const btn = this.add.rectangle(x, y, 80, 30, isActive ? 0x007bff : 0xf8f9fa);
         btn.setStrokeStyle(2, isActive ? 0x0056b3 : 0xdee2e6);
         btn.setInteractive();
+        // NOTE: btn is now on scene display list automatically
         
         const btnText = this.add.text(x, y, label, {
             fontSize: '12px',
             fill: isActive ? '#ffffff' : '#333333',
             fontStyle: 'bold'
         }).setOrigin(0.5);
+        // NOTE: btnText is now on scene display list automatically
         
         // Store filter key for later use
         btn.filterKey = filterKey;
         btn.btnText = btnText;
+        
+        // PHASER CONTAINER.ADD PATTERN: Return both button and text for container addition
+        // The calling code will add both elements to the container using array syntax
+        // This removes both elements from scene display list and adds them to container
         
         // Click handling
         btn.on(Phaser.Input.Events.POINTER_DOWN, () => {
@@ -261,19 +441,28 @@ export default class GoalLibraryScene extends Phaser.Scene {
             }
         });
         
-        return btn;
+        // CRITICAL: Return both button and text as an array
+        // ❌ WRONG: return btn; // Only returns button, text stays on scene
+        // ✅ CORRECT: return [btn, btnText]; // Returns both elements for container addition
+        return [btn, btnText];
     }
 
     createGoalsList(width, height) {
         const listY = 200;
         const listHeight = height - 250;
         
+        // PHASER DOUBLE-RENDERING FIX: Create elements but don't add to scene directly
+        // All elements created with this.add.* are automatically added to scene display list
+        
         // Background for goals list
         const listBg = this.add.rectangle(width / 2, listY + listHeight / 2, width - 40, listHeight, 0xffffff);
         listBg.setStrokeStyle(1, 0xe9ecef);
-        this.goalsListContainer.add(listBg);
+        // NOTE: listBg is now on scene display list automatically
         
-        // Goals group (not added to container)
+        // PHASER GROUP vs CONTAINER: Groups are for managing collections, not rendering
+        // Groups don't have display lists - they're just organizational tools
+        // ❌ WRONG: this.goalCardsGroup.add(goalCard); // This doesn't add to display list
+        // ✅ CORRECT: Use groups for management, containers for rendering
         this.goalCardsGroup = this.add.group();
         
         // Placeholder text (will be replaced with actual goal cards)
@@ -281,25 +470,40 @@ export default class GoalLibraryScene extends Phaser.Scene {
             fontSize: '18px',
             fill: '#999999'
         }).setOrigin(0.5);
-        this.goalsListContainer.add(placeholderText);
         this.placeholderText = placeholderText;
+        // NOTE: placeholderText is now on scene display list automatically
+        
+        // PHASER CONTAINER.ADD PATTERN: Add all elements to container using array syntax
+        // This removes elements from scene display list and adds them to container
+        // ❌ WRONG: this.goalsListContainer.add(listBg); this.goalsListContainer.add(placeholderText); // Individual adds
+        // ✅ CORRECT: this.goalsListContainer.add([listBg, placeholderText]); // Array add
+        this.goalsListContainer.add([listBg, placeholderText]);
     }
 
     createAddGoalSection(width, height) {
         const addY = height - 60;
         
+        // PHASER DOUBLE-RENDERING FIX: Create elements but don't add to scene directly
+        // All elements created with this.add.* are automatically added to scene display list
+        
         // Add goal button
         const addBtn = this.add.rectangle(width / 2, addY, 200, 40, 0x28a745);
         addBtn.setStrokeStyle(2, 0x1e7e34);
         addBtn.setInteractive();
-        this.addGoalContainer.add(addBtn);
+        // NOTE: addBtn is now on scene display list automatically
         
         const addText = this.add.text(width / 2, addY, '+ Add New Goal', {
             fontSize: '16px',
             fill: '#ffffff',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        this.addGoalContainer.add(addText);
+        // NOTE: addText is now on scene display list automatically
+        
+        // PHASER CONTAINER.ADD PATTERN: Add all elements to container using array syntax
+        // This removes elements from scene display list and adds them to container
+        // ❌ WRONG: this.addGoalContainer.add(addBtn); this.addGoalContainer.add(addText); // Individual adds
+        // ✅ CORRECT: this.addGoalContainer.add([addBtn, addText]); // Array add
+        this.addGoalContainer.add([addBtn, addText]);
         
         // Add button interaction
         addBtn.on(Phaser.Input.Events.POINTER_DOWN, () => {
@@ -398,8 +602,20 @@ export default class GoalLibraryScene extends Phaser.Scene {
                 height: this.cardHeight
             });
             
-            // Add to group
+            // ============================================================================
+            // PHASER DOUBLE-RENDERING FIX: Proper GoalCard rendering
+            // ============================================================================
+            // PHASER PATTERN: Add GoalCard to group AND container (not scene directly)
+            // - Groups manage collections but don't render children
+            // - Containers both group AND render their children
+            // - This prevents double-rendering while ensuring visibility
+            
+            // Add to group for collection management
             this.goalCardsGroup.add(goalCard);
+            
+            // Add to goals list container for rendering
+            // AI NOTE: This is the correct approach - containers handle both grouping and rendering
+            this.goalsListContainer.add(goalCard);
             
             // Animate appearance
             goalCard.animateAppearance();
@@ -459,15 +675,9 @@ export default class GoalLibraryScene extends Phaser.Scene {
             return false;
         }
 
-        // Check if scene is active and not shutting down
-        if (!this.isActive()) {
+        // Check if scene is active
+        if (!this.sys.isActive()) {
             console.warn('GoalLibraryScene: Scene is not active');
-            return false;
-        }
-
-        // Check if scene is not in the process of shutting down
-        if (this.isShuttingDown()) {
-            console.warn('GoalLibraryScene: Scene is shutting down');
             return false;
         }
 
@@ -591,20 +801,68 @@ export default class GoalLibraryScene extends Phaser.Scene {
     }
 
     shutdown() {
-        // Clean up event listeners
-        this.game.events.off('goalsChanged', this.onGoalsChanged, this);
-        this.game.events.off('categoriesChanged', this.onCategoriesChanged, this);
+        console.log('GoalLibraryScene: shutdown() called - cleaning up containers and resources');
         
-        // Clean up goal card events
-        this.events.off('goalCardSelected', this.onGoalCardSelected, this);
-        this.events.off('goalCardEdit', this.onGoalCardEdit, this);
-        this.events.off('goalCardDelete', this.onGoalCardDelete, this);
+        // PHASER SCENE CLEANUP: Comprehensive cleanup following Phaser documentation patterns
+        // The shutdown() method is called automatically by Phaser when a scene is stopped
+        // This ensures proper cleanup to prevent memory leaks and resource accumulation
         
-        // Clean up input handlers
-        this.input.keyboard.off(Phaser.Input.Keyboard.Events.KEY_DOWN);
+        // ============================================================================
+        // CONTAINER CLEANUP: Destroy all containers and remove from display list
+        // ============================================================================
+        // PHASER PATTERN: container.destroy() removes container from scene's display list
+        // and destroys all its children. This is the standard Phaser cleanup method.
         
-        // Clean up modals
+        if (this.headerContainer) {
+            // AI NOTE: destroy() is the core Phaser method for cleaning up Game Objects
+            // It removes the object from the display list and frees all resources
+            this.headerContainer.destroy();
+            this.headerContainer = null; // Set to null to prevent memory leaks
+        }
+        if (this.filtersContainer) {
+            this.filtersContainer.destroy();
+            this.filtersContainer = null;
+        }
+        if (this.goalsListContainer) {
+            this.goalsListContainer.destroy();
+            this.goalsListContainer = null;
+        }
+        if (this.addGoalContainer) {
+            this.addGoalContainer.destroy();
+            this.addGoalContainer = null;
+        }
+        
+        // ============================================================================
+        // GROUP CLEANUP: Clear all groups and destroy their children
+        // ============================================================================
+        // PHASER PATTERN: group.clear(destroyChildren, destroyContext) removes all children
+        // The first parameter (true) destroys each child, second parameter (true) destroys context
+        
+        if (this.goalCardsGroup) {
+            // AI NOTE: clear(true, true) destroys all children in the group
+            // This is more thorough than just removing them from the group
+            this.goalCardsGroup.clear(true, true);
+            this.goalCardsGroup = null; // Set to null to prevent memory leaks
+        }
+        if (this.filterButtonsGroup) {
+            this.filterButtonsGroup.clear(true, true);
+            this.filterButtonsGroup = null;
+        }
+        if (this.actionButtonsGroup) {
+            // AI NOTE: This group was missing from cleanup - added for completeness
+            this.actionButtonsGroup.clear(true, true);
+            this.actionButtonsGroup = null;
+        }
+        
+        // ============================================================================
+        // MODAL CLEANUP: Destroy custom modal objects
+        // ============================================================================
+        // PHASER PATTERN: Custom objects should be destroyed in shutdown()
+        // This prevents modal dialogs from persisting after scene shutdown
+        
         if (this.addGoalModal) {
+            // AI NOTE: Custom modal objects need explicit cleanup
+            // They're not automatically managed by Phaser's scene lifecycle
             this.addGoalModal.destroy();
             this.addGoalModal = null;
         }
@@ -613,19 +871,159 @@ export default class GoalLibraryScene extends Phaser.Scene {
             this.editGoalModal = null;
         }
         
-        // Clear groups
-        if (this.goalCardsGroup) {
-            this.goalCardsGroup.clear(true, true);
-        }
-        if (this.filterButtonsGroup) {
-            this.filterButtonsGroup.clear(true, true);
-        }
-        if (this.addGoalContainer) {
-            this.addGoalContainer.clear(true, true);
-        }
+        // ============================================================================
+        // EVENT LISTENER CLEANUP: Remove all event listeners
+        // ============================================================================
+        // PHASER PATTERN: Always clean up event listeners to prevent memory leaks
+        // Use the same context (this) that was used when adding listeners
         
-        // Fallback cleanup
-        this.events.removeAllListeners();
-        this.input.keyboard.removeAllListeners();
+        // Game-level events (global events)
+        this.game.events.off('goalsChanged', this.onGoalsChanged, this);
+        this.game.events.off('categoriesChanged', this.onCategoriesChanged, this);
+        
+        // Scene-level events (local to this scene)
+        this.events.off('goalCardSelected', this.onGoalCardSelected, this);
+        this.events.off('goalCardEdit', this.onGoalCardEdit, this);
+        this.events.off('goalCardDelete', this.onGoalCardDelete, this);
+        
+        // Input events (keyboard, mouse, touch)
+        this.input.keyboard.off(Phaser.Input.Keyboard.Events.KEY_DOWN);
+        
+        // ============================================================================
+        // FALLBACK CLEANUP: Comprehensive cleanup as safety net
+        // ============================================================================
+        // PHASER PATTERN: Use removeAllListeners() as a safety net to catch any missed listeners
+        // This ensures no event listeners are left behind
+        
+        this.events.removeAllListeners(); // Remove all scene event listeners
+        this.input.keyboard.removeAllListeners(); // Remove all keyboard listeners
+        
+        // AI NOTE: This comprehensive cleanup follows Phaser best practices:
+        // 1. Destroy containers (removes from display list)
+        // 2. Clear groups (destroys children)
+        // 3. Clean up custom objects (modals)
+        // 4. Remove event listeners (prevents memory leaks)
+        // 5. Set references to null (prevents dangling references)
+        
+        console.log('GoalLibraryScene: shutdown() completed - all containers and resources cleaned up');
+    }
+
+
+    /**
+     * Enhanced scene state management following Phaser best practices
+     * Provides comprehensive scene state validation and management
+     */
+    validateSceneState() {
+        // Check if scene exists and is active
+        if (!this || !this.sys) {
+            console.warn('GoalLibraryScene: Scene or scene.sys not available');
+            return false;
+        }
+
+        // Check if scene is active
+        if (!this.sys.isActive()) {
+            console.warn('GoalLibraryScene: Scene is not active');
+            return false;
+        }
+
+        // Check if scene is visible
+        if (!this.sys.isVisible()) {
+            console.warn('GoalLibraryScene: Scene is not visible');
+            return false;
+        }
+
+        // Check if scene is shutting down
+        if (this.sys.isShuttingDown()) {
+            console.warn('GoalLibraryScene: Scene is shutting down');
+            return false;
+        }
+
+        // Check if cameras are available
+        if (!this.cameras || !this.cameras.main) {
+            console.warn('GoalLibraryScene: Cameras not available');
+            return false;
+        }
+
+        // Check if add method is available (scene is fully initialized)
+        if (typeof this.add !== 'function') {
+            console.warn('GoalLibraryScene: Scene.add method not available');
+            return false;
+        }
+
+        // All checks passed - scene is ready
+        return true;
+    }
+
+    /**
+     * Get current scene state information
+     * Following Phaser best practices for scene state debugging
+     */
+    getSceneState() {
+        return {
+            status: this.sys.getStatus(),
+            isActive: this.sys.isActive(),
+            isVisible: this.sys.isVisible(),
+            isSleeping: this.sys.isSleeping(),
+            isShuttingDown: this.sys.isShuttingDown(),
+            childrenCount: this.children.list.length,
+            uiState: {
+                currentFilter: this.currentFilter,
+                searchQuery: this.searchQuery,
+                selectedGoal: this.selectedGoal ? this.selectedGoal.id : null,
+                isEditing: this.isEditing
+            },
+            containers: {
+                header: this.headerContainer ? this.headerContainer.list.length : 0,
+                filters: this.filtersContainer ? this.filtersContainer.list.length : 0,
+                goalsList: this.goalsListContainer ? this.goalsListContainer.list.length : 0,
+                addGoal: this.addGoalContainer ? this.addGoalContainer.list.length : 0
+            },
+            groups: {
+                goalCards: this.goalCardsGroup ? this.goalCardsGroup.children.size : 0,
+                filterButtons: this.filterButtonsGroup ? this.filterButtonsGroup.children.size : 0,
+                actionButtons: this.actionButtonsGroup ? this.actionButtonsGroup.children.size : 0
+            },
+            modals: {
+                addGoal: this.addGoalModal ? 'open' : 'closed',
+                editGoal: this.editGoalModal ? 'open' : 'closed'
+            },
+            camera: {
+                x: this.cameras.main.x,
+                y: this.cameras.main.y,
+                width: this.cameras.main.width,
+                height: this.cameras.main.height,
+                zoom: this.cameras.main.zoom
+            }
+        };
+    }
+
+    preDestroy() {
+        // PHASER PREDESTROY: Final cleanup before scene is completely destroyed
+        // This method is called after shutdown() and before the scene is removed from memory
+        // It's the last chance to clean up any remaining resources
+        
+        console.log('GoalLibraryScene: preDestroy() called - final cleanup');
+        
+        // AI NOTE: preDestroy() is called after shutdown() and is the final cleanup step
+        // At this point, most resources should already be cleaned up in shutdown()
+        // This is mainly for any final cleanup or logging
+        
+        // Ensure all references are nullified (defensive programming)
+        this.headerContainer = null;
+        this.filtersContainer = null;
+        this.goalsListContainer = null;
+        this.addGoalContainer = null;
+        this.goalCardsGroup = null;
+        this.filterButtonsGroup = null;
+        this.actionButtonsGroup = null;
+        this.addGoalModal = null;
+        this.editGoalModal = null;
+        
+        // Clear any remaining data references
+        this.currentFilter = null;
+        this.searchQuery = null;
+        this.selectedGoal = null;
+        
+        console.log('GoalLibraryScene: preDestroy() completed - scene ready for destruction');
     }
 }

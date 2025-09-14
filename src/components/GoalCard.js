@@ -12,6 +12,43 @@
  * - Event-driven design using Phaser's EventEmitter
  * - Proper cleanup and destruction following Phaser patterns
  * - Interactive elements using Phaser input system
+ * 
+ * ============================================================================
+ * AI CONTEXT: CRITICAL DOUBLE-RENDERING PREVENTION PATTERN
+ * ============================================================================
+ * 
+ * THIS FILE DEMONSTRATES THE CORRECT PATTERN FOR CREATING CUSTOM PHASER CONTAINERS
+ * 
+ * ❌ WRONG PATTERN (DO NOT USE - CAUSES DOUBLE-RENDERING):
+ * ```javascript
+ * // This creates objects that exist in BOTH scene display list AND container
+ * this.element = this.scene.add.rectangle(x, y, w, h, color);
+ * this.add(this.element); // DOUBLE-RENDERING = INVISIBLE OBJECTS
+ * ```
+ * 
+ * ✅ CORRECT PATTERN (USE THIS - PREVENTS DOUBLE-RENDERING):
+ * ```javascript
+ * // This creates objects that exist ONLY in container display list
+ * this.element = new Phaser.GameObjects.Rectangle(this.scene, x, y, w, h, color);
+ * this.add(this.element); // SINGLE RENDERING = VISIBLE OBJECTS
+ * ```
+ * 
+ * WHY THIS MATTERS:
+ * - Phaser objects can only exist in ONE display list at a time
+ * - scene.add.* methods automatically add objects to scene display list
+ * - container.add() adds objects to container display list
+ * - Same object in both lists = double-rendering = invisible
+ * - Object in only container list = proper rendering = visible
+ * 
+ * AI MEMORY: When creating custom containers, ALWAYS use constructors, NEVER scene.add methods
+ * 
+ * APPLICABLE TO ALL PHASER GAME OBJECTS:
+ * - new Phaser.GameObjects.Rectangle() instead of this.scene.add.rectangle()
+ * - new Phaser.GameObjects.Text() instead of this.scene.add.text()
+ * - new Phaser.GameObjects.Sprite() instead of this.scene.add.sprite()
+ * - new Phaser.GameObjects.Image() instead of this.scene.add.image()
+ * - etc.
+ * ============================================================================
  */
 
 export class GoalCard extends Phaser.GameObjects.Container {
@@ -37,8 +74,31 @@ export class GoalCard extends Phaser.GameObjects.Container {
         // Set up interactivity
         this.setupInteractivity();
         
-        // Add to scene (Phaser pattern)
-        scene.add.existing(this);
+        // ============================================================================
+        // AI CONTEXT: CONTAINER CONSTRUCTOR - NO SCENE DISPLAY LIST ADDITION
+        // ============================================================================
+        // 
+        // AI WARNING: Custom containers should NOT be added to scene display list in constructor
+        // 
+        // ❌ WRONG PATTERN (DO NOT USE - CAUSES DOUBLE-RENDERING):
+        // scene.add.existing(this); // This adds container to scene display list
+        // // Later, when container is added to group: group.add(container)
+        // // Result: Container exists in BOTH scene display list AND group = double-rendering
+        //
+        // ✅ CORRECT PATTERN (USE THIS - PREVENTS DOUBLE-RENDERING):
+        // // Don't add container to scene display list in constructor
+        // // Container will be added to group later: group.add(container)
+        // // Group manages collection, scene renders group's children
+        // // Result: Container exists in only group = proper rendering
+        //
+        // WHY THIS MATTERS:
+        // - GoalCard is added to goalCardsGroup in renderGoalCards() method
+        // - Groups manage collections but don't render children directly
+        // - Scene renders group's children through the group
+        // - Adding container to both scene and group creates rendering conflicts
+        //
+        // AI MEMORY: Custom containers should be added to groups, not scene display list
+        // ============================================================================
         
         // Enable data management
         this.setDataEnabled();
@@ -48,18 +108,48 @@ export class GoalCard extends Phaser.GameObjects.Container {
     createCardElements() {
         const { width, height, padding } = this.options;
         
+        // ============================================================================
+        // AI CONTEXT: PHASER DOUBLE-RENDERING FIX - CRITICAL PATTERN FOR AI TO UNDERSTAND
+        // ============================================================================
+        // 
+        // PROBLEM: AI assistants often make this mistake when creating custom containers
+        // 
+        // ❌ WRONG PATTERN (DO NOT USE - CAUSES DOUBLE-RENDERING):
+        // this.cardBackground = this.scene.add.rectangle(0, 0, width, height, 0xffffff);
+        // this.add(this.cardBackground); // This creates double-rendering!
+        //
+        // WHY IT'S WRONG:
+        // - this.scene.add.rectangle() automatically adds the object to the scene's display list
+        // - this.add() adds the object to the container's display list
+        // - Same object exists in TWO display lists = double-rendering = invisible objects
+        //
+        // ✅ CORRECT PATTERN (USE THIS - PREVENTS DOUBLE-RENDERING):
+        // this.cardBackground = new Phaser.GameObjects.Rectangle(this.scene, 0, 0, width, height, 0xffffff);
+        // this.add(this.cardBackground); // Object only exists in container's display list
+        //
+        // WHY IT'S CORRECT:
+        // - new Phaser.GameObjects.Rectangle() creates object WITHOUT adding to scene display list
+        // - this.add() adds object to container's display list
+        // - Object exists in only ONE display list = proper rendering = visible objects
+        //
+        // AI MEMORY: When creating custom containers, ALWAYS use constructors, NEVER scene.add methods
+        // ============================================================================
+        
         // Card background
-        this.cardBackground = this.scene.add.rectangle(0, 0, width, height, 0xffffff);
+        // AI NOTE: Using constructor prevents automatic scene display list addition
+        this.cardBackground = new Phaser.GameObjects.Rectangle(this.scene, 0, 0, width, height, 0xffffff);
         this.cardBackground.setStrokeStyle(2, 0xe9ecef);
-        this.add(this.cardBackground);
+        this.add(this.cardBackground); // Safe to add to container - no double-rendering
         
         // Status indicator (colored bar on left)
+        // AI NOTE: Same pattern - constructor + container.add()
         const statusColor = this.getStatusColor(this.goalData.state);
-        this.statusBar = this.scene.add.rectangle(-width/2 + 5, 0, 6, height - 10, statusColor);
+        this.statusBar = new Phaser.GameObjects.Rectangle(this.scene, -width/2 + 5, 0, 6, height - 10, statusColor);
         this.add(this.statusBar);
         
         // Goal title
-        this.titleText = this.scene.add.text(-width/2 + 20, -height/2 + 15, this.goalData.text || 'Untitled Goal', {
+        // AI NOTE: Text objects follow same pattern - constructor + container.add()
+        this.titleText = new Phaser.GameObjects.Text(this.scene, -width/2 + 20, -height/2 + 15, this.goalData.text || 'Untitled Goal', {
             fontSize: '16px',
             fill: '#333333',
             fontStyle: 'bold',
@@ -68,7 +158,8 @@ export class GoalCard extends Phaser.GameObjects.Container {
         this.add(this.titleText);
         
         // Goal description
-        this.descriptionText = this.scene.add.text(-width/2 + 20, -height/2 + 35, this.goalData.description || 'No description', {
+        // AI NOTE: Another text object using correct pattern
+        this.descriptionText = new Phaser.GameObjects.Text(this.scene, -width/2 + 20, -height/2 + 35, this.goalData.description || 'No description', {
             fontSize: '12px',
             fill: '#666666',
             wordWrap: { width: width - 40 }
@@ -76,12 +167,13 @@ export class GoalCard extends Phaser.GameObjects.Container {
         this.add(this.descriptionText);
         
         // Category badge
+        // AI NOTE: Conditional creation still uses constructor pattern
         if (this.goalData.category) {
-            this.categoryBadge = this.scene.add.rectangle(width/2 - 15, -height/2 + 15, 60, 20, 0x007bff);
+            this.categoryBadge = new Phaser.GameObjects.Rectangle(this.scene, width/2 - 15, -height/2 + 15, 60, 20, 0x007bff);
             this.categoryBadge.setStrokeStyle(1, 0x0056b3);
             this.add(this.categoryBadge);
             
-            this.categoryText = this.scene.add.text(width/2 - 15, -height/2 + 15, this.goalData.category, {
+            this.categoryText = new Phaser.GameObjects.Text(this.scene, width/2 - 15, -height/2 + 15, this.goalData.category, {
                 fontSize: '10px',
                 fill: '#ffffff',
                 fontStyle: 'bold'
@@ -100,13 +192,35 @@ export class GoalCard extends Phaser.GameObjects.Container {
         const { width, height } = this.options;
         const buttonY = height/2 - 20;
         
+        // ============================================================================
+        // AI CONTEXT: ACTION BUTTONS - SAME DOUBLE-RENDERING PATTERN APPLIES
+        // ============================================================================
+        // 
+        // AI WARNING: Interactive elements (buttons) follow the SAME pattern as other elements
+        // 
+        // ❌ COMMON AI MISTAKE (DO NOT USE):
+        // this.editButton = this.scene.add.rectangle(-width/2 + 30, buttonY, 50, 25, 0x28a745);
+        // this.editButton.setInteractive(); // This would cause double-rendering!
+        // this.add(this.editButton);
+        //
+        // ✅ CORRECT PATTERN (USE THIS):
+        // this.editButton = new Phaser.GameObjects.Rectangle(this.scene, -width/2 + 30, buttonY, 50, 25, 0x28a745);
+        // this.editButton.setInteractive(); // Safe - object not in scene display list yet
+        // this.add(this.editButton);
+        //
+        // AI MEMORY: Interactive elements still need constructor pattern to avoid double-rendering
+        // ============================================================================
+        
         // Edit button
-        this.editButton = this.scene.add.rectangle(-width/2 + 30, buttonY, 50, 25, 0x28a745);
+        // AI NOTE: Interactive rectangles still use constructor pattern
+        this.editButton = new Phaser.GameObjects.Rectangle(this.scene, -width/2 + 30, buttonY, 50, 25, 0x28a745);
         this.editButton.setStrokeStyle(1, 0x1e7e34);
-        this.editButton.setInteractive();
+        this.editButton.setInteractive(); // Safe to make interactive - not in scene display list
         this.add(this.editButton);
         
-        this.editText = this.scene.add.text(-width/2 + 30, buttonY, 'Edit', {
+        // Edit button text
+        // AI NOTE: Text for buttons follows same pattern
+        this.editText = new Phaser.GameObjects.Text(this.scene, -width/2 + 30, buttonY, 'Edit', {
             fontSize: '10px',
             fill: '#ffffff',
             fontStyle: 'bold'
@@ -114,12 +228,15 @@ export class GoalCard extends Phaser.GameObjects.Container {
         this.add(this.editText);
         
         // Delete button
-        this.deleteButton = this.scene.add.rectangle(width/2 - 30, buttonY, 50, 25, 0xdc3545);
+        // AI NOTE: Another interactive element using correct pattern
+        this.deleteButton = new Phaser.GameObjects.Rectangle(this.scene, width/2 - 30, buttonY, 50, 25, 0xdc3545);
         this.deleteButton.setStrokeStyle(1, 0xc82333);
-        this.deleteButton.setInteractive();
+        this.deleteButton.setInteractive(); // Safe to make interactive
         this.add(this.deleteButton);
         
-        this.deleteText = this.scene.add.text(width/2 - 30, buttonY, 'Delete', {
+        // Delete button text
+        // AI NOTE: Text for delete button follows same pattern
+        this.deleteText = new Phaser.GameObjects.Text(this.scene, width/2 - 30, buttonY, 'Delete', {
             fontSize: '10px',
             fill: '#ffffff',
             fontStyle: 'bold'
@@ -271,11 +388,33 @@ export class GoalCard extends Phaser.GameObjects.Container {
     
     createCategoryBadge() {
         const { width } = this.options;
-        this.categoryBadge = this.scene.add.rectangle(width/2 - 15, -this.options.height/2 + 15, 60, 20, 0x007bff);
+        
+        // ============================================================================
+        // AI CONTEXT: DYNAMIC ELEMENT CREATION - SAME PATTERN APPLIES
+        // ============================================================================
+        // 
+        // AI WARNING: Even when creating elements dynamically (like this method), use constructor pattern
+        // 
+        // ❌ COMMON AI MISTAKE (DO NOT USE):
+        // this.categoryBadge = this.scene.add.rectangle(width/2 - 15, -this.options.height/2 + 15, 60, 20, 0x007bff);
+        // this.add(this.categoryBadge); // This would cause double-rendering!
+        //
+        // ✅ CORRECT PATTERN (USE THIS):
+        // this.categoryBadge = new Phaser.GameObjects.Rectangle(this.scene, width/2 - 15, -this.options.height/2 + 15, 60, 20, 0x007bff);
+        // this.add(this.categoryBadge); // Safe - no double-rendering
+        //
+        // AI MEMORY: Dynamic creation still requires constructor pattern to avoid double-rendering
+        // ============================================================================
+        
+        // Category badge background
+        // AI NOTE: Dynamic creation still uses constructor pattern
+        this.categoryBadge = new Phaser.GameObjects.Rectangle(this.scene, width/2 - 15, -this.options.height/2 + 15, 60, 20, 0x007bff);
         this.categoryBadge.setStrokeStyle(1, 0x0056b3);
         this.add(this.categoryBadge);
         
-        this.categoryText = this.scene.add.text(width/2 - 15, -this.options.height/2 + 15, this.goalData.category, {
+        // Category badge text
+        // AI NOTE: Dynamic text creation follows same pattern
+        this.categoryText = new Phaser.GameObjects.Text(this.scene, width/2 - 15, -this.options.height/2 + 15, this.goalData.category, {
             fontSize: '10px',
             fill: '#ffffff',
             fontStyle: 'bold'

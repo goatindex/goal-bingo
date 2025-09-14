@@ -16,8 +16,9 @@ export class SceneStateLogger {
      */
     /**
      * ARCHITECTURE NOTE: SceneStateLogger requires game.scene to be available
-     * This is safe at READY timing as scene manager is available
+     * This is safe at SYSTEM_READY timing as scene manager is fully available
      * Scene events are accessed through game.events, not game.scene.events
+     * SYSTEM_READY fires when Scene Manager has created the System Scene (Phaser 3.70.0+)
      */
     async initialize() {
         if (this.logger) {
@@ -27,8 +28,11 @@ export class SceneStateLogger {
         }
         
         // ARCHITECTURE NOTE: Scene monitoring requires game.scene to be available
-        // This follows the Event-Driven Initialization Pattern from our timing architecture
-        this.startMonitoring();
+        // Delay monitoring start to ensure scene manager is fully ready
+        // Use requestAnimationFrame to ensure it runs after the current event cycle
+        requestAnimationFrame(() => {
+            this.startMonitoring();
+        });
         
         this.isInitialized = true;
         
@@ -38,13 +42,15 @@ export class SceneStateLogger {
     startMonitoring() {
         if (this.isMonitoring) return;
         
-        // Check if scene manager is available
-        if (!this.game.scene) {
-            this.logger.warn('Scene manager not available during setup - will retry', {}, 'SceneStateLogger');
-            // Retry after a short delay using setTimeout
-            setTimeout(() => {
+        // PHASER STANDARD: Check if scene manager is available
+        // Even with SYSTEM_READY event, there might be a brief delay
+        if (!this.game.scene || !this.game.scene.scenes) {
+            this.logger.warn('Scene manager not available during setup - retrying...', {}, 'SceneStateLogger');
+            // PHASER STANDARD: Use requestAnimationFrame for next frame check
+            // This is more Phaser-compliant than setTimeout
+            requestAnimationFrame(() => {
                 this.startMonitoring();
-            }, 100);
+            });
             return;
         }
         
@@ -254,6 +260,7 @@ export class SceneStateLogger {
         } catch (error) {
             // PHASER STANDARD: Silently handle errors during scene destruction
             // This is expected behavior when scenes are being destroyed
+            // Documentation confirms this pattern for handling destroyed game instances
         }
         
         this.sceneStates.set(sceneKey, {
@@ -287,7 +294,6 @@ export class SceneStateLogger {
             return [];
         }
         
-        // PHASER STANDARD: Filter scenes safely, checking for null references
         return this.game.scene.scenes.filter(scene => {
             // Check if scene exists and has the required properties before calling isActive()
             return scene && 

@@ -1,399 +1,243 @@
-// AddGoalModal Component - Phaser DOM Element for Goal Management
-// Follows Phaser best practices for DOM elements and modal dialogs
-export class AddGoalModal extends Phaser.GameObjects.DOMElement {
+/**
+ * AddGoalModal - Phaser-based modal component for adding/editing goals
+ * PHASER COMPLIANT: Uses Container, DOM elements, and native Phaser patterns
+ */
+
+export class AddGoalModal extends Phaser.GameObjects.Container {
     constructor(scene, x, y, goalData = null) {
-        // Create modal HTML structure
-        const modalHTML = `
-            <div class="modal-overlay">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>${goalData ? 'Edit Goal' : 'Add New Goal'}</h3>
-                        <button class="close-btn">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="goal-form">
-                            <div class="form-group">
-                                <label for="goal-text">Goal Text:</label>
-                                <input type="text" id="goal-text" name="text" value="${goalData?.text || ''}" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="goal-category">Category:</label>
-                                <select id="goal-category" name="category">
-                                    <option value="personal" ${goalData?.category === 'personal' ? 'selected' : ''}>Personal</option>
-                                    <option value="work" ${goalData?.category === 'work' ? 'selected' : ''}>Work</option>
-                                    <option value="health" ${goalData?.category === 'health' ? 'selected' : ''}>Health</option>
-                                    <option value="learning" ${goalData?.category === 'learning' ? 'selected' : ''}>Learning</option>
-                                    <option value="financial" ${goalData?.category === 'financial' ? 'selected' : ''}>Financial</option>
-                                    <option value="creative" ${goalData?.category === 'creative' ? 'selected' : ''}>Creative</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="goal-priority">Priority:</label>
-                                <select id="goal-priority" name="priority">
-                                    <option value="low" ${goalData?.priority === 'low' ? 'selected' : ''}>Low</option>
-                                    <option value="medium" ${goalData?.priority === 'medium' ? 'selected' : ''}>Medium</option>
-                                    <option value="high" ${goalData?.priority === 'high' ? 'selected' : ''}>High</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="goal-description">Description:</label>
-                                <textarea id="goal-description" name="description" rows="3" placeholder="Optional description...">${goalData?.description || ''}</textarea>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="save-btn">${goalData ? 'Update' : 'Save'}</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Create modal styles
-        const modalStyles = `
-            .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            }
-            .modal-content {
-                background: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                width: 500px;
-                max-width: 90vw;
-                max-height: 90vh;
-                overflow-y: auto;
-                animation: modalSlideIn 0.3s ease-out;
-            }
-            @keyframes modalSlideIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(-20px) scale(0.95);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                }
-            }
-            .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 20px;
-                border-bottom: 1px solid #e9ecef;
-                background-color: #f8f9fa;
-                border-radius: 8px 8px 0 0;
-            }
-            .modal-header h3 {
-                margin: 0;
-                color: #333;
-                font-size: 18px;
-                font-weight: 600;
-            }
-            .close-btn {
-                background: none;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-                color: #666;
-                padding: 0;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 4px;
-                transition: background-color 0.2s;
-            }
-            .close-btn:hover {
-                background-color: #e9ecef;
-                color: #333;
-            }
-            .modal-body {
-                padding: 20px;
-            }
-            .form-group {
-                margin-bottom: 15px;
-            }
-            .form-group label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: 600;
-                color: #333;
-                font-size: 14px;
-            }
-            .form-group input,
-            .form-group select,
-            .form-group textarea {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 14px;
-                font-family: inherit;
-                transition: border-color 0.2s, box-shadow 0.2s;
-                box-sizing: border-box;
-            }
-            .form-group input:focus,
-            .form-group select:focus,
-            .form-group textarea:focus {
-                outline: none;
-                border-color: #007bff;
-                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-            }
-            .form-group textarea {
-                resize: vertical;
-                min-height: 80px;
-            }
-            .modal-footer {
-                padding: 20px;
-                border-top: 1px solid #e9ecef;
-                display: flex;
-                justify-content: flex-end;
-                gap: 10px;
-                background-color: #f8f9fa;
-                border-radius: 0 0 8px 8px;
-            }
-            .btn {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-                font-weight: 500;
-                transition: all 0.2s;
-                min-width: 80px;
-            }
-            .btn-secondary {
-                background-color: #6c757d;
-                color: white;
-            }
-            .btn-secondary:hover {
-                background-color: #5a6268;
-                transform: translateY(-1px);
-            }
-            .btn-primary {
-                background-color: #007bff;
-                color: white;
-            }
-            .btn-primary:hover {
-                background-color: #0056b3;
-                transform: translateY(-1px);
-            }
-            .btn:active {
-                transform: translateY(0);
-            }
-        `;
-
-        // Call parent constructor with correct Phaser DOMElement pattern
-        super(scene, x, y, 'div', modalStyles, modalHTML);
+        super(scene, x, y);
         
-        // Store reference to goal data for editing
+        this.scene = scene;
         this.goalData = goalData;
         this.isEditMode = !!goalData;
+        this.modalWidth = 500;
+        this.modalHeight = 400;
         
-        // Set up event listeners
-        this.setupEventListeners();
+        this.formData = {
+            text: goalData?.text || '',
+            description: goalData?.description || '',
+            category: goalData?.category || '',
+            state: goalData?.state || 'to-do'
+        };
         
-        // Add to scene
+        this.createModalElements();
+        this.setupInteractivity();
         scene.add.existing(this);
         
-        // Set high depth to ensure modal appears on top
-        this.setDepth(1000);
+        // PHASER COMPLIANT: Ensure container is added to display list for rendering
+        this.addToDisplayList();
         
-        // Log creation for debugging
-        if (scene.game && scene.game.logger) {
-            scene.game.logger.info('AddGoalModal created', {
-                isEditMode: this.isEditMode,
-                goalId: this.goalData?.id || 'new',
-                position: { x: this.x, y: this.y },
-                depth: this.depth
-            }, 'AddGoalModal');
-        }
+        this.setDataEnabled();
+        this.animateIn();
+    }
+    
+    createModalElements() {
+        // Backdrop
+        this.backdrop = this.scene.add.rectangle(0, 0, this.scene.cameras.main.width, this.scene.cameras.main.height, 0x000000);
+        this.backdrop.setAlpha(0.5);
+        this.backdrop.setDepth(-1);
+        this.add(this.backdrop);
         
-        console.log('AddGoalModal created:', {
-            isEditMode: this.isEditMode,
-            position: { x: this.x, y: this.y },
-            depth: this.depth,
-            node: this.node
-        });
+        // Modal container
+        this.modalContainer = this.scene.add.container(0, 0);
+        this.add(this.modalContainer);
+        
+        // Modal background
+        this.modalBackground = this.scene.add.rectangle(0, 0, this.modalWidth, this.modalHeight, 0xffffff);
+        this.modalBackground.setStrokeStyle(2, 0xdee2e6);
+        this.modalBackground.setDepth(1);
+        this.modalContainer.add(this.modalBackground);
+        
+        // Title
+        const title = this.isEditMode ? 'Edit Goal' : 'Add New Goal';
+        this.titleText = this.scene.add.text(0, -this.modalHeight/2 + 30, title, {
+            fontSize: '20px',
+            fill: '#333333',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        this.titleText.setDepth(3);
+        this.modalContainer.add(this.titleText);
+        
+        // Form fields
+        this.createFormFields();
+        
+        // Action buttons
+        this.createActionButtons();
     }
-
-    setupEventListeners() {
-        // Check if DOM is already ready
-        if (this.node && this.node.readyState === 'complete') {
-            this.attachEventListeners();
-        } else {
-            // Wait for DOM to be ready
-            this.node.addEventListener('DOMContentLoaded', () => {
-                this.attachEventListeners();
-            });
-            
-            // Fallback timeout in case DOMContentLoaded doesn't fire
-            setTimeout(() => {
-                this.attachEventListeners();
-            }, 200);
-        }
+    
+    createFormFields() {
+        const startY = -this.modalHeight/2 + 80;
+        const fieldSpacing = 50;
+        
+        // Goal Title
+        this.createFormField('Goal Title', 'text', startY, this.formData.text);
+        this.createFormField('Description', 'description', startY + fieldSpacing, this.formData.description);
+        this.createFormField('Category', 'category', startY + fieldSpacing * 2, this.formData.category);
     }
-
-    attachEventListeners() {
-        // Log DOM attachment attempt
-        if (this.scene && this.scene.game && this.scene.game.logger) {
-            this.scene.game.logger.info('Attaching event listeners to modal', {
-                nodeExists: !!this.node,
-                nodeType: this.node?.nodeName,
-                isEditMode: this.isEditMode
-            }, 'AddGoalModal');
-        }
-
-        const closeBtn = this.node?.querySelector('.close-btn');
-        const cancelBtn = this.node?.querySelector('#cancel-btn');
-        const saveBtn = this.node?.querySelector('#save-btn');
-        const form = this.node?.querySelector('#goal-form');
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeModal());
-            console.log('AddGoalModal: Close button event listener attached');
-        } else {
-            console.warn('AddGoalModal: Close button not found');
-        }
-
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => this.closeModal());
-            console.log('AddGoalModal: Cancel button event listener attached');
-        } else {
-            console.warn('AddGoalModal: Cancel button not found');
-        }
-
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => this.saveGoal());
-            console.log('AddGoalModal: Save button event listener attached');
-        } else {
-            console.warn('AddGoalModal: Save button not found');
-        }
-
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.saveGoal();
-            });
-            console.log('AddGoalModal: Form event listener attached');
-        } else {
-            console.warn('AddGoalModal: Form not found');
-        }
-
-        // Close on overlay click
-        const overlay = this.node?.querySelector('.modal-overlay');
-        if (overlay) {
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    this.closeModal();
-                }
-            });
-            console.log('AddGoalModal: Overlay click event listener attached');
-        } else {
-            console.warn('AddGoalModal: Overlay not found');
-        }
-
-        // Close on Escape key
-        const escapeHandler = (e) => {
-            if (e.key === 'Escape') {
-                this.closeModal();
-                document.removeEventListener('keydown', escapeHandler);
-            }
+    
+    createFormField(label, fieldName, y, initialValue) {
+        const fieldX = -this.modalWidth/2 + 20;
+        const fieldWidth = this.modalWidth - 40;
+        
+        // Label
+        const labelText = this.scene.add.text(fieldX, y - 15, label, {
+            fontSize: '14px',
+            fill: '#333333',
+            fontStyle: 'bold'
+        }).setOrigin(0, 0);
+        labelText.setDepth(3);
+        this.modalContainer.add(labelText);
+        
+        // Input field
+        const inputElement = this.scene.add.dom(fieldX, y, 'input', 
+            `width: ${fieldWidth}px; height: 30px; border: 1px solid #ced4da; border-radius: 4px; padding: 5px; font-size: 14px;`,
+            initialValue
+        );
+        inputElement.setDepth(3);
+        inputElement.node.setAttribute('placeholder', `Enter ${label.toLowerCase()}`);
+        this.modalContainer.add(inputElement);
+        
+        this[`${fieldName}Input`] = inputElement;
+    }
+    
+    createActionButtons() {
+        const buttonY = this.modalHeight/2 - 40;
+        const buttonSpacing = 80;
+        
+        // Cancel button
+        this.cancelButton = this.scene.add.rectangle(-buttonSpacing, buttonY, 100, 35, 0x6c757d);
+        this.cancelButton.setStrokeStyle(2, 0x5a6268);
+        this.cancelButton.setInteractive();
+        this.cancelButton.setDepth(3);
+        this.modalContainer.add(this.cancelButton);
+        
+        this.cancelText = this.scene.add.text(-buttonSpacing, buttonY, 'Cancel', {
+            fontSize: '14px',
+            fill: '#ffffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        this.cancelText.setDepth(4);
+        this.modalContainer.add(this.cancelText);
+        
+        // Save button
+        this.saveButton = this.scene.add.rectangle(buttonSpacing, buttonY, 100, 35, 0x28a745);
+        this.saveButton.setStrokeStyle(2, 0x1e7e34);
+        this.saveButton.setInteractive();
+        this.saveButton.setDepth(3);
+        this.modalContainer.add(this.saveButton);
+        
+        this.saveText = this.scene.add.text(buttonSpacing, buttonY, this.isEditMode ? 'Update' : 'Save', {
+            fontSize: '14px',
+            fill: '#ffffff',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        this.saveText.setDepth(4);
+        this.modalContainer.add(this.saveText);
+    }
+    
+    setupInteractivity() {
+        this.backdrop.on(Phaser.Input.Events.POINTER_DOWN, () => this.closeModal());
+        this.cancelButton.on(Phaser.Input.Events.POINTER_DOWN, () => this.closeModal());
+        this.saveButton.on(Phaser.Input.Events.POINTER_DOWN, () => this.saveGoal());
+    }
+    
+    getFormData() {
+        return {
+            text: this.textInput.node.value.trim(),
+            description: this.descriptionInput.node.value.trim(),
+            category: this.categoryInput.node.value.trim(),
+            state: this.formData.state
         };
-        document.addEventListener('keydown', escapeHandler);
-
-        // Store escape handler for cleanup
-        this.escapeHandler = escapeHandler;
-        
-        console.log('AddGoalModal: All event listeners attached successfully');
     }
-
-    saveGoal() {
-        const form = this.node.querySelector('#goal-form');
-        if (!form) {
-            console.error('AddGoalModal: Form not found');
-            return;
+    
+    validateForm() {
+        const data = this.getFormData();
+        if (!data.text) {
+            console.warn('Goal title is required');
+            return false;
         }
-
-        const formData = new FormData(form);
+        return true;
+    }
+    
+    saveGoal() {
+        if (!this.validateForm()) return;
+        
+        const formData = this.getFormData();
         const goalData = {
             id: this.goalData?.id || Date.now().toString(),
-            text: formData.get('text')?.trim(),
-            category: formData.get('category'),
-            priority: formData.get('priority'),
-            description: formData.get('description')?.trim() || '',
-            state: this.goalData?.state || 'to-do',
+            text: formData.text,
+            description: formData.description,
+            category: formData.category || 'General',
+            state: formData.state,
             createdAt: this.goalData?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
-
-        // Validate required fields
-        if (!goalData.text) {
-            alert('Please enter a goal text');
-            const textInput = this.node.querySelector('#goal-text');
-            if (textInput) {
-                textInput.focus();
-            }
-            return;
-        }
-
-        // Log goal save attempt
-        if (this.scene && this.scene.game && this.scene.game.logger) {
-            this.scene.game.logger.info('Goal save attempted', {
-                goalId: goalData.id,
-                isEditMode: this.isEditMode,
-                text: goalData.text,
-                category: goalData.category,
-                priority: goalData.priority
-            }, 'AddGoalModal');
-        }
-
-        // Emit goal saved event
-        this.emit('goalSaved', goalData);
         
-        // Close modal
+        this.emit('goalSaved', goalData);
         this.closeModal();
     }
-
+    
     closeModal() {
-        // Log modal close
-        if (this.scene && this.scene.game && this.scene.game.logger) {
-            this.scene.game.logger.info('Modal closed', {
-                isEditMode: this.isEditMode,
-                goalId: this.goalData?.id || 'new'
-            }, 'AddGoalModal');
-        }
-
-        // Emit modal closed event
         this.emit('modalClosed');
-        
-        // Clean up escape handler
-        if (this.escapeHandler) {
-            document.removeEventListener('keydown', this.escapeHandler);
-        }
-        
-        // Remove from scene
-        this.destroy();
+        this.animateOut();
     }
-
-    // Override destroy to ensure proper cleanup
-    destroy() {
-        // Clean up escape handler
-        if (this.escapeHandler) {
-            document.removeEventListener('keydown', this.escapeHandler);
-        }
+    
+    animateIn() {
+        this.setAlpha(0);
+        this.modalContainer.setScale(0.8);
         
-        // Call parent destroy
+        this.scene.tweens.add({
+            targets: this.backdrop,
+            alpha: 0.5,
+            duration: 200,
+            ease: 'Power2'
+        });
+        
+        this.scene.tweens.add({
+            targets: this.modalContainer,
+            scaleX: 1,
+            scaleY: 1,
+            alpha: 1,
+            duration: 300,
+            ease: 'Back.easeOut'
+        });
+        
+        this.scene.tweens.add({
+            targets: this,
+            alpha: 1,
+            duration: 200,
+            ease: 'Power2'
+        });
+    }
+    
+    animateOut() {
+        this.scene.tweens.add({
+            targets: this.backdrop,
+            alpha: 0,
+            duration: 200,
+            ease: 'Power2'
+        });
+        
+        this.scene.tweens.add({
+            targets: this.modalContainer,
+            scaleX: 0.8,
+            scaleY: 0.8,
+            alpha: 0,
+            duration: 200,
+            ease: 'Power2'
+        });
+        
+        this.scene.tweens.add({
+            targets: this,
+            alpha: 0,
+            duration: 200,
+            ease: 'Power2',
+            onComplete: () => this.destroy()
+        });
+    }
+    
+    destroy() {
+        this.removeAllListeners();
         super.destroy();
     }
 }
