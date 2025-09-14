@@ -41,12 +41,12 @@ export default class BootScene extends Phaser.Scene {
         console.log('BootScene: create() called');
         
         // Set up game configuration
-        this.cameras.main.setBackgroundColor('#f8f9fa');
+        this.cameras.main.setBackgroundColor('#e9ecef');
         
-        // PHASER STANDARD: Transition immediately to next scene
-        // Let Phaser handle the scene lifecycle naturally
-        console.log('BootScene: Proceeding to PreloadScene');
-        this.scene.start('PreloadScene');
+        // PHASER STANDARD: Use scene.launch() to properly start PreloadScene
+        // This ensures the scene goes through its full lifecycle (init -> preload -> create)
+        console.log('BootScene: Launching PreloadScene');
+        this.scene.launch('PreloadScene');
     }
 
 

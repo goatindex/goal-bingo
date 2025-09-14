@@ -40,7 +40,7 @@ export const testConfig = {
         mainMenu: {
             goalLibrary: { text: 'Goal Library', x: 382, y: 170 },
             playBingo: { text: 'Play Bingo', x: 382, y: 242 },
-            rewards: { text: 'Rewards', x: 382, y: 315 }
+            rewards: { text: '🏆 Rewards', x: 382, y: 315 }
         },
         goalLibrary: {
             back: { text: 'Back', x: 50, y: 50 },

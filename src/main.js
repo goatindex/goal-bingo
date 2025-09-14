@@ -48,7 +48,7 @@ const config = {
     width: 1200,
     height: 800,
     parent: 'game-container',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#e9ecef',
     scene: [
         BootScene,
         PreloadScene,
@@ -74,10 +74,10 @@ const config = {
     input: {
         activePointers: 3
     },
-    // PHASER STANDARD: No DOM container needed for Game Object-based UI
-    // dom: {
-    //     createContainer: true  // REMOVED: Not needed for Game Objects
-    // },
+    // PHASER DOM SUPPORT: Enable DOM elements for modals and forms
+    dom: {
+        createContainer: true  // Required for this.add.dom() elements in modals
+    },
     render: {
         antialias: true,
         pixelArt: false

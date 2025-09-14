@@ -11,6 +11,41 @@
 
 export class PhaserTestHelper {
     /**
+     * Check if a character is an emoji
+     * @param {string} char - Character to check
+     * @returns {boolean} True if character is an emoji
+     */
+    static isEmoji(char) {
+        // Comprehensive emoji detection using Unicode ranges
+        return /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA70}-\u{1FAFF}]/u.test(char);
+    }
+
+    /**
+     * Enhanced text matching for buttons with emoji prefixes
+     * @param {string} textObject - Text from the scene object
+     * @param {string} buttonText - Text we're looking for
+     * @returns {boolean} True if text matches
+     */
+    static matchesButtonText(textObject, buttonText) {
+        // Exact match
+        if (textObject === buttonText) return true;
+        
+        // Check if text ends with the button text (handles emoji prefixes)
+        if (textObject.endsWith(buttonText) && textObject.length > buttonText.length) {
+            // Check if the prefix is an emoji (single character before space)
+            const prefix = textObject.substring(0, textObject.length - buttonText.length - 1);
+            if (prefix.length === 1 && this.isEmoji(prefix)) {
+                return true;
+            }
+        }
+        
+        // Check if text contains the button text (fallback)
+        if (textObject.includes(buttonText)) return true;
+        
+        return false;
+    }
+
+    /**
      * Wait for a specific scene to become active
      * @param {Page} page - Playwright page object
      * @param {string} sceneName - Name of the scene to wait for
@@ -80,16 +115,45 @@ export class PhaserTestHelper {
             const sceneInstance = window.game.scene.getScene(scene);
             if (!sceneInstance) return false;
 
-            // Find button by text content
-            const button = sceneInstance.children.list.find(obj => 
-                obj.text === text && obj.input && obj.input.enabled
-            );
+            // Enhanced text matching with comprehensive emoji prefix handling
+            const textObject = sceneInstance.children.list.find(obj => {
+                if (obj.type !== 'Text') return false;
+                
+                const objText = obj.text;
+                
+                // Exact match
+                if (objText === text) return true;
+                
+                // Check if text ends with the button text (handles emoji prefixes)
+                if (objText.endsWith(text) && objText.length > text.length) {
+                    // Check if the prefix is an emoji (single character before space)
+                    const prefix = objText.substring(0, objText.length - text.length - 1);
+                    if (prefix.length === 1 && /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA70}-\u{1FAFF}]/u.test(prefix)) {
+                        return true;
+                    }
+                }
+                
+                // Check if text contains the button text (fallback)
+                if (objText.includes(text)) return true;
+                
+                return false;
+            });
             
+            if (!textObject) return false;
+
+            // Find associated interactive rectangle
+            const button = sceneInstance.children.list.find(obj => 
+                obj.type === 'Rectangle' && 
+                obj.input && obj.input.enabled &&
+                Math.abs(obj.x - textObject.x) < 10 && 
+                Math.abs(obj.y - textObject.y) < 10
+            );
+
             if (button) {
-                // Use Phaser's force input methods
+                // Use Phaser's force input methods with correct sequence
                 const pointer = sceneInstance.input.activePointer;
                 sceneInstance.input.forceDownState(pointer, button);
-                sceneInstance.input.forceOutState(pointer, button);
+                sceneInstance.input.forceUpState(pointer, button);
                 return true;
             }
             return false;
@@ -236,6 +300,102 @@ export class PhaserTestHelper {
                 accessibilityResults
             };
         }, sceneName);
+    }
+
+    /**
+     * Debug button discovery - helps identify button structure issues
+     * @param {Page} page - Playwright page object
+     * @param {string} sceneName - Scene to debug
+     * @returns {Promise<Object>} Debug information about buttons and text objects
+     */
+    static async debugButtonDiscovery(page, sceneName) {
+        return await page.evaluate((scene) => {
+            const sceneInstance = window.game.scene.getScene(scene);
+            if (!sceneInstance) return { error: 'Scene not found' };
+
+            const interactiveElements = sceneInstance.children.list
+                .filter(obj => obj.input && obj.input.enabled)
+                .map(obj => ({
+                    type: obj.type,
+                    text: obj.text || 'no text',
+                    x: obj.x,
+                    y: obj.y,
+                    hasInput: !!obj.input,
+                    inputEnabled: obj.input?.enabled
+                }));
+
+            const textElements = sceneInstance.children.list
+                .filter(obj => obj.type === 'Text')
+                .map(obj => ({
+                    text: obj.text,
+                    x: obj.x,
+                    y: obj.y
+                }));
+
+            return {
+                interactiveElements,
+                textElements,
+                totalChildren: sceneInstance.children.list.length
+            };
+        }, sceneName);
+    }
+
+    /**
+     * Find button by text content with detailed information
+     * @param {Page} page - Playwright page object
+     * @param {string} buttonText - Text content of the button to find
+     * @param {string} sceneName - Scene containing the button
+     * @returns {Promise<Object|null>} Button information or null if not found
+     */
+    static async findButtonByText(page, buttonText, sceneName) {
+        return await page.evaluate(({ text, scene }) => {
+            const sceneInstance = window.game.scene.getScene(scene);
+            if (!sceneInstance) return null;
+
+            // Enhanced text matching with comprehensive emoji prefix handling
+            const textObject = sceneInstance.children.list.find(obj => {
+                if (obj.type !== 'Text') return false;
+                
+                const objText = obj.text;
+                
+                // Exact match
+                if (objText === text) return true;
+                
+                // Check if text ends with the button text (handles emoji prefixes)
+                if (objText.endsWith(text) && objText.length > text.length) {
+                    // Check if the prefix is an emoji (single character before space)
+                    const prefix = objText.substring(0, objText.length - text.length - 1);
+                    if (prefix.length === 1 && /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA70}-\u{1FAFF}]/u.test(prefix)) {
+                        return true;
+                    }
+                }
+                
+                // Check if text contains the button text (fallback)
+                if (objText.includes(text)) return true;
+                
+                return false;
+            });
+            
+            if (!textObject) return null;
+
+            // Find associated interactive rectangle
+            const button = sceneInstance.children.list.find(obj => 
+                obj.type === 'Rectangle' && 
+                obj.input && obj.input.enabled &&
+                Math.abs(obj.x - textObject.x) < 10 && 
+                Math.abs(obj.y - textObject.y) < 10
+            );
+
+            return button ? {
+                button: button,
+                text: textObject,
+                x: button.x,
+                y: button.y,
+                type: button.type,
+                hasInput: !!button.input,
+                inputEnabled: button.input?.enabled
+            } : null;
+        }, { text: buttonText, scene: sceneName });
     }
 }
 

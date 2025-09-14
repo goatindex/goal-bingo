@@ -241,7 +241,18 @@ export class ApplicationStateManager {
      * @param {Object} gameState - New game state object
      */
     updateGameState(gameState) {
-        this.game.registry.set(this.dataKeys.gameState, gameState);
+        try {
+            console.log('ApplicationStateManager: updateGameState() called with:', gameState);
+            console.log('ApplicationStateManager: Game registry available:', !!this.game.registry);
+            console.log('ApplicationStateManager: Data key for gameState:', this.dataKeys.gameState);
+            
+            this.game.registry.set(this.dataKeys.gameState, gameState);
+            console.log('ApplicationStateManager: Game state updated successfully');
+        } catch (error) {
+            console.error('ApplicationStateManager: Error in updateGameState():', error);
+            console.error('ApplicationStateManager: Error stack:', error.stack);
+            throw error;
+        }
     }
     
     /**

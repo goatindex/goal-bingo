@@ -15,6 +15,7 @@
  */
 import { GoalCard } from '../components/GoalCard.js';
 import { AddGoalModal } from '../components/AddGoalModal.js';
+import { LayoutManager } from '../utils/LayoutManager.js';
 
 export default class GoalLibraryScene extends Phaser.Scene {
     constructor() {
@@ -115,8 +116,8 @@ export default class GoalLibraryScene extends Phaser.Scene {
         // - Event setup for initial scene communication
         
         // Configure camera
-        this.cameras.main.setBackgroundColor(0xf8f9fa);
-        this.cameras.main.setViewport(0, 0, 1200, 800);
+        this.cameras.main.setBackgroundColor(0xe9ecef);
+        // ✅ REMOVED: Hardcoded viewport override - Phaser handles responsive scaling automatically
         this.cameras.main.setZoom(1);
         
         // Configure input
@@ -155,8 +156,8 @@ export default class GoalLibraryScene extends Phaser.Scene {
         // Set up goal card events
         this.setupGoalCardEvents();
         
-        // Load initial data
-        this.loadGoals();
+        // Load initial data with enhanced persistence
+        this.loadGoalsWithPersistence();
         
         // PHASER SCENE LIFECYCLE DEBUG: Track scene creation completion
         console.log('GoalLibraryScene: create() completed');
@@ -170,11 +171,11 @@ export default class GoalLibraryScene extends Phaser.Scene {
 
     setupScene(width, height) {
         // Background - PHASER COMPLIANT: Set depth to back so other objects render on top
-        const background = this.add.rectangle(width / 2, height / 2, width, height, 0xf8f9fa);
+        const background = this.add.rectangle(width / 2, height / 2, width, height, 0xe9ecef);
         background.setDepth(-1); // Put background behind all other objects
         
         // Set up camera
-        this.cameras.main.setBackgroundColor(0xf8f9fa);
+        this.cameras.main.setBackgroundColor(0xe9ecef);
         
         // Enable input
         this.input.enabled = true;
@@ -286,45 +287,53 @@ export default class GoalLibraryScene extends Phaser.Scene {
     }
 
     createHeader(width, height) {
-        const headerY = 60;
+        // ============================================================================
+        // PHASER LAYOUT MANAGER: Simplified header creation using LayoutManager
+        // ============================================================================
+        // PHASER PATTERN: Use LayoutManager for both positioning and background creation
+        // - LayoutManager.createBackground() handles background creation and positioning
+        // - LayoutManager.positionContainer() handles container positioning
+        // - Much simpler than manual rectangle creation and positioning
         
-        // PHASER CONTAINER PATTERN: Create elements and add directly to container
-        // According to Phaser docs, container.add() handles display list management automatically
-        
-        // Background for header
-        const headerBg = this.add.rectangle(width / 2, headerY, width, 80, 0xffffff);
-        headerBg.setStrokeStyle(1, 0xe9ecef);
+        // Create header background using LayoutManager
+        const headerBg = LayoutManager.createBackground(this, width, 80, 'TOP_CENTER', 0, 60, 0xffffff, 0xe9ecef, 10);
         
         // Title
-        const title = this.add.text(width / 2, headerY - 10, '📚 Goal Library', {
+        const title = this.add.text(0, 0, '📚 Goal Library', {
             fontSize: '28px',
             fill: '#333333',
             fontStyle: 'bold'
         }).setOrigin(0.5);
+        LayoutManager.positionTitle(this, title, -10);
         
         // Back button
-        const backBtn = this.add.rectangle(100, headerY, 100, 35, 0x6c757d);
+        const backBtn = this.add.rectangle(0, 0, 100, 35, 0x6c757d);
         backBtn.setStrokeStyle(2, 0x5a6268);
         backBtn.setInteractive();
         
-        const backText = this.add.text(100, headerY, '← Back', {
+        const backText = this.add.text(0, 0, '← Back', {
             fontSize: '14px',
             fill: '#ffffff',
             fontStyle: 'bold'
         }).setOrigin(0.5);
         
         // Stats text
-        this.statsText = this.add.text(width - 20, headerY, '', {
+        this.statsText = this.add.text(0, 0, '', {
             fontSize: '14px',
             fill: '#666666',
             fontStyle: 'bold'
         }).setOrigin(1, 0.5);
         
-        // PHASER CONTAINER.ADD PATTERN: Add elements to container using array syntax
-        // This removes elements from scene display list and adds them to container
-        // ❌ WRONG: this.headerContainer.add(headerBg); this.headerContainer.add(title); // Individual adds
-        // ✅ CORRECT: this.headerContainer.add([headerBg, title, backBtn, backText, this.statsText]); // Array add
+        // Add elements to container
         this.headerContainer.add([headerBg, title, backBtn, backText, this.statsText]);
+        
+        // Position container at origin - individual elements handle their own positioning
+        LayoutManager.positionContainer(this, this.headerContainer, 'TOP_LEFT', 0, 0);
+        
+        // Position individual elements relative to container
+        LayoutManager.positionBackButton(this, backBtn);
+        LayoutManager.positionBackButton(this, backText);
+        LayoutManager.alignToCamera(this, this.statsText, 'TOP_RIGHT', -20, 60);
         
         // Back button interaction
         backBtn.on(Phaser.Input.Events.POINTER_DOWN, () => {
@@ -350,13 +359,8 @@ export default class GoalLibraryScene extends Phaser.Scene {
     createFilters(width, height) {
         const filtersY = 120;
         
-        // PHASER DOUBLE-RENDERING FIX: Create elements but don't add to scene directly
-        // All elements created with this.add.* are automatically added to scene display list
-        
-        // Background for filters
-        const filtersBg = this.add.rectangle(width / 2, filtersY, width, 60, 0xffffff);
-        filtersBg.setStrokeStyle(1, 0xe9ecef);
-        // NOTE: filtersBg is now on scene display list automatically
+        // Create filters background using LayoutManager
+        const filtersBg = LayoutManager.createBackground(this, width, 60, 'TOP_CENTER', 0, filtersY, 0xffffff, 0xe9ecef, 9);
         
         // PHASER GROUP vs CONTAINER: Groups are for managing collections, not rendering
         // Groups don't have display lists - they're just organizational tools
@@ -364,17 +368,17 @@ export default class GoalLibraryScene extends Phaser.Scene {
         // ✅ CORRECT: Use groups for management, containers for rendering
         this.filterButtonsGroup = this.add.group();
         
-        // Filter buttons
+        // Filter buttons - position them properly using LayoutManager
         const filters = [
-            { key: 'all', label: 'All', x: 100 },
-            { key: 'to-do', label: 'To Do', x: 200 },
-            { key: 'in-play', label: 'In Play', x: 300 },
-            { key: 'completed', label: 'Completed', x: 400 }
+            { key: 'all', label: 'All', offsetX: -120 },
+            { key: 'to-do', label: 'To Do', offsetX: -40 },
+            { key: 'in-play', label: 'In Play', offsetX: 40 },
+            { key: 'completed', label: 'Completed', offsetX: 120 }
         ];
         
         const filterButtons = [];
         filters.forEach(filter => {
-            const buttonElements = this.createFilterButton(filter.x, filtersY, filter.label, filter.key);
+            const buttonElements = this.createFilterButton(filter.offsetX, filtersY, filter.label, filter.key);
             // PHASER GROUP PATTERN: Groups are for management, not display
             // Add button (first element) to group for management
             this.filterButtonsGroup.add(buttonElements[0]);
@@ -383,35 +387,36 @@ export default class GoalLibraryScene extends Phaser.Scene {
         });
         
         // Search input placeholder (will be implemented in 3.3.2)
-        const searchPlaceholder = this.add.text(width - 150, filtersY, '🔍 Search goals...', {
+        const searchPlaceholder = this.add.text(0, 0, '🔍 Search goals...', {
             fontSize: '14px',
             fill: '#999999'
         }).setOrigin(0.5);
-        // NOTE: searchPlaceholder is now on scene display list automatically
+        LayoutManager.alignToCamera(this, searchPlaceholder, 'TOP_RIGHT', -20, filtersY);
         
-        // PHASER CONTAINER.ADD PATTERN: Add all elements to container using array syntax
-        // This removes elements from scene display list and adds them to container
-        // ❌ WRONG: this.filtersContainer.add(filtersBg); this.filtersContainer.add(btn1); // Individual adds
-        // ✅ CORRECT: this.filtersContainer.add([filtersBg, ...filterButtons, searchPlaceholder]); // Array add
+        // Add all elements to container
         this.filtersContainer.add([filtersBg, ...filterButtons, searchPlaceholder]);
+        
+        // Position container at origin - individual elements handle their own positioning
+        LayoutManager.positionContainer(this, this.filtersContainer, 'TOP_LEFT', 0, 0);
     }
 
-    createFilterButton(x, y, label, filterKey) {
+    createFilterButton(offsetX, y, label, filterKey) {
         const isActive = filterKey === this.currentFilter;
         
-        // PHASER DOUBLE-RENDERING FIX: Create elements but don't add to scene directly
-        // Elements created with this.add.* are automatically added to scene display list
-        const btn = this.add.rectangle(x, y, 80, 30, isActive ? 0x007bff : 0xf8f9fa);
+        // Create button and text at origin, then position using LayoutManager
+        const btn = this.add.rectangle(0, 0, 80, 30, isActive ? 0x007bff : 0xe9ecef);
         btn.setStrokeStyle(2, isActive ? 0x0056b3 : 0xdee2e6);
         btn.setInteractive();
-        // NOTE: btn is now on scene display list automatically
         
-        const btnText = this.add.text(x, y, label, {
+        const btnText = this.add.text(0, 0, label, {
             fontSize: '12px',
             fill: isActive ? '#ffffff' : '#333333',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        // NOTE: btnText is now on scene display list automatically
+        
+        // Position using LayoutManager
+        LayoutManager.alignToCamera(this, btn, 'TOP_CENTER', offsetX, y);
+        LayoutManager.alignToCamera(this, btnText, 'TOP_CENTER', offsetX, y);
         
         // Store filter key for later use
         btn.filterKey = filterKey;
@@ -437,7 +442,7 @@ export default class GoalLibraryScene extends Phaser.Scene {
         btn.on(Phaser.Input.Events.POINTER_OUT, () => {
             if (!isActive) {
                 btn.setScale(1);
-                btn.setFillStyle(0xf8f9fa);
+                btn.setFillStyle(0xe9ecef);
             }
         });
         
@@ -451,13 +456,8 @@ export default class GoalLibraryScene extends Phaser.Scene {
         const listY = 200;
         const listHeight = height - 250;
         
-        // PHASER DOUBLE-RENDERING FIX: Create elements but don't add to scene directly
-        // All elements created with this.add.* are automatically added to scene display list
-        
-        // Background for goals list
-        const listBg = this.add.rectangle(width / 2, listY + listHeight / 2, width - 40, listHeight, 0xffffff);
-        listBg.setStrokeStyle(1, 0xe9ecef);
-        // NOTE: listBg is now on scene display list automatically
+        // Create goals list background using LayoutManager
+        const listBg = LayoutManager.createContentArea(this, width - 40, listHeight, 'CENTER', 0, listY + listHeight / 2 - height / 2, 8);
         
         // PHASER GROUP vs CONTAINER: Groups are for managing collections, not rendering
         // Groups don't have display lists - they're just organizational tools
@@ -466,44 +466,43 @@ export default class GoalLibraryScene extends Phaser.Scene {
         this.goalCardsGroup = this.add.group();
         
         // Placeholder text (will be replaced with actual goal cards)
-        const placeholderText = this.add.text(width / 2, listY + listHeight / 2, 'No goals found. Add your first goal!', {
+        const placeholderText = this.add.text(0, 0, 'No goals found. Add your first goal!', {
             fontSize: '18px',
             fill: '#999999'
         }).setOrigin(0.5);
+        LayoutManager.alignToCamera(this, placeholderText, 'CENTER', 0, listY + listHeight / 2 - height / 2);
         this.placeholderText = placeholderText;
-        // NOTE: placeholderText is now on scene display list automatically
         
-        // PHASER CONTAINER.ADD PATTERN: Add all elements to container using array syntax
-        // This removes elements from scene display list and adds them to container
-        // ❌ WRONG: this.goalsListContainer.add(listBg); this.goalsListContainer.add(placeholderText); // Individual adds
-        // ✅ CORRECT: this.goalsListContainer.add([listBg, placeholderText]); // Array add
+        // Add elements to container
         this.goalsListContainer.add([listBg, placeholderText]);
+        
+        // Position container at origin - individual elements handle their own positioning
+        LayoutManager.positionContainer(this, this.goalsListContainer, 'TOP_LEFT', 0, 0);
     }
 
     createAddGoalSection(width, height) {
         const addY = height - 60;
         
-        // PHASER DOUBLE-RENDERING FIX: Create elements but don't add to scene directly
-        // All elements created with this.add.* are automatically added to scene display list
-        
-        // Add goal button
-        const addBtn = this.add.rectangle(width / 2, addY, 200, 40, 0x28a745);
+        // Create add goal button using LayoutManager
+        const addBtn = this.add.rectangle(0, 0, 200, 40, 0x28a745);
         addBtn.setStrokeStyle(2, 0x1e7e34);
         addBtn.setInteractive();
-        // NOTE: addBtn is now on scene display list automatically
         
-        const addText = this.add.text(width / 2, addY, '+ Add New Goal', {
+        const addText = this.add.text(0, 0, '+ Add New Goal', {
             fontSize: '16px',
             fill: '#ffffff',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        // NOTE: addText is now on scene display list automatically
         
-        // PHASER CONTAINER.ADD PATTERN: Add all elements to container using array syntax
-        // This removes elements from scene display list and adds them to container
-        // ❌ WRONG: this.addGoalContainer.add(addBtn); this.addGoalContainer.add(addText); // Individual adds
-        // ✅ CORRECT: this.addGoalContainer.add([addBtn, addText]); // Array add
+        // Position using LayoutManager
+        LayoutManager.alignToCamera(this, addBtn, 'BOTTOM_CENTER', 0, -60);
+        LayoutManager.alignToCamera(this, addText, 'BOTTOM_CENTER', 0, -60);
+        
+        // Add elements to container
         this.addGoalContainer.add([addBtn, addText]);
+        
+        // Position container at origin - individual elements handle their own positioning
+        LayoutManager.positionContainer(this, this.addGoalContainer, 'TOP_LEFT', 0, 0);
         
         // Add button interaction
         addBtn.on(Phaser.Input.Events.POINTER_DOWN, () => {
@@ -547,11 +546,213 @@ export default class GoalLibraryScene extends Phaser.Scene {
     }
 
     loadGoals() {
-        // Load goals from AppStateManager
+        // Load goals and categories from AppStateManager
         if (this.game.appStateManager) {
             const goals = this.game.appStateManager.getGoals();
+            this.categories = this.game.appStateManager.getCategories();
             this.updateStats(goals);
             this.renderGoalCards(goals);
+        }
+    }
+
+    /**
+     * Load goals with enhanced persistence and fallback handling
+     */
+    loadGoalsWithPersistence() {
+        console.log('GoalLibraryScene: Loading goals with enhanced persistence');
+        
+        // Try to load from registry first
+        const loadedFromRegistry = this.loadGoalsFromRegistry();
+        
+        if (loadedFromRegistry) {
+            console.log('GoalLibraryScene: Goals loaded from registry successfully');
+        } else {
+            console.log('GoalLibraryScene: Using ApplicationStateManager defaults');
+        }
+        
+        // Load and display goals
+        this.loadGoals();
+    }
+
+    // ============================================================================
+    // PHASER GOAL PERSISTENCE: Enhanced goal persistence with Phaser registry
+    // ============================================================================
+    // PHASER PATTERN: Use Phaser's registry for data persistence with validation
+    // - this.game.registry.set() saves data to Phaser's built-in data manager
+    // - this.game.registry.get() retrieves data from Phaser's built-in data manager
+    // - Phaser handles data persistence automatically across scenes
+    // - This approach is simpler and more maintainable than custom persistence
+
+    /**
+     * Save goals to Phaser registry with proper data validation
+     */
+    saveGoalsToRegistry() {
+        try {
+            console.log('GoalLibraryScene: Saving goals to registry');
+            
+            // Get current goals from ApplicationStateManager
+            const goals = this.game.appStateManager ? this.game.appStateManager.getGoals() : [];
+            const categories = this.game.appStateManager ? this.game.appStateManager.getCategories() : [];
+            
+            // Create structured data for persistence
+            const goalsData = {
+                goals: goals,
+                categories: categories,
+                lastUpdated: Date.now(),
+                version: '1.0.0'
+            };
+            
+            // Save to Phaser registry
+            this.game.registry.set('goalsData', goalsData);
+            console.log('GoalLibraryScene: Goals saved to registry successfully');
+            
+        } catch (error) {
+            console.error('GoalLibraryScene: Failed to save goals to registry:', error);
+            this.showErrorMessage('Failed to save goals - please try again');
+        }
+    }
+
+    /**
+     * Load goals from Phaser registry with validation and fallback
+     */
+    loadGoalsFromRegistry() {
+        try {
+            console.log('GoalLibraryScene: Loading goals from registry');
+            
+            // Load data from Phaser registry
+            const goalsData = this.game.registry.get('goalsData');
+            
+            if (goalsData && goalsData.goals) {
+                // Validate loaded data using comprehensive validation
+                if (this.validateDataStructure(goalsData)) {
+                    console.log('GoalLibraryScene: Goals loaded from registry:', goalsData.goals.length);
+                    
+                    // Update ApplicationStateManager with loaded data
+                    if (this.game.appStateManager) {
+                        this.game.appStateManager.updateGoals(goalsData.goals);
+                        this.game.appStateManager.updateCategories(goalsData.categories);
+                    }
+                    
+                    return true;
+                } else {
+                    console.warn('GoalLibraryScene: Invalid data structure in registry');
+                    this.initializeDefaultGoals();
+                    return false;
+                }
+            } else {
+                console.log('GoalLibraryScene: No goals data in registry, initializing defaults');
+                this.initializeDefaultGoals();
+                return false;
+            }
+            
+        } catch (error) {
+            console.error('GoalLibraryScene: Failed to load goals from registry:', error);
+            this.initializeDefaultGoals();
+            return false;
+        }
+    }
+
+    /**
+     * Initialize default goals and categories
+     */
+    initializeDefaultGoals() {
+        try {
+            console.log('GoalLibraryScene: Initializing default goals');
+            
+            // Use ApplicationStateManager to initialize defaults
+            if (this.game.appStateManager) {
+                // ApplicationStateManager already has default initialization
+                const goals = this.game.appStateManager.getGoals();
+                const categories = this.game.appStateManager.getCategories();
+                
+                console.log('GoalLibraryScene: Default goals initialized:', goals.length);
+                console.log('GoalLibraryScene: Default categories initialized:', categories.length);
+                
+                // Save defaults to registry
+                this.saveGoalsToRegistry();
+            } else {
+                console.error('GoalLibraryScene: ApplicationStateManager not available for default initialization');
+                this.showErrorMessage('Failed to initialize default goals - system not ready');
+            }
+            
+        } catch (error) {
+            console.error('GoalLibraryScene: Failed to initialize default goals:', error);
+            this.showErrorMessage('Failed to initialize default goals - please refresh the page');
+        }
+    }
+
+    /**
+     * Get default categories with proper color coding
+     */
+    getDefaultCategories() {
+        return [
+            { name: 'Health', color: '#4CAF50' },
+            { name: 'Learning', color: '#2196F3' },
+            { name: 'Social', color: '#FF9800' },
+            { name: 'Planning', color: '#9C27B0' },
+            { name: 'Personal', color: '#607D8B' }
+        ];
+    }
+
+    /**
+     * Update goal with persistence
+     */
+    updateGoal(goalId, updates) {
+        try {
+            console.log('GoalLibraryScene: Updating goal:', goalId, updates);
+            
+            if (this.game.appStateManager) {
+                const updatedGoal = this.game.appStateManager.updateGoal(goalId, updates);
+                if (updatedGoal) {
+                    // Save to registry for enhanced persistence
+                    this.saveGoalsToRegistry();
+                    console.log('GoalLibraryScene: Goal updated successfully');
+                    return updatedGoal;
+                } else {
+                    console.warn('GoalLibraryScene: Goal not found for update:', goalId);
+                    this.showErrorMessage('Goal not found - please refresh and try again');
+                    return null;
+                }
+            } else {
+                console.error('GoalLibraryScene: ApplicationStateManager not available');
+                this.showErrorMessage('Failed to update goal - system not ready');
+                return null;
+            }
+        } catch (error) {
+            console.error('GoalLibraryScene: Failed to update goal:', error);
+            this.showErrorMessage('Failed to update goal - please try again');
+            return null;
+        }
+    }
+
+    /**
+     * Delete goal with persistence
+     */
+    deleteGoal(goalId) {
+        try {
+            console.log('GoalLibraryScene: Deleting goal:', goalId);
+            
+            if (this.game.appStateManager) {
+                const deletedGoal = this.game.appStateManager.removeGoal(goalId);
+                if (deletedGoal) {
+                    // Save to registry for enhanced persistence
+                    this.saveGoalsToRegistry();
+                    console.log('GoalLibraryScene: Goal deleted successfully');
+                    return deletedGoal;
+                } else {
+                    console.warn('GoalLibraryScene: Goal not found for deletion:', goalId);
+                    this.showErrorMessage('Goal not found - please refresh and try again');
+                    return null;
+                }
+            } else {
+                console.error('GoalLibraryScene: ApplicationStateManager not available');
+                this.showErrorMessage('Failed to delete goal - system not ready');
+                return null;
+            }
+        } catch (error) {
+            console.error('GoalLibraryScene: Failed to delete goal:', error);
+            this.showErrorMessage('Failed to delete goal - please try again');
+            return null;
         }
     }
 
@@ -591,35 +792,143 @@ export default class GoalLibraryScene extends Phaser.Scene {
         
         this.placeholderText.setVisible(false);
         
-        // Render goal cards using GoalCard component
+        // ============================================================================
+        // PHASER RESPONSIVE LAYOUT: Use camera dimensions for responsive goal card layout
+        // ============================================================================
+        // PHASER PATTERN: Use this.cameras.main dimensions for responsive layouts
+        // - Camera dimensions automatically adapt to canvas size
+        // - Ensures cards fit within white content area boundaries
+        // - Maintains proper spacing and proportions across all screen sizes
+        // - Follows Phaser's recommended responsive design patterns
+        
+        const { width, height } = this.cameras.main;
+        
+        // Responsive layout calculations
+        const padding = 20;
+        const availableWidth = width - (padding * 2); // Account for left/right padding
+        const cardsPerRow = 3;
+        const cardSpacing = 20;
+        const rowSpacing = 100;
+        
+        // Calculate responsive card width to fit within available space
+        // Total space needed = (cardsPerRow * cardWidth) + ((cardsPerRow - 1) * cardSpacing)
+        // Solving for cardWidth: cardWidth = (availableWidth - (cardsPerRow - 1) * cardSpacing) / cardsPerRow
+        const cardWidth = Math.floor((availableWidth - (cardsPerRow - 1) * cardSpacing) / cardsPerRow);
+        const cardHeight = 80;
+        
+        // Calculate starting position (left padding + half card width for centering)
+        const startX = padding + (cardWidth / 2);
+        const startY = 220;
+        
+        // Render goal cards with responsive positioning
         filteredGoals.forEach((goal, index) => {
-            const x = 50 + (index % 3) * 320;
-            const y = 220 + Math.floor(index / 3) * 140;
+            const row = Math.floor(index / cardsPerRow);
+            const col = index % cardsPerRow;
             
-            // Create GoalCard component
-            const goalCard = new GoalCard(this, x, y, goal, {
-                width: this.cardWidth,
-                height: this.cardHeight
-            });
+            // Responsive positioning based on camera dimensions
+            const x = startX + (col * (cardWidth + cardSpacing));
+            const y = startY + (row * rowSpacing);
             
-            // ============================================================================
-            // PHASER DOUBLE-RENDERING FIX: Proper GoalCard rendering
-            // ============================================================================
-            // PHASER PATTERN: Add GoalCard to group AND container (not scene directly)
-            // - Groups manage collections but don't render children
-            // - Containers both group AND render their children
-            // - This prevents double-rendering while ensuring visibility
+            // Create enhanced goal card with category support
+            const goalCard = this.createGoalCard(goal, x, y, cardWidth, cardHeight);
             
             // Add to group for collection management
             this.goalCardsGroup.add(goalCard);
             
             // Add to goals list container for rendering
-            // AI NOTE: This is the correct approach - containers handle both grouping and rendering
             this.goalsListContainer.add(goalCard);
-            
-            // Animate appearance
-            goalCard.animateAppearance();
         });
+    }
+    
+    createGoalCard(goal, x, y, width, height) {
+        // ============================================================================
+        // PHASER GOAL CARD CREATION: Enhanced goal card with category support
+        // ============================================================================
+        // PHASER PATTERN: Create goal card with category color coding and visual indicators
+        // - Category color lookup from this.categories array
+        // - Visual category indicator (colored border and left edge)
+        // - Category label and difficulty indicator
+        // - Proper container integration for rendering
+        
+        // Get primary category (first category in the array)
+        const primaryCategoryId = goal.categories && goal.categories.length > 0 ? goal.categories[0] : null;
+        const category = this.categories ? this.categories.find(cat => cat.id === primaryCategoryId) : null;
+        const categoryColor = category ? category.color : '#607D8B';
+        const categoryName = category ? category.name : 'Uncategorized';
+        
+        // Create card container
+        const cardContainer = new Phaser.GameObjects.Container(this, x, y);
+        
+        // Card background
+        const cardBg = new Phaser.GameObjects.Rectangle(this, 0, 0, width, height, 0xffffff);
+        cardBg.setStrokeStyle(2, categoryColor);
+        cardContainer.add(cardBg);
+        
+        // Category indicator (colored left edge)
+        const categoryIndicator = new Phaser.GameObjects.Rectangle(this, -width/2 + 10, 0, 4, height, categoryColor);
+        cardContainer.add(categoryIndicator);
+        
+        // Goal text
+        const goalText = new Phaser.GameObjects.Text(this, -width/2 + 20, -10, goal.text || 'Untitled Goal', {
+            fontSize: '14px',
+            fill: '#333333',
+            wordWrap: { width: width - 40 }
+        }).setOrigin(0, 0.5);
+        cardContainer.add(goalText);
+        
+        // Category label
+        const categoryLabel = new Phaser.GameObjects.Text(this, -width/2 + 20, 10, categoryName, {
+            fontSize: '12px',
+            fill: categoryColor,
+            fontStyle: 'bold'
+        }).setOrigin(0, 0.5);
+        cardContainer.add(categoryLabel);
+        
+        // Difficulty indicator (convert to proper case)
+        const difficulty = goal.difficulty ? goal.difficulty.charAt(0).toUpperCase() + goal.difficulty.slice(1) : 'Unknown';
+        const difficultyColor = this.getDifficultyColor(difficulty);
+        const difficultyDot = new Phaser.GameObjects.Ellipse(this, width/2 - 15, 0, 12, 12, difficultyColor);
+        cardContainer.add(difficultyDot);
+        
+        // Add interactivity
+        cardContainer.setInteractive(new Phaser.Geom.Rectangle(-width/2, -height/2, width, height), Phaser.Geom.Rectangle.Contains);
+        
+        // Hover effects
+        cardContainer.on('pointerover', () => {
+            cardBg.setFillStyle(0xe9ecef);
+            cardBg.setStrokeStyle(3, categoryColor);
+        });
+        
+        cardContainer.on('pointerout', () => {
+            cardBg.setFillStyle(0xffffff);
+            cardBg.setStrokeStyle(2, categoryColor);
+        });
+        
+        // Click handler
+        cardContainer.on('pointerdown', () => {
+            console.log('Goal card clicked:', goal.text);
+            // TODO: Add goal selection/editing functionality
+        });
+        
+        return cardContainer;
+    }
+    
+    getDifficultyColor(difficulty) {
+        // ============================================================================
+        // PHASER DIFFICULTY COLOR SYSTEM: Color coding for goal difficulty levels
+        // ============================================================================
+        // PHASER PATTERN: Use consistent color scheme for difficulty indicators
+        // - Easy: Green for accessible goals
+        // - Medium: Orange for moderate challenges
+        // - Hard: Red for difficult goals
+        // - Default: Gray for unclassified goals
+        
+        switch (difficulty) {
+            case 'Easy': return 0x4CAF50;
+            case 'Medium': return 0xFF9800;
+            case 'Hard': return 0xf44336;
+            default: return 0x607D8B;
+        }
     }
 
     filterGoals(goals) {
@@ -730,7 +1039,7 @@ export default class GoalLibraryScene extends Phaser.Scene {
         // Update filter button appearances
         this.filterButtonsGroup.children.entries.forEach(btn => {
             const isActive = btn.filterKey === filterKey;
-            btn.setFillStyle(isActive ? 0x007bff : 0xf8f9fa);
+            btn.setFillStyle(isActive ? 0x007bff : 0xe9ecef);
             btn.setStrokeStyle(2, isActive ? 0x0056b3 : 0xdee2e6);
             btn.btnText.setFill(isActive ? '#ffffff' : '#333333');
         });
@@ -742,8 +1051,8 @@ export default class GoalLibraryScene extends Phaser.Scene {
     openAddGoalModal() {
         // Validate scene state before creating modal (Phaser best practice)
         if (!this.validateSceneState()) {
-            console.error('GoalLibraryScene: Cannot create add modal - scene not ready');
-            return;
+            console.warn('GoalLibraryScene: Scene validation failed - attempting modal creation anyway');
+            // Don't return early - try to create modal even if validation fails
         }
 
         try {
@@ -782,10 +1091,85 @@ export default class GoalLibraryScene extends Phaser.Scene {
         }
     }
 
+    // ============================================================================
+    // PHASER GOAL MANAGEMENT: Enhanced goal saving with ApplicationStateManager
+    // ============================================================================
+    // PHASER PATTERN: Use ApplicationStateManager for goal persistence
+    // - ApplicationStateManager handles goal creation and registry updates
+    // - Phaser's registry events automatically trigger UI updates
+    // - This ensures proper data flow and state synchronization
     onGoalSaved(goalData) {
-        console.log('Goal saved:', goalData);
-        // Goals will be automatically updated via ApplicationStateManager events
-        // No need to manually refresh - the onGoalsChanged event will handle it
+        console.log('GoalLibraryScene: Goal saved:', goalData);
+
+        // ============================================================================
+        // PHASER GOAL PERSISTENCE: Use ApplicationStateManager for goal creation
+        // ============================================================================
+        // PHASER PATTERN: Use ApplicationStateManager for domain logic
+        // - ApplicationStateManager handles goal creation and validation
+        // - Updates Phaser registry automatically
+        // - Triggers 'goalsChanged' event for UI updates
+        // - This ensures proper data flow and state management
+
+        try {
+            if (this.game.appStateManager) {
+                // Use ApplicationStateManager to add goal
+                const createdGoal = this.game.appStateManager.addGoal(goalData);
+                console.log('GoalLibraryScene: Goal created successfully:', createdGoal);
+
+                // Save to registry for enhanced persistence
+                this.saveGoalsToRegistry();
+
+                // Goals will be automatically updated via ApplicationStateManager events
+                // The 'goalsChanged' event will trigger UI refresh
+            } else {
+                console.error('GoalLibraryScene: ApplicationStateManager not available');
+                // Fallback: Show error message to user
+                this.showErrorMessage('Failed to save goal - system not ready');
+            }
+        } catch (error) {
+            console.error('GoalLibraryScene: Failed to save goal:', error);
+            // Fallback: Show error message to user
+            this.showErrorMessage('Failed to save goal - please try again');
+        }
+    }
+    
+    // ============================================================================
+    // PHASER ERROR HANDLING: User feedback for errors
+    // ============================================================================
+    // PHASER PATTERN: Provide user feedback for errors
+    // - Use simple text display for error messages
+    // - Position error message prominently
+    // - Auto-hide after reasonable time
+    showErrorMessage(message) {
+        // Create error message text
+        const errorText = this.add.text(
+            this.cameras.main.centerX, 
+            this.cameras.main.centerY + 100, 
+            message, 
+            {
+                fontSize: '16px',
+                fill: '#dc3545',
+                fontStyle: 'bold',
+                backgroundColor: '#f8d7da',
+                padding: { x: 10, y: 5 }
+            }
+        ).setOrigin(0.5);
+        
+        // Auto-hide after 3 seconds
+        if (this.time && this.time.delayedCall) {
+            this.time.delayedCall(3000, () => {
+                if (errorText && errorText.destroy) {
+                    errorText.destroy();
+                }
+            });
+        } else {
+            // Fallback: Use setTimeout if this.time is not available
+            setTimeout(() => {
+                if (errorText && errorText.destroy) {
+                    errorText.destroy();
+                }
+            }, 3000);
+        }
     }
 
     onModalClosed() {
@@ -800,8 +1184,53 @@ export default class GoalLibraryScene extends Phaser.Scene {
         console.log('Submitting form...');
     }
 
+    /**
+     * Validate loaded data structure
+     */
+    validateDataStructure(data) {
+        if (!data || typeof data !== 'object') {
+            return false;
+        }
+        
+        // Check required properties
+        if (!Array.isArray(data.goals) || !Array.isArray(data.categories)) {
+            return false;
+        }
+        
+        // Validate goals structure
+        for (const goal of data.goals) {
+            if (!goal || typeof goal !== 'object' || !goal.text || !goal.id) {
+                return false;
+            }
+        }
+        
+        // Validate categories structure
+        for (const category of data.categories) {
+            if (!category || typeof category !== 'object' || !category.name || !category.color) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Save data before scene shutdown
+     */
+    saveDataOnShutdown() {
+        try {
+            console.log('GoalLibraryScene: Saving data before shutdown');
+            this.saveGoalsToRegistry();
+        } catch (error) {
+            console.error('GoalLibraryScene: Failed to save data on shutdown:', error);
+        }
+    }
+
     shutdown() {
         console.log('GoalLibraryScene: shutdown() called - cleaning up containers and resources');
+        
+        // Save data before shutdown
+        this.saveDataOnShutdown();
         
         // PHASER SCENE CLEANUP: Comprehensive cleanup following Phaser documentation patterns
         // The shutdown() method is called automatically by Phaser when a scene is stopped
@@ -920,20 +1349,14 @@ export default class GoalLibraryScene extends Phaser.Scene {
             return false;
         }
 
-        // Check if scene is active
-        if (!this.sys.isActive()) {
-            console.warn('GoalLibraryScene: Scene is not active');
-            return false;
-        }
-
-        // Check if scene is visible
-        if (!this.sys.isVisible()) {
-            console.warn('GoalLibraryScene: Scene is not visible');
+        // Check if scene is active or visible (more permissive for modal creation)
+        if (!this.sys.isActive() && !this.sys.isVisible()) {
+            console.warn('GoalLibraryScene: Scene is neither active nor visible');
             return false;
         }
 
         // Check if scene is shutting down
-        if (this.sys.isShuttingDown()) {
+        if (this.sys.settings.status === Phaser.Scenes.SHUTDOWN) {
             console.warn('GoalLibraryScene: Scene is shutting down');
             return false;
         }
@@ -964,7 +1387,7 @@ export default class GoalLibraryScene extends Phaser.Scene {
             isActive: this.sys.isActive(),
             isVisible: this.sys.isVisible(),
             isSleeping: this.sys.isSleeping(),
-            isShuttingDown: this.sys.isShuttingDown(),
+            isShuttingDown: this.sys.settings.status === Phaser.Scenes.SHUTDOWN,
             childrenCount: this.children.list.length,
             uiState: {
                 currentFilter: this.currentFilter,

@@ -40,7 +40,7 @@ export default class TestScene extends Phaser.Scene {
         
         // Configure camera
         this.cameras.main.setBackgroundColor('#ffffff');
-        this.cameras.main.setViewport(0, 0, 1200, 800);
+        // ✅ REMOVED: Hardcoded viewport override - Phaser handles responsive scaling automatically
         
         // ============================================================================
         // PHASER SIMPLE UI PATTERN: Direct element addition to scene

@@ -36,8 +36,10 @@ This document serves as the central index for all Goal Bingo documentation, opti
 
 ### **1. CORE PHASER REFERENCE (AI Priority)**
 - **`PHASER_ARCHITECTURE.md`** - ✅ **UPDATED** - Consolidated architecture + container patterns + scene complexity levels
-- **`PHASER_PATTERNS.md`** - ✅ **UPDATED** - Enhanced patterns + container management + double-rendering prevention
+- **`PHASER_PATTERNS.md`** - ✅ **UPDATED** - Enhanced patterns + container management + double-rendering prevention + audio management
 - **`PHASER_SCENE_CREATION_PLAYBOOK.md`** - ✅ **NEW** - Comprehensive scene creation guide with templates
+- **`AUDIO_SYSTEM_IMPLEMENTATION.md`** - ✅ **NEW** - Complete audio system documentation with patterns and best practices
+- **`INITIALIZATION_TIMING.md`** - ✅ **UPDATED** - Audio system timing patterns and initialization sequence
 - **`PLUGIN_ARCHITECTURE.md`** - Enhanced plugin system guide
 
 ### **2. PROJECT DOCUMENTATION**
@@ -62,9 +64,11 @@ This document serves as the central index for all Goal Bingo documentation, opti
 
 ### **HIGH PRIORITY (Must Have)**
 1. **`PHASER_ARCHITECTURE.md`** - ✅ **UPDATED** - Single source of truth for Phaser architecture + container patterns
-2. **`PHASER_PATTERNS.md`** - ✅ **UPDATED** - Correct patterns + container management + double-rendering prevention
-3. **`PHASER_SCENE_CREATION_PLAYBOOK.md`** - ✅ **NEW** - Comprehensive scene creation guide with templates
-4. **`PLUGIN_ARCHITECTURE.md`** - Plugin system guidance
+2. **`PHASER_PATTERNS.md`** - ✅ **UPDATED** - Correct patterns + container management + double-rendering prevention + audio management
+3. **`AUDIO_SYSTEM_IMPLEMENTATION.md`** - ✅ **NEW** - Complete audio system documentation with patterns and best practices
+4. **`INITIALIZATION_TIMING.md`** - ✅ **UPDATED** - Audio system timing patterns and initialization sequence
+5. **`PHASER_SCENE_CREATION_PLAYBOOK.md`** - ✅ **NEW** - Comprehensive scene creation guide with templates
+6. **`PLUGIN_ARCHITECTURE.md`** - Plugin system guidance
 
 ### **MEDIUM PRIORITY (Should Have)**
 4. **`IMPLEMENTATION_PLAN.md`** - Updated project roadmap
@@ -82,6 +86,8 @@ This document serves as the central index for all Goal Bingo documentation, opti
 - **`game.registry`** - Data persistence
 - **`game.events`** - Event management
 - **`this.sound.*`** - Audio management
+- **`this.cache.audio.*`** - Audio asset management
+- **`this.load.audio(key, url)`** - Audio loading
 - **`this.tweens.*`** - Animation management
 - **`this.textures.*`** - Texture management
 - **`this.input.*`** - Input management
@@ -97,12 +103,14 @@ This document serves as the central index for all Goal Bingo documentation, opti
 ### **Custom Extensions (5% Usage)**
 - **`ApplicationStateManager`** - Domain logic utility
 - **`StorageManager`** - Persistence utility
+- **`AudioManager`** - Centralized audio management with error handling
+- **`MockAudioManager`** - Fallback for missing audio assets
 - **`DebugPlugin`** - Visual debugging extension
 
 ### **Anti-Patterns (Never Create)**
 - Custom data managers
 - Custom event managers
-- Custom audio managers
+- Custom audio manager plugins (use AudioManager class instead)
 - Custom tween managers
 - Custom texture managers
 - Custom input managers
@@ -111,6 +119,8 @@ This document serves as the central index for all Goal Bingo documentation, opti
 - **Double-rendering patterns** - Adding elements to both scene and containers
 - **Missing container registration** - Creating containers without `this.add.existing()`
 - **Incorrect scene complexity patterns** - Using containers for simple UI scenes
+- **Duplicate audio loading** - Loading audio in individual scenes instead of PreloadScene
+- **Missing audio error handling** - Not checking audio availability before use
 
 ---
 

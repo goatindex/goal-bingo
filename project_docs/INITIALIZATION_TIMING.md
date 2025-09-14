@@ -132,6 +132,116 @@ game.events.on('ready', callback); // Will fail!
 
 ---
 
+## **🎵 AUDIO SYSTEM INITIALIZATION TIMING**
+
+### **✅ Correct Audio Loading Pattern (Phaser 3.70.0+)**
+```javascript
+// PreloadScene.js - Audio loading in preload phase
+preload() {
+    // PHASER AUDIO LOADING PATTERN:
+    // - Load all audio assets in PreloadScene preload() method
+    // - Audio files are loaded asynchronously by Phaser's Loader
+    // - create() is only called after ALL assets are loaded
+    // - This ensures audio is available when MainMenuScene starts
+    
+    console.log('PreloadScene: Loading audio assets...');
+    
+    // Load audio files using Phaser's native loading system
+    this.load.audio('buttonClick', 'assets/audio/button-click.mp3');
+    this.load.audio('buttonHover', 'assets/audio/button-hover.mp3');
+    this.load.audio('modalOpen', 'assets/audio/modal-open.mp3');
+    this.load.audio('modalClose', 'assets/audio/modal-close.mp3');
+    this.load.audio('goalComplete', 'assets/audio/goal-complete.mp3');
+    this.load.audio('bingoWin', 'assets/audio/bingo-win.mp3');
+    this.load.audio('newGame', 'assets/audio/new-game.mp3');
+    this.load.audio('gridRepopulate', 'assets/audio/grid-repopulate.mp3');
+    this.load.audio('backgroundMusic', 'assets/audio/background-music.mp3');
+}
+
+create() {
+    // PHASER AUDIO TIMING: create() only called after loading is complete
+    // - All audio assets are guaranteed to be loaded
+    // - Safe to transition to MainMenuScene
+    // - MainMenuScene can safely initialize AudioManager
+    
+    console.log('PreloadScene: All assets loaded, transitioning to MainMenuScene');
+    this.scene.start('MainMenuScene');
+}
+```
+
+### **✅ Audio Integration in Scene Creation**
+```javascript
+// MainMenuScene.js - Audio integration with error handling
+create() {
+    // PHASER AUDIO INTEGRATION PATTERN:
+    // - Check if audio assets are available before initializing AudioManager
+    // - Use Phaser's cache.audio system to verify asset availability
+    // - Provide graceful fallback if audio assets are missing
+    // - This prevents scene creation failures due to missing audio
+    
+    if (this.cache.audio.exists('buttonClick')) {
+        console.log('MainMenuScene: Audio assets available, initializing AudioManager');
+        this.audioManager = new AudioManager(this);
+        this.audioManager.initializeAudio();
+    } else {
+        console.warn('MainMenuScene: Audio assets not available, using mock AudioManager');
+        this.audioManager = new MockAudioManager(this);
+    }
+    
+    // Continue with scene creation...
+    this.createUI();
+}
+```
+
+### **✅ Audio Usage in Scene Methods**
+```javascript
+// MainMenuScene.js - Audio usage with proper error handling
+onButtonClick() {
+    // PHASER AUDIO USAGE PATTERN:
+    // - Always check if AudioManager exists before calling methods
+    // - AudioManager handles volume, mute settings, and error handling
+    // - Provides consistent audio feedback across all buttons
+    // - Graceful degradation if audio is not available
+    
+    if (this.audioManager) {
+        this.audioManager.playButtonClick();
+    }
+    
+    // Continue with button logic...
+    this.handleButtonAction();
+}
+```
+
+### **❌ Common Audio Timing Anti-Patterns**
+```javascript
+// ❌ WRONG - Loading audio in MainMenuScene preload()
+// This causes duplicate loading and timing issues
+export class MainMenuScene extends Phaser.Scene {
+    preload() {
+        this.load.audio('buttonClick', 'assets/audio/button-click.mp3'); // ❌ Duplicate loading
+    }
+}
+
+// ❌ WRONG - Not checking audio availability before use
+create() {
+    this.audioManager = new AudioManager(this); // ❌ May fail if audio not loaded
+    this.audioManager.initializeAudio(); // ❌ May fail if audio not available
+}
+
+// ❌ WRONG - No error handling for missing audio
+onButtonClick() {
+    this.audioManager.playButtonClick(); // ❌ May fail if AudioManager not initialized
+}
+```
+
+### **📋 Audio System Timing Sequence**
+1. **PreloadScene.preload()** - Load all audio assets
+2. **PreloadScene.create()** - Audio loading complete, transition to MainMenuScene
+3. **MainMenuScene.create()** - Check audio availability, initialize AudioManager
+4. **MainMenuScene UI** - Use AudioManager for button feedback
+
+---
+
 ## **🎯 AI ASSISTANT GUIDANCE**
 
 When working with Phaser initialization:
@@ -141,5 +251,8 @@ When working with Phaser initialization:
 3. **Set up SYSTEM_READY listener after game creation**, not inside postBoot
 4. **Never access `game.events` immediately** after game creation
 5. **Follow the timing sequence**: postBoot → READY → SYSTEM_READY
+6. **Load audio assets in PreloadScene** - never in individual scenes
+7. **Check audio availability before initializing AudioManager** - use `this.cache.audio.exists()`
+8. **Provide graceful fallback for missing audio** - use mock AudioManager if needed
 
 This approach ensures proper timing and follows Phaser's documented best practices.

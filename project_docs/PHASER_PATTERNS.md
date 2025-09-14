@@ -610,55 +610,279 @@ game.events.emit('goals-updated', goals);
 
 ---
 
-## **🎨 AUDIO MANAGEMENT PATTERNS**
+## **🎵 AUDIO MANAGEMENT PATTERNS**
 
-### **✅ Correct Audio Management (100% Native)**
+### **✅ Correct Audio Loading Pattern (Centralized)**
 ```javascript
-// Scene files - Using Phaser's built-in audio system
-export class BingoGridScene extends Phaser.Scene {
+// PreloadScene.js - Centralized audio loading
+export class PreloadScene extends Phaser.Scene {
     preload() {
-        // Load audio assets
+        // ============================================================================
+        // PHASER AUDIO LOADING PATTERN: Centralized asset loading
+        // ============================================================================
+        // PHASER PATTERN: Load all audio assets in PreloadScene
+        // - PreloadScene handles ALL audio loading for the entire application
+        // - Individual scenes should NOT load audio assets
+        // - This prevents duplicate loading and ensures consistent timing
+        // - Audio assets are available to all scenes after PreloadScene completes
+        
+        console.log('PreloadScene: Loading audio assets...');
+        
+        // Load all audio files using Phaser's native loading system
+        this.load.audio('buttonClick', 'assets/audio/button-click.mp3');
+        this.load.audio('buttonHover', 'assets/audio/button-hover.mp3');
+        this.load.audio('modalOpen', 'assets/audio/modal-open.mp3');
+        this.load.audio('modalClose', 'assets/audio/modal-close.mp3');
         this.load.audio('goalComplete', 'assets/audio/goal-complete.mp3');
         this.load.audio('bingoWin', 'assets/audio/bingo-win.mp3');
-        this.load.audio('backgroundMusic', 'assets/audio/background.mp3');
+        this.load.audio('newGame', 'assets/audio/new-game.mp3');
+        this.load.audio('gridRepopulate', 'assets/audio/grid-repopulate.mp3');
+        this.load.audio('backgroundMusic', 'assets/audio/background-music.mp3');
     }
     
     create() {
-        // Play background music
-        this.backgroundMusic = this.sound.add('backgroundMusic', {
-            loop: true,
-            volume: 0.3
-        });
-        this.backgroundMusic.play();
+        // PHASER AUDIO TIMING: create() only called after loading is complete
+        // - All audio assets are guaranteed to be loaded
+        // - Safe to transition to MainMenuScene
+        // - MainMenuScene can safely initialize AudioManager
         
-        // Set up goal completion sound
-        this.goalCompleteSound = this.sound.add('goalComplete', {
-            volume: 0.5
-        });
+        console.log('PreloadScene: All assets loaded, transitioning to MainMenuScene');
+        this.scene.start('MainMenuScene');
+    }
+}
+```
+
+### **✅ Correct Audio Integration Pattern (Scene-Level)**
+```javascript
+// MainMenuScene.js - Audio integration with error handling
+export class MainMenuScene extends Phaser.Scene {
+    create() {
+        // ============================================================================
+        // PHASER AUDIO INTEGRATION PATTERN: Scene-level audio management
+        // ============================================================================
+        // PHASER PATTERN: Check audio availability before initializing AudioManager
+        // - Use Phaser's cache.audio system to verify asset availability
+        // - Provide graceful fallback if audio assets are missing
+        // - This prevents scene creation failures due to missing audio
+        // - AudioManager handles all audio functionality for the scene
+        
+        if (this.cache.audio.exists('buttonClick')) {
+            console.log('MainMenuScene: Audio assets available, initializing AudioManager');
+            this.audioManager = new AudioManager(this);
+            this.audioManager.initializeAudio();
+        } else {
+            console.warn('MainMenuScene: Audio assets not available, using mock AudioManager');
+            this.audioManager = new MockAudioManager(this);
+        }
+        
+        // Continue with scene creation...
+        this.createUI();
     }
     
-    onGoalCompleted(goal) {
-        // Play completion sound
-        this.goalCompleteSound.play();
+    onButtonClick() {
+        // ============================================================================
+        // PHASER AUDIO USAGE PATTERN: Safe audio method calls
+        // ============================================================================
+        // PHASER PATTERN: Always check if AudioManager exists before calling methods
+        // - AudioManager handles volume, mute settings, and error handling
+        // - Provides consistent audio feedback across all buttons
+        // - Graceful degradation if audio is not available
+        // - This prevents runtime errors if AudioManager is not initialized
         
-        // Check for bingo
-        if (this.checkForBingo()) {
-            this.sound.play('bingoWin', { volume: 0.8 });
+        if (this.audioManager) {
+            this.audioManager.playButtonClick();
+        }
+        
+        // Continue with button logic...
+        this.handleButtonAction();
+    }
+    
+    onButtonHover() {
+        // PHASER AUDIO FEEDBACK PATTERN: Consistent audio feedback
+        // - Use AudioManager for all audio interactions
+        // - Provides consistent user experience
+        // - Handles volume and mute settings automatically
+        
+        if (this.audioManager) {
+            this.audioManager.playButtonHover();
+        }
+    }
+}
+```
+
+### **✅ Correct Audio Manager Implementation**
+```javascript
+// AudioManager.js - Centralized audio management
+export class AudioManager {
+    constructor(scene) {
+        this.scene = scene;
+        this.sounds = new Map();
+        this.isMuted = false;
+        this.masterVolume = 1.0;
+    }
+    
+    initializeAudio() {
+        // ============================================================================
+        // PHASER AUDIO MANAGER PATTERN: Centralized audio initialization
+        // ============================================================================
+        // PHASER PATTERN: Initialize all audio sounds in one place
+        // - Use Phaser's this.sound.add() to create sound instances
+        // - Store sound references for consistent playback
+        // - Set default volume and configuration
+        // - This provides centralized control over all audio
+        
+        const audioConfigs = {
+            buttonClick: { volume: 0.5, loop: false },
+            buttonHover: { volume: 0.3, loop: false },
+            modalOpen: { volume: 0.4, loop: false },
+            modalClose: { volume: 0.4, loop: false },
+            goalComplete: { volume: 0.6, loop: false },
+            bingoWin: { volume: 0.8, loop: false },
+            newGame: { volume: 0.5, loop: false },
+            gridRepopulate: { volume: 0.4, loop: false },
+            backgroundMusic: { volume: 0.3, loop: true }
+        };
+        
+        // Initialize all audio sounds
+        Object.entries(audioConfigs).forEach(([key, config]) => {
+            if (this.scene.cache.audio.exists(key)) {
+                const sound = this.scene.sound.add(key, config);
+                this.sounds.set(key, sound);
+            }
+        });
+        
+        console.log(`AudioManager: Initialized ${this.sounds.size} audio sounds`);
+    }
+    
+    playButtonClick() {
+        this.playSound('buttonClick');
+    }
+    
+    playButtonHover() {
+        this.playSound('buttonHover');
+    }
+    
+    playSound(soundKey) {
+        // ============================================================================
+        // PHASER AUDIO PLAYBACK PATTERN: Safe sound playback
+        // ============================================================================
+        // PHASER PATTERN: Safe sound playback with error handling
+        // - Check if sound exists before playing
+        // - Handle mute and volume settings
+        // - Provide fallback for missing sounds
+        // - This prevents runtime errors and provides consistent behavior
+        
+        if (this.isMuted) return;
+        
+        const sound = this.sounds.get(soundKey);
+        if (sound) {
+            sound.play();
+        } else {
+            console.warn(`AudioManager: Sound '${soundKey}' not found`);
         }
     }
     
-    shutdown() {
-        // Stop background music
-        if (this.backgroundMusic) {
-            this.backgroundMusic.stop();
-        }
+    setMuted(muted) {
+        this.isMuted = muted;
+        this.sounds.forEach(sound => {
+            sound.setMute(muted);
+        });
+    }
+    
+    setMasterVolume(volume) {
+        this.masterVolume = Phaser.Math.Clamp(volume, 0, 1);
+        this.sounds.forEach(sound => {
+            sound.setVolume(sound.volume * this.masterVolume);
+        });
+    }
+}
+```
+
+### **✅ Correct Mock Audio Manager (Fallback)**
+```javascript
+// MockAudioManager.js - Fallback for missing audio
+export class MockAudioManager {
+    constructor(scene) {
+        this.scene = scene;
+        this.isMuted = false;
+        this.masterVolume = 1.0;
+    }
+    
+    initializeAudio() {
+        // ============================================================================
+        // PHASER AUDIO FALLBACK PATTERN: Mock audio manager for missing assets
+        // ============================================================================
+        // PHASER PATTERN: Provide fallback when audio assets are not available
+        // - Implements same interface as AudioManager
+        // - Provides no-op methods for all audio functions
+        // - Prevents runtime errors when audio is not available
+        // - Allows application to continue functioning without audio
+        
+        console.log('MockAudioManager: Initialized (no audio assets available)');
+    }
+    
+    playButtonClick() {
+        // No-op: Audio not available
+    }
+    
+    playButtonHover() {
+        // No-op: Audio not available
+    }
+    
+    playSound(soundKey) {
+        // No-op: Audio not available
+    }
+    
+    setMuted(muted) {
+        this.isMuted = muted;
+    }
+    
+    setMasterVolume(volume) {
+        this.masterVolume = Phaser.Math.Clamp(volume, 0, 1);
+    }
+}
+```
+
+### **❌ Anti-Pattern: Duplicate Audio Loading**
+```javascript
+// ❌ WRONG - Loading audio in individual scenes
+export class MainMenuScene extends Phaser.Scene {
+    preload() {
+        // ❌ WRONG - Don't load audio in individual scenes
+        this.load.audio('buttonClick', 'assets/audio/button-click.mp3');
+        this.load.audio('buttonHover', 'assets/audio/button-hover.mp3');
+    }
+}
+
+export class BingoGridScene extends Phaser.Scene {
+    preload() {
+        // ❌ WRONG - Don't load audio in individual scenes
+        this.load.audio('goalComplete', 'assets/audio/goal-complete.mp3');
+        this.load.audio('bingoWin', 'assets/audio/bingo-win.mp3');
+    }
+}
+```
+
+### **❌ Anti-Pattern: No Error Handling for Audio**
+```javascript
+// ❌ WRONG - No error handling for missing audio
+export class MainMenuScene extends Phaser.Scene {
+    create() {
+        // ❌ WRONG - No check for audio availability
+        this.audioManager = new AudioManager(this);
+        this.audioManager.initializeAudio(); // May fail if audio not loaded
+    }
+    
+    onButtonClick() {
+        // ❌ WRONG - No check for AudioManager existence
+        this.audioManager.playButtonClick(); // May fail if AudioManager not initialized
     }
 }
 ```
 
 ### **❌ Anti-Pattern: Custom Audio Manager Plugin**
 ```javascript
-// ❌ WRONG - Don't create custom audio managers
+// ❌ WRONG - Don't create custom audio manager plugins
 class AudioManagerPlugin extends BasePlugin {
     constructor(pluginManager) {
         super(pluginManager);
@@ -680,6 +904,20 @@ class AudioManagerPlugin extends BasePlugin {
     }
 }
 ```
+
+### **📋 Audio System Architecture**
+1. **PreloadScene** - Loads ALL audio assets for the entire application
+2. **AudioManager** - Centralized audio management with error handling
+3. **MockAudioManager** - Fallback for missing audio assets
+4. **Scene Integration** - Check audio availability before initializing AudioManager
+5. **Audio Usage** - Safe method calls with existence checks
+
+### **🎯 Key Audio Patterns**
+- **Centralized Loading**: Load all audio in PreloadScene, never in individual scenes
+- **Error Handling**: Always check audio availability before use
+- **Graceful Fallback**: Provide mock AudioManager for missing audio
+- **Consistent Interface**: Use same AudioManager interface across all scenes
+- **Safe Playback**: Check AudioManager existence before calling methods
 
 ---
 
