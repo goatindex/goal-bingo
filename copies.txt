@@ -1,0 +1,4 @@
+# Generated copies. See the master-and-copy skill in goatindex/claude-workflow.
+# master path                                                 local path
+skills/master-and-copy/scripts/refresh_copies.py              scripts/refresh_copies.py
+skills/adversarial-review/workflows/adversarial-review.yml    .github/workflows/adversarial-review.yml
