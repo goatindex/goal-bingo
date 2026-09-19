@@ -236,4 +236,3 @@ priority: must
 notes: Soft / analysis-only constraint. Exact prices and unlock thresholds are deferred to
   Q10 / link 4. sim/results.md records that grid expansion is not modelled; revisit when
   the sim gains an expansion path.
-

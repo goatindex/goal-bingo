@@ -213,7 +213,7 @@ the recycled cell's row and column hold no *other* long-term goal, the rule perm
 long-term goal back into the same cell. §10.3 states what that leaves the floor guaranteeing.
 
 The exact weighting formula is open (§11), but **the long-term draw share is set at
-roughly 5%** (`D-2026-09-19-12`) — the share of the draw's own-rate weighting (the first
+roughly 5%** (`D-2026-09-19-12`), with a verification tolerance of ±5 percentage points (`D-2026-09-20-5`) — the share of the draw's own-rate weighting (the first
 bullet above) given to long-term goals. Simulation showed this is the dial that governs
 ambient friction far more than any player behaviour does: at 5% roughly half the board's
 lines carry an unmarked long-term tile at any moment, which is what `D-2026-09-19-3`'s "the
@@ -645,3 +645,4 @@ measured and closed.
   | `D-2026-09-20-2` | Recovery floor is a soft constraint; CI gate deferred to link 5 |
   | `D-2026-09-20-3` | Grid expansion pricing must preserve the recovery floor |
   | `D-2026-09-20-4` | Free recycle allowance uses a rolling 24-hour window from first use |
+  | `D-2026-09-20-5` | Long-term draw-share verification tolerance is ±5 percentage points |

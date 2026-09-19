@@ -3,6 +3,25 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-20-5 — Long-term draw-share verification tolerance is ±5 percentage points
+
+- **Status:** open
+- **Context:** `D-2026-09-19-12` sets the long-term draw share at roughly 5%. Link-3
+  verification for GB-FUN-027 needs a falsifiable band. Without one, "approximately 5%"
+  cannot be tested. The full draw-weighting formula remains open (Q6).
+- **Options considered:** ±1 pp (4–6%) — tighter than simulation resolution and early
+  tuning need (rejected) · leave TBD until Q6 — blocks verifying an already-decided
+  target (rejected) · **±5 percentage points, i.e. observed share in 0–10% with target
+  5% (chosen)**
+- **Why:** Wide enough to absorb formula churn under Q6 without inventing the formula
+  itself; narrow enough that a draw that behaves like 20% long-term fails. Matches the
+  link-3 intent to make the settled dial testable.
+- **Expected outcome:** Large-sample draw tests pass when long-term share is within
+  0–10%; implementations outside that band fail GB-FUN-027.
+- **Revisit:** When Q6 settles the formula. If the formula can hit 5% ±1 pp reliably,
+  tighten the band; if ambient blocking drifts outside the intended feel at the edges
+  of 0–10%, revisit the band before the formula.
+
 ## D-2026-09-20-4 — Free recycle allowance uses a rolling 24-hour window from first use
 
 - **Status:** open

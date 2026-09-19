@@ -357,14 +357,15 @@ statement: Goal Bingo shall configure the draw algorithm so that long-term goals
   approximately 5% of the total draw weight.
 type: functional
 rationale: At 5% draw share, ambient blocking runs at approximately 45–50% — a regular
-  presence without dominating. D-2026-09-19-12.
+  presence without dominating. D-2026-09-19-12. Verification band ±5 pp is
+  D-2026-09-20-5; the weighting formula itself remains Q6.
 trace-to-source: design-description.md 4.4 design-description.md 10.4
 verification-method: test
 verification-criteria: In a large sample of draws from a pool of mixed cadences, long-term
   goals are drawn in a share between 0% and 10% of cases (target 5%, tolerance ±5
   percentage points).
 priority: must
-notes: Tolerance of ±5 pp gives 0–10% range. Exact formula is deferred to Q6 (owner: k).
+notes: Tolerance of ±5 pp (0–10% band) is D-2026-09-20-5. Exact formula is deferred to Q6 (owner: k).
 
 ---
 
@@ -560,7 +561,8 @@ statement: Goal Bingo shall grant the player a free recycle allowance equal to t
   first recycle in each window is used.
 type: functional
 rationale: Rolling window from first use, not a fixed clock boundary. Default is 1;
-  upgrades increase it (GB-FUN-037). D-2026-09-19-7.
+  upgrades increase it (GB-FUN-037). Free tier originated in D-2026-09-19-7; epoch
+  settled by D-2026-09-20-4.
 trace-to-source: design-description.md 6.2
 verification-method: test
 verification-criteria: With current allowance N, a player who uses the first free
@@ -575,7 +577,8 @@ notes: Default allowance is 1. The 24 h duration is fixed; epoch resets on each 
 statement: Goal Bingo shall deduct from the free recycle allowance before deducting board
   balance for each recycle within the same 24-hour window.
 type: functional
-rationale: The free tier must be consumed first so it is not silently skipped. D-2026-09-19-7.
+rationale: The free tier must be consumed first so it is not silently skipped.
+  D-2026-09-19-7; rolling-window epoch D-2026-09-20-4.
 trace-to-source: design-description.md 6.2
 verification-method: test
 verification-criteria: Each recycle within a 24-hour window reduces the free allowance
