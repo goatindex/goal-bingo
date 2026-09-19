@@ -80,6 +80,92 @@ source of requirements, so the reverse walk from a failing test ends here.
   constraint (`§4.4` rule 1) becomes a bottleneck in practice, consider removing diagonals
   as a later difficulty option rather than from the base game.
 
+## D-2026-09-19-17 — Challenge structure: universal, category, and cadence challenges run in parallel
+
+- **Status:** open
+- **Context:** Q18 — which mark-based challenges ship at first release and what they pay.
+  Two constraints from earlier decisions bound the answer: all challenges must count from
+  marks not clears (`D-2026-09-19-6`), and every mark must count toward at least one active
+  challenge at all times (`D-2026-09-19-8`). The category model (`D-2026-09-19-16`) adds a
+  third: category challenges must be available for every player category, including
+  unlocked ones.
+- **Options considered:** single challenge type, player picks one active at a time
+  (rejected — a mark whose cadence or category misses the active challenge earns nothing,
+  reopening the income gap `D-2026-09-19-8` closes) · category challenges only (rejected —
+  same gap if a tile misses all active category challenges) · universal only (rejected —
+  covers the gap but removes all incentive for focused play; a challenge layer that treats
+  every mark identically is just a counter) · **three types, all running in parallel
+  (chosen)**
+- **The three types:**
+
+  | Type | Shape | Coverage role |
+  |---|---|---|
+  | **Universal** | "Mark any N goals this [period]" | Always active; every mark qualifies; the coverage floor |
+  | **Category** | "Mark N [category] goals this [period]" | One per player category; unlocks with the category (`D-2026-09-19-16`) |
+  | **Cadence** | "Mark N [cadence] goals this [period]" | One per cadence tier; every goal has a cadence, so coverage is guaranteed |
+
+- **Parallel means additive.** A mark counts toward every challenge it qualifies for
+  simultaneously. A health-daily goal earns toward the universal, the health category
+  challenge, and the daily cadence challenge at once. Focused play earns more than
+  unfocused play without penalising either.
+- **Coverage guarantee:** The universal challenge is always active and has no category or
+  cadence restriction. No mark can ever fail to count toward something, satisfying the
+  `D-2026-09-19-8` scope clause in full.
+- **Category challenge lifecycle:** when a player creates or unlocks a new category, the
+  matching category challenge becomes available immediately. There is no separate unlock
+  step — the category and its challenge are one thing.
+- **Payout structure:** per-qualifying-mark rate plus a completion bonus, as established in
+  `D-2026-09-19-8`. Specific rates and bonus amounts are tuning questions waiting for a
+  prototype and are not decided here.
+- **Expected outcome:** Any mark always earns board balance; players who focus on a category
+  or cadence earn more than players who scatter; the challenge layer creates a meta-goal
+  axis that runs alongside the grid without requiring the player to manage it explicitly.
+- **Revisit:** After first prototype. If parallel tracking is confusing, simplify to
+  universal plus one player-selected challenge. If category challenges are so thin they
+  feel pointless, raise their rate relative to the universal baseline.
+
+## D-2026-09-19-16 — Categories are player-defined; seven defaults ship; new categories unlock through progression
+
+- **Status:** open
+- **Context:** §4.2 originally read: the first cut ships a fixed set; player-defined
+  categories come later once scoring consequences are understood. Q5 (the starting category
+  list) was open. Two decisions in this session settled both at once: categories are
+  player-defined from the start, and the concern about scoring consequences is answered by
+  the unlock gate rather than a time-based deferral.
+- **Options considered:** fixed set forever, no player categories (rejected — limits
+  expression; players with goals that do not fit the defaults cannot categorise them
+  accurately until an unlock) · fully open from day one, no defaults (rejected — an empty
+  category list on first launch is a blank page at the moment the player is least invested;
+  also risks poorly-scoped categories breaking combos and stats before any feedback exists)
+  · fixed first, player-defined added later after scoring is understood (original §4.2
+  position, rejected — the unlock gate gives the same protection with less friction; there
+  is no reason to lock player categories out entirely if they have to be earned) ·
+  **defaults ship; player-defined categories unlock through progression (chosen)**
+- **Default set (seven):**
+  `health` · `study` · `creative` · `volunteering` · `relationship` · `home` · `work`
+- **Why these seven:** They cover the goal areas most players hold without needing a custom
+  category on day one — physical and mental health, learning, creative and recreational
+  work, relationships and community, domestic and administrative life, and career. *Creative*
+  replaces the original *hobby* placeholder because it covers both artistic work and
+  recreational making more accurately; *hobby* implies low-stakes leisure and would
+  misclassify goals someone takes seriously. *Relationship*, *home*, and *work* fill gaps
+  the original four left: goals in those areas would otherwise require misclassification or
+  immediate unlocking.
+- **Seven is also the combo surface.** §5.2's category combos require at least two
+  categories in a line. Seven defaults means cross-category lines are achievable from day
+  one; a smaller default set risks early boards where every line is mono-category and combos
+  never fire.
+- **Unlock mechanic:** the specific unlock gate — what earns a new category slot — is not
+  decided here. It belongs to link 4 when work packages for the progression system are cut.
+  The decision here is that the gate exists and that it is earned through play, not
+  purchased.
+- **Expected outcome:** Most players' day-one goals fit the seven defaults without touching
+  unlocks; cross-category combo play is possible from first session; the unlock system
+  provides a meaningful progression axis beyond grid expansion.
+- **Revisit:** After first prototype. If seven defaults feels overwhelming at first launch,
+  move the least-used two to early unlocks. If players routinely create categories that
+  overlap the defaults, the defaults need splitting or renaming.
+
 ## D-2026-09-19-12 — Long-term draw share set to roughly 5%
 
 - **Status:** open

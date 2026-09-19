@@ -120,19 +120,29 @@ invested.
 
 ### 4.2 Categories
 
-Every goal carries a category — its *theme*: health, study, hobby, volunteering. Categories
-drive scoring combinations (§5.2), statistics (§8.1) and challenge modes (§8.2).
+Every goal carries a category — its *theme*. Categories drive scoring combinations (§5.2),
+statistics (§8.1) and challenge modes (§8.2).
 
 Category is one of two independent axes a goal sits on. The other is cadence (§4.3), which
 governs draw rate and blocking and has nothing to do with theme (`D-2026-09-19-11`). A
 health goal can be hourly (drink water) or long-term (complete a rehabilitation programme).
 
-The first cut ships a small fixed set with sensible progression rather than open
-user-defined categories — health, study, hobby, volunteering and similar. Player-defined
-categories are a later addition, once the scoring consequences of a category are understood
-well enough that adding one cannot quietly break the economy.
+**Categories are player-defined.** Seven defaults ship with the game
+(`D-2026-09-19-16`):
 
-The exact starting category list is open (§11).
+| Category | Covers |
+|---|---|
+| **Health** | physical and mental health, fitness, nutrition, sleep, medical |
+| **Study** | learning, courses, reading, skills in development |
+| **Creative** | artistic work, making, crafts, recreational creating |
+| **Volunteering** | community, charity, civic participation |
+| **Relationship** | keeping in touch, quality time, social commitments |
+| **Home** | domestic tasks, finances, admin, household maintenance |
+| **Work** | career, professional development, output, side projects |
+
+Players can create additional categories by unlocking them through progression. The unlock
+gate — what earns a new category slot — is a link 4 decision. The principle is that
+categories beyond the defaults are earned through play, not available from the start.
 
 ### 4.3 Cadence — short-term and long-term goals
 
@@ -339,9 +349,19 @@ modes and achievements.
 
 ### 8.2 Challenge modes
 
-Self-set targets over a period — a health push, a study block. The first cut ships a few
-predefined challenges with sensible progression rather than a free-form builder, for the
-same reason categories are fixed first (§4.2).
+Targets counted over a period — a health push, a study block. Three types ship together,
+all running in parallel (`D-2026-09-19-17`):
+
+| Type | Shape | Coverage role |
+|---|---|---|
+| **Universal** | "Mark any N goals this [period]" | Always active; every mark qualifies; the income floor |
+| **Category** | "Mark N [category] goals this [period]" | One per player category; unlocks with the category (`D-2026-09-19-16`) |
+| **Cadence** | "Mark N [cadence] goals this [period]" | One per cadence tier; every goal has a cadence |
+
+A single mark counts toward every challenge it qualifies for simultaneously. A health-daily
+goal earns toward the universal challenge, the health category challenge, and the daily
+cadence challenge at once. Focused play earns more than scattered play without penalising
+either.
 
 **Challenges are counted from marks, not from clears** (`D-2026-09-19-6`), and this is a
 constraint rather than a preference. Challenges are the sole source of board balance (§5.3),
@@ -349,21 +369,17 @@ so a challenge that required clearing lines would stop paying in exactly the sit
 board balance exists to rescue. "Mark twenty health goals this week" survives a jam; "clear
 ten lines this week" does not.
 
-**They pay incrementally** (`D-2026-09-19-8`). Every mark that counts toward a challenge
-pays board balance the moment it is made, and completing the challenge pays a bonus on top.
-Paying only on completion would break the recovery floor: a jammed board that yields one
-markable tile a day cannot finish a weekly target, so income would stop at exactly the point
-it is needed. Incremental payment also gives the player continuous feedback rather than a
-weekly lump.
+**They pay incrementally** (`D-2026-09-19-8`). Every qualifying mark pays board balance the
+moment it is made; completing the challenge pays a bonus on top. Paying only on completion
+would break the recovery floor: a jammed board yielding one markable tile a day cannot
+finish a weekly target, so income would stop at exactly the point it is needed.
 
-**At least one challenge must always be active, and the shipped set must be broad enough
-that any mark counts toward something** (`D-2026-09-19-8`). A player between challenges, or
-holding only challenges whose category does not match the tile a recycle just handed them,
-would earn nothing — which reopens the trap §10.3 closes. This is a constraint on Q18 rather
-than a free choice.
+**The universal challenge is the coverage guarantee.** It is always active and has no
+category or cadence restriction, so no mark can ever fail to count toward something
+(`D-2026-09-19-8`, `D-2026-09-19-17`). Category and cadence challenges layer additional
+reward on top; the universal challenge ensures the floor holds regardless.
 
-Challenges are therefore the game's meta-goal layer, and the thing that keeps the board
-solvent.
+Specific rates and completion bonuses are tuning questions waiting for a prototype.
 
 ### 8.3 Achievements
 
@@ -535,7 +551,7 @@ invented here reads as fact once it is a requirement.
   | ~~Q2~~ | ~~Do diagonals count as lines?~~ — **resolved** by `D-2026-09-19-13`: diagonals count | §3.4 |
   | ~~Q3~~ | ~~Resolution when one mark completes a row and a column at once~~ — **resolved** by `D-2026-09-19-13`: every completing line resolves; bonus points for the multi-clear | §3.4 |
   | ~~Q4~~ | ~~What happens to a cell shared by two clearing lines~~ — **resolved** by `D-2026-09-19-14`: distinct visual treatment; anchor for the multi-clear bonus | §3.4 |
-| Q5 | The starting category list | §4.2 |
+  | ~~Q5~~ | ~~The starting category list~~ — **resolved** by `D-2026-09-19-16`: health, study, creative, volunteering, relationship, home, work; player-defined unlocks beyond that | §4.2 |
 | Q6 | The draw-weighting formula, and its grid-awareness rules | §4.4 |
 | Q7 | Base point values | §5.1 |
 | Q8 | Which combos exist and what each multiplies by | §5.2 |
@@ -548,7 +564,7 @@ invented here reads as fact once it is a requirement.
 | Q15 | Whether consolidation is the intended swap mechanic, and whether adjacent-only swapping achieves it | §6.2 |
 | Q16 | How advanced tiles are acquired, and whether the economy carries them | §7 |
 | Q17 | How far the free recycle allowance can be upgraded, what each step costs, and whether it is capped | §6.2 |
-| Q18 | Which mark-based challenges ship first, and what each pays per mark and on completion | §8.2, §5.3 |
+  | ~~Q18~~ | ~~Which mark-based challenges ship first, and what each pays per mark and on completion~~ — **resolved** by `D-2026-09-19-17`: universal + category + cadence, all parallel; rates are tuning | §8.2, §5.3 |
 | Q19 | Whether one free recycle per 24 hours is fast enough against how quickly a board re-jams. The rate was chosen on daily rhythm, not on any showing that it outpaces re-jamming | §6.2, §10.3 |
 | ~~Q20~~ | ~~The floor's bound~~ — **resolved by measurement.** Simulated median time-to-unjam is same-day, p99 one to two days, zero trials still jammed after 180 days, at every setting tested. The reserved tightening is not needed to make the floor safe | §10.3, §4.4 |
 | Q21 | What share of the board counts as one category dominating it (§4.4 rule 2) | §4.4 |
@@ -588,3 +604,5 @@ measured and closed.
   | `D-2026-09-19-13` | Diagonals count as lines; all completing lines resolve on a simultaneous mark |
   | `D-2026-09-19-14` | The intersection cell is the visual focal point and anchor for the multi-clear bonus |
   | `D-2026-09-19-15` | Perpendicular progress is lost on a clear; compensation is an upgrade area |
+  | `D-2026-09-19-16` | Categories are player-defined; seven defaults ship; new categories unlock through progression |
+  | `D-2026-09-19-17` | Challenge structure: universal, category, and cadence challenges run in parallel |
