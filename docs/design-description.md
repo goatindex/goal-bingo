@@ -368,8 +368,18 @@ was not a difficulty spike; it was an unrecoverable save.
   is spent, with the allowance itself upgradeable (§6.2).
 
 The first guarantees the player can always *earn* a way out; the second guarantees they can
-always *take* one at zero. Neither is sufficient alone — a new player has no challenge
-income yet, and an allowance by itself would run out against a badly jammed board.
+always *take* one at zero.
+
+Neither is sufficient alone, and the reason is sharper than it first looks. **Mark-based
+income assumes there is something markable.** In a maximal jam every unmarked cell *is* a
+blocker, so there is nothing the player can realistically complete and challenge income
+stops as well. The free recycle is what breaks that case: it produces a markable tile, which
+produces challenge progress, which produces board balance, which buys further recycles. The
+allowance is load-bearing at the extreme; the budgets carry everything short of it.
+
+This also sets the floor's minimum strength. The allowance must be able to produce a
+markable tile faster than the board can re-jam, or the loop above does not close — which is
+what Q17 has to answer.
 
 **Board jam itself remains, and is meant to.** It is the friction `D-2026-09-19-3` chose.
 What has been removed is the state where a jam is permanent.
