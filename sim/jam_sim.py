@@ -57,7 +57,6 @@ import io
 import os
 import random
 import statistics
-from collections import Counter
 
 HOURLY, DAILY, WEEKLY, LONG = "hourly", "daily", "weekly", "long"
 SHORT = (HOURLY, DAILY, WEEKLY)

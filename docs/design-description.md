@@ -464,7 +464,7 @@ the board, the weighted draw, the recycle rules and four player behaviours, and 
 every trial in the *worst* reachable state — a maximal jam, long-term goals on the diagonal,
 zero balance. At the shipped long-term draw share (`D-2026-09-19-12`, ~5%) and across every
 grid size, project duration and recycle cost tested, and for every player model: **median
-time to unjam was same-day, the 99th percentile stayed at one to three days, and zero trials
+time to unjam was same-day, the 99th percentile stayed at one to two days, and zero trials
 out of thousands were still jammed after 180 simulated days.** The same held at draw shares
 up to 30%, well past the shipped value. The mechanical reason is simple once seen: rule 1 forbids two long-term
 tiles sharing a line, so a maximal jam is always exactly one blocker per line, and any
@@ -498,9 +498,16 @@ most of the time, even though it is almost never fully jammed.**
 occupied. At the draw share the simulation swept, the average share of lines blocked at any
 given moment ran from **28% at a 2% long-term draw share to 75% at 30%**, and — unlike time
 to unjam — this number barely depended on which player model was run. It is a property of
-the draw mechanic and the grid, not of player behaviour. Clear throughput moved inversely
-and substantially across that same range, roughly 130 clears per 180 days at the light end
-against 72 at the heavy end.
+the draw mechanic and the grid, not of player behaviour.
+
+Clear throughput moved inversely across that same range, but **this figure does depend
+heavily on player model, and the two are not directly comparable across it.** For the
+diligent player it ran roughly 126 clears per 180 days at the light end down to 74 at the
+heavy end; the same comparison for the short-focused player is 30 down to 15. Player model
+alone spans roughly a 4x range in clears at either end of the draw-share sweep — a
+short-focused player simply clears far fewer lines than a diligent one, regardless of draw
+share — so the effect of the draw share and the effect of player behaviour are separate and
+both real, not one number telling one story.
 
 `D-2026-09-19-3` describes long-term goals as occasional strategic friction — "a long-term
 tile makes two lines expensive... the player works elsewhere while chipping at it." At the
@@ -540,7 +547,7 @@ invented here reads as fact once it is a requirement.
 | Q17 | How far the free recycle allowance can be upgraded, what each step costs, and whether it is capped | §6.2 |
 | Q18 | Which mark-based challenges ship first, and what each pays per mark and on completion | §8.2, §5.3 |
 | Q19 | Whether one free recycle per 24 hours is fast enough against how quickly a board re-jams. The rate was chosen on daily rhythm, not on any showing that it outpaces re-jamming | §6.2, §10.3 |
-| ~~Q20~~ | ~~The floor's bound~~ — **resolved by measurement.** Simulated median time-to-unjam is same-day, p99 one to three days, zero trials still jammed after 180 days, at every setting tested. The reserved tightening is not needed to make the floor safe | §10.3, §4.4 |
+| ~~Q20~~ | ~~The floor's bound~~ — **resolved by measurement.** Simulated median time-to-unjam is same-day, p99 one to two days, zero trials still jammed after 180 days, at every setting tested. The reserved tightening is not needed to make the floor safe | §10.3, §4.4 |
 | Q21 | What share of the board counts as one category dominating it (§4.4 rule 2) | §4.4 |
 | Q22 | How the remaining draw weight splits across the three short-term cadences (hourly/daily/weekly), now that the long-term share is set | §4.4, §4.3 |
 | Q23 | Whether ambient blocking (§10.4) should target a fixed share, or vary with grid size — the simulation held it roughly constant across grids 3, 5 and 7 at a fixed draw share, but did not test whether a player perceives 50% of 6 lines the same as 50% of 14 | §10.4, §3.1 |

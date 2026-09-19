@@ -13,7 +13,7 @@ have run on the design; all findings are fixed. The reviewer is adopted and prov
 PR #5).
 
 **Q20 is answered, by simulation, and the recovery floor holds.** `sim/jam_sim.py` measured
-time-to-unjam from a maximal jam at zero balance: median same-day, p99 one to three days,
+time-to-unjam from a maximal jam at zero balance: median same-day, p99 one to two days,
 zero trials still jammed after 180 days, across every setting tested. The reserved
 tightening is not needed — see `sim/results.md` and §10.3.
 
@@ -147,7 +147,7 @@ directions, and link 4 has cut it into work packages with a shippable first pack
 - **Built `sim/jam_sim.py`** to answer Q20 without a UI: a headless model of the board,
   weighted draw, recycle rules, and four player behaviours, standard library only. Results
   in `sim/results.md`. **Q20 closed**: the recovery floor breaks a maximal jam same-day at
-  median, p99 one to three days, zero unresolved trials across every setting tested — the
+  median, p99 one to two days, zero unresolved trials across every setting tested — the
   reserved tightening turned out not to be needed.
 - **The simulation found a risk nobody had asked about.** Full jams are rare, as `D-3`
   predicted, but the long-term draw share governs *chronic partial blocking* — the share of

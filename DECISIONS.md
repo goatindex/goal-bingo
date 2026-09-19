@@ -85,7 +85,7 @@ source of requirements, so the reverse walk from a failing test ends here.
   long, the minimal tightening — never returning a long-term goal to the cell just vacated —
   closes it deterministically.
 - **Outcome (2026-09-19, same day):** **Confirmed, without needing the tightening.**
-  `sim/jam_sim.py` measured median 0 days, p99 one to three days, zero trials still jammed
+  `sim/jam_sim.py` measured median 0 days, p99 one to two days, zero trials still jammed
   after 180 days, across every grid size, project duration, draw share and recycle cost
   tested. See `sim/results.md` and `docs/design-description.md` §10.3.
 - **Revisit:** Only if a later change to the draw or recycle rules could plausibly weaken
