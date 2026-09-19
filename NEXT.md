@@ -72,12 +72,11 @@ directions, and link 4 has cut it into work packages with a shippable first pack
   labels and forms. Worth adding before the first build work, not before the requirements
   exist. (Branch protection is unavailable on a private repo under the current plan — F-36;
   the session hook is what enforces branch-and-PR here.)
-- ~~The adversarial reviewer needs its secret~~ — **done 2026-09-19.** The workflow is
-  adopted as a generated copy, `CLAUDE_CODE_OAUTH_TOKEN` is set, and PR #4 merged. Its own
-  check failed by design: `claude-code-action` refuses to run when a pull request adds or
-  modifies its own workflow file, so that merge took the last recorded
-  `GUARD_ALLOW_UNREVIEWED=1`. From here the reviewer runs on every non-draft pull request
-  and the exception should not be needed again.
+- Whether the reviewer's **sticky summary** is worth chasing. Its prompt says to always post
+  one; on the first real run it posted an inline finding and left the review body empty. The
+  workflow's verification step passes on the *existence* of a review, not its content, so a
+  summary-less review reads as green. Fixing it means changing the master in
+  `goatindex/claude-workflow`, which affects every consumer — not a goal-bingo decision.
 - **Mine the prototype before building.** `v1-phaser-prototype` has working Phaser scene
   management, a layout manager, a UI container and an audio system. Its *game* is not this
   game (`D-2026-09-19-5`), but that scaffolding is real and reading it is cheaper than
@@ -126,6 +125,18 @@ directions, and link 4 has cut it into work packages with a shippable first pack
   *absolute*, and board balance was not actually guaranteed because it pays only on a mark
   counting toward a challenge. Both closed. Findings narrowed across the three passes from a
   wrong risk model, to unstated assumptions, to statement-strength precision.
-- **Both PRs merged**, each carrying its review record as a comment, each using the
-  documented `GUARD_ALLOW_UNREVIEWED=1` exception because this repo has no reviewer workflow
-  yet. Porting WeeWoo's `claude-review.yml` would remove the need for that.
+- **Both design PRs merged**, each carrying its review record as a comment, each using the
+  documented `GUARD_ALLOW_UNREVIEWED=1` exception because this repo had no reviewer workflow
+  at the time.
+- **Link 6 — the reviewer is adopted** (PR #4). The house `adversarial-review` workflow
+  rather than WeeWoo's `claude-review.yml`, which is tuned to WeeWoo's own issue contract;
+  the house one holds no repository-specific convention and reads this repo's `CLAUDE.md`
+  instead. Taken as a generated copy through master-and-copy — `copies.txt`,
+  `scripts/refresh_copies.py`, `--check` clean. `CLAUDE_CODE_OAUTH_TOKEN` is set. PR #4's own
+  check failed by design, because `claude-code-action` refuses to run on a pull request that
+  adds its own workflow file, so that merge took the last recorded
+  `GUARD_ALLOW_UNREVIEWED=1`.
+- **Added `CLAUDE.md`**, which the reviewer reads for conventions — recording what the three
+  review passes actually caught rather than generic advice.
+- **Smoke-tested on PR #5** and the reviewer posted a real inline finding, which was acted
+  on. The exception should not be needed again.
