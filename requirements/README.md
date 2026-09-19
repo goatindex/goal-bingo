@@ -1,6 +1,6 @@
 # Requirements — Goal Bingo
 
-**Version:** 0.1 (pre-baseline — link 3 in progress)
+**Version:** 1.0 (baselined 2026-09-20 — link 3 complete)
 **Entity:** Goal Bingo (the PWA application)
 **Path:** shortcut — requirements trace to `docs/design-description.md` section numbers.
   The set is verifiable but not independently validatable; there is one stakeholder.
@@ -30,5 +30,5 @@ python C:\Users\Kirk\.claude\skills\incose-requirements\scripts\lint_requirement
 
 ## Baseline
 
-Not yet baselined. Will be baselined when link 3 is complete and the adversarial reviewer
-passes the set.
+**Baselined 2026-09-20** as version 1.0. Statement changes after this date bump the set
+version and reset affected verification status. Attribute-only updates stay free.
