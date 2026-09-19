@@ -14,6 +14,7 @@ Mobile-first progressive web app. Single player. No accounts, no verification, n
 | [`docs/design-description.md`](docs/design-description.md) | The design. Prose, numbered sections, the source requirements are mined from. |
 | [`DECISIONS.md`](DECISIONS.md) | Decision records. The root of the trace. |
 | [`NEXT.md`](NEXT.md) | Current focus and next actions. Updated at the end of each session. |
+| [`sim/jam_sim.py`](sim/jam_sim.py) | A design instrument, not product code. Answers open questions in the design by measurement — [`sim/results.md`](sim/results.md) closed Q20. |
 
 ## Status
 

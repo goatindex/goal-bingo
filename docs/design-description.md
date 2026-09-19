@@ -117,8 +117,12 @@ invested.
 
 ### 4.2 Categories
 
-Every goal carries a category. Categories drive scoring combinations (§5.2), statistics
-(§8.1) and challenge modes (§8.2).
+Every goal carries a category — its *theme*: health, study, hobby, volunteering. Categories
+drive scoring combinations (§5.2), statistics (§8.1) and challenge modes (§8.2).
+
+Category is one of two independent axes a goal sits on. The other is cadence (§4.3), which
+governs draw rate and blocking and has nothing to do with theme (`D-2026-09-19-11`). A
+health goal can be hourly (drink water) or long-term (complete a rehabilitation programme).
 
 The first cut ships a small fixed set with sensible progression rather than open
 user-defined categories — health, study, hobby, volunteering and similar. Player-defined
@@ -127,10 +131,23 @@ well enough that adding one cannot quietly break the economy.
 
 The exact starting category list is open (§11).
 
-### 4.3 Short-term and long-term goals
+### 4.3 Cadence — short-term and long-term goals
 
-A goal is short-term (achievable in a day or so — take medication, drink water, a walk) or
-long-term (weeks or months — finish a course, complete a project).
+Every goal has a cadence, independent of its category (§4.2). There are four
+(`D-2026-09-19-11`):
+
+| Cadence | Ticked off | Examples | Blocks its lines |
+|---|---|---|---|
+| **Hourly** | several times a day | drink water, stand up, stretch | briefly |
+| **Daily** | about once a day | take medication, a walk, read | up to a day |
+| **Weekly** | about once a week | a long run, a volunteering shift, a lesson | up to a week |
+| **Long-term** | once, after weeks or months | finish the course, complete the build | for as long as it takes |
+
+The first three are **recurring** and are what this document means by *short-term*: once
+marked the goal is banked for its line, and when the cell refills the same goal can come
+back. The fourth is a one-off. Cadence sets a goal's own draw rate (§4.4) — hourly goals
+should surface often and long-term goals rarely — and its expected time to first
+completion, which is what decides how long it blocks.
 
 **A long-term goal blocks its row and its column for as long as it takes.** That is the
 design, not a defect (`D-2026-09-19-3`). It is the strategic problem the player plans
@@ -179,7 +196,14 @@ Rule 1 reduces the chance a recycle hands back another blocker without eliminati
 the recycled cell's row and column hold no *other* long-term goal, the rule permits a
 long-term goal back into the same cell. §10.3 states what that leaves the floor guaranteeing.
 
-The weighting formula is open (§11).
+The exact weighting formula is open (§11), but **the long-term draw share is set at
+roughly 5%** (`D-2026-09-19-12`) — the share of the draw's own-rate weighting (the first
+bullet above) given to long-term goals. Simulation showed this is the dial that governs
+ambient friction far more than any player behaviour does: at 5% roughly half the board's
+lines carry an unmarked long-term tile at any moment, which is what `D-2026-09-19-3`'s "the
+player works elsewhere while chipping at it" was written to describe. The rest of the
+formula — how short-term cadences split the remaining weight, and grid-awareness's exact
+thresholds — stays open.
 
 ## 5 Scoring
 
@@ -432,28 +456,68 @@ jam should be finite and small while the worst case stays unbounded — but **ne
 established**, and asserting "short" here would claim precisely what Q20 exists to measure.
 
 That is a deliberate trade (`D-2026-09-19-9`): the stricter rules that would make the floor
-deterministic all weaken the friction `D-2026-09-19-3` chose. What the design owes in
-exchange is a number — an acceptable expected time-to-unjam — and evidence that the draw
-weighting delivers it. That is Q20, and it is the first thing a prototype should measure.
+deterministic all weaken the friction `D-2026-09-19-3` chose. What the design owed in
+exchange was a number, and Q20 asked for it before a prototype existed to measure it live.
 
-**Board jam itself remains, and is meant to.** It is the friction `D-2026-09-19-3` chose.
-What has been removed is the state where a jam is permanent.
+**Q20, measured.** A simulation (`sim/jam_sim.py`, results in `sim/results.md`) modelled
+the board, the weighted draw, the recycle rules and four player behaviours, and started
+every trial in the *worst* reachable state — a maximal jam, long-term goals on the diagonal,
+zero balance. At the shipped long-term draw share (`D-2026-09-19-12`, ~5%) and across every
+grid size, project duration and recycle cost tested, and for every player model: **median
+time to unjam was same-day, the 99th percentile stayed at one to two days, and zero trials
+out of thousands were still jammed after 180 simulated days.** The same held at draw shares
+up to 30%, well past the shipped value. The mechanical reason is simple once seen: rule 1 forbids two long-term
+tiles sharing a line, so a maximal jam is always exactly one blocker per line, and any
+successful recycle frees two lines at once. The reserved tightening (extending rule 3 to
+the recycle path) helps, but the untightened floor was already fast. **The recovery floor
+holds.**
+
+**Board jam itself remains, and is meant to. It is also, on this evidence, rare.** Full jams
+occurred in under 0.05% of simulated hours across every player model — `D-2026-09-19-3`'s
+claim that "a fully deadlocked board is rare" holds up.
 
 The three original guards, restated honestly:
 
 | Guard | What it actually does | When it acts |
 |---|---|---|
 | Grid-aware draw (§4.4) | Refuses to stack long-term tiles into the same lines | **Preventive only.** It runs on refill, and refill happens only when a line clears — so it never runs on a board that is already jammed |
-| Recycle and swap, plus the free allowance (§6.2) | Let a player move or discard a blocker | Curative, and now **funded** — the allowance exists at zero balance and board balance survives a jam. Whether a given recycle helps remains probabilistic |
+| Recycle and swap, plus the free allowance (§6.2) | Let a player move or discard a blocker | Curative, and now **funded and measured** — the allowance exists at zero balance, board balance survives a jam, and the simulation above confirms it resolves fast |
 | Advanced tiles (§7) | Turn a long block into visible progress | **Not present at first release** (`D-2026-09-19-3`). A multi-completion tile also makes its line *harder*, not easier — this guards motivation, not jams |
 
-Grid expansion (§3.1) still aggravates jam risk rather than relieving it, and its pricing
-has to answer for that.
+Grid expansion (§3.1) still aggravates jam risk rather than relieving it in principle, though
+the simulation did not find that effect large enough to threaten the floor at the grid sizes
+tested (3, 5, 7). Its pricing still has to answer for the everyday effect described next.
 
-How long a jam should be *allowed* to last before the design treats it as a defect is still
-open, and Q10 bears on it directly.
+### 10.4 Chronic partial blocking — the risk the simulation actually surfaced
 
-This remains the first thing a prototype must be built to test.
+Q20 was framed around jams, and the floor closes that question. **The simulation's more
+important finding is a different risk nobody had asked about: most of the board is blocked
+most of the time, even though it is almost never fully jammed.**
+
+"Blocked" here means a line currently holds an unmarked long-term tile — not stuck, just
+occupied. At the draw share the simulation swept, the average share of lines blocked at any
+given moment ran from **28% at a 2% long-term draw share to 75% at 30%**, and — unlike time
+to unjam — this number barely depended on which player model was run. It is a property of
+the draw mechanic and the grid, not of player behaviour.
+
+Clear throughput moved inversely across that same range, but **this figure does depend
+heavily on player model, and the two are not directly comparable across it.** For the
+diligent player it ran roughly 126 clears per 180 days at the light end down to 74 at the
+heavy end; the same comparison for the short-focused player is 30 down to 15. Player model
+alone spans roughly a 4x range in clears at either end of the draw-share sweep — a
+short-focused player simply clears far fewer lines than a diligent one, regardless of draw
+share — so the effect of the draw share and the effect of player behaviour are separate and
+both real, not one number telling one story.
+
+`D-2026-09-19-3` describes long-term goals as occasional strategic friction — "a long-term
+tile makes two lines expensive... the player works elsewhere while chipping at it." At the
+heavier end of the range tested, the mechanics instead produce a board that is constrained
+almost everywhere almost always, which is a different game to the one that sentence
+describes. **The long-term draw share is therefore the load-bearing tuning number for how
+the game feels**, far more than anything decided so far, and it needed a deliberate target
+rather than an arbitrary default. **Set to roughly 5%** (`D-2026-09-19-12`), which puts
+ambient blocking at roughly 45–50% — a regular presence rather than either an occasional
+event or a constant one. §4.4 records the number; this section records why it was chosen.
 
 ## 11 Open questions
 
@@ -483,8 +547,15 @@ invented here reads as fact once it is a requirement.
 | Q17 | How far the free recycle allowance can be upgraded, what each step costs, and whether it is capped | §6.2 |
 | Q18 | Which mark-based challenges ship first, and what each pays per mark and on completion | §8.2, §5.3 |
 | Q19 | Whether one free recycle per 24 hours is fast enough against how quickly a board re-jams. The rate was chosen on daily rhythm, not on any showing that it outpaces re-jamming | §6.2, §10.3 |
-| Q20 | **The floor's bound.** What expected time-to-unjam is acceptable, and does the draw weighting deliver it? If not, the recycle rule needs tightening — the minimal version being to extend §4.4's rule 3 to the recycle path, which would make the floor deterministic at some cost to §4.3's friction | §10.3, §4.4 |
+| ~~Q20~~ | ~~The floor's bound~~ — **resolved by measurement.** Simulated median time-to-unjam is same-day, p99 one to two days, zero trials still jammed after 180 days, at every setting tested. The reserved tightening is not needed to make the floor safe | §10.3, §4.4 |
 | Q21 | What share of the board counts as one category dominating it (§4.4 rule 2) | §4.4 |
+| Q22 | How the remaining draw weight splits across the three short-term cadences (hourly/daily/weekly), now that the long-term share is set | §4.4, §4.3 |
+| Q23 | Whether ambient blocking (§10.4) should target a fixed share, or vary with grid size — the simulation held it roughly constant across grids 3, 5 and 7 at a fixed draw share, but did not test whether a player perceives 50% of 6 lines the same as 50% of 14 | §10.4, §3.1 |
+| Q24 | Whether `sim/jam_sim.py`'s harsher assumptions (Q14 read as marks lost on a perpendicular clear; swap not modelled; challenge income idealised as always-available) should be revisited once those questions settle, to confirm the floor still holds under friendlier ones | §10.3, §10.4 |
+
+Q22 through Q24 are new, surfaced by building the Q20 simulation rather than by review. A
+simulation answers the question it was pointed at and exposes the ones nobody had framed
+yet — Q23 and Q24 are exactly that, and neither was visible before the numbers existed.
 
 Resolved questions are struck through rather than deleted — the register is a record, and a
 question that was asked and answered is different from one nobody raised.
@@ -511,3 +582,5 @@ board feels to play.
 | `D-2026-09-19-8` | Challenges pay board balance incrementally, per qualifying mark |
 | `D-2026-09-19-9` | The recycle draw obeys §4.4's placement rules; the floor is probabilistic |
 | `D-2026-09-19-10` | A recycle operates on unmarked tiles only |
+| `D-2026-09-19-11` | Goals sit on two independent axes: category and cadence |
+| `D-2026-09-19-12` | Long-term draw share set to roughly 5% |

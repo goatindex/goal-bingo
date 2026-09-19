@@ -7,43 +7,42 @@ _Convention: update at end of each working session. The weekly portfolio review 
 Design stage. The framing document (`docs/design-description.md`) is written and covers the
 full vision; the founding decisions are recorded. Nothing is built.
 
-Links 0–2 are complete and merged (PR #1, PR #2). Ten decisions, twenty-one questions
-registered in §11 with two struck through as resolved. Three adversarial review passes have
-run; all findings are fixed.
+Links 0–2 are complete and merged (PR #1, PR #2). Twelve decisions, twenty-four questions
+registered in §11 with three struck through as resolved. Three adversarial review passes
+have run on the design; all findings are fixed. The reviewer is adopted and proven (PR #4,
+PR #5).
 
-**The recommended next move is the Q20 simulation, not link 3.** Q20 measures expected
-time-to-unjam and needs no UI — just the board, the weighted draw and the recycle rules. It
-validates the recovery floor *before* link 3 mints permanent requirement IDs against §10.3
-and §6.2, which are the sections all three reviews landed on. If the tail is long, the
-tightening is already written down and nothing downstream needs unpicking.
+**Q20 is answered, by simulation, and the recovery floor holds.** `sim/jam_sim.py` measured
+time-to-unjam from a maximal jam at zero balance: median same-day, p99 one to two days,
+zero trials still jammed after 180 days, across every setting tested. The reserved
+tightening is not needed — see `sim/results.md` and §10.3.
 
-**Q13 is closed, and nothing else blocks a prototype.** The economic trap is answered from
-both ends: board balance is fed by mark-based challenges, which keep paying during a jam,
-and personal rewards spend from a separate budget so cashing out cannot strand the player
-(`D-2026-09-19-6`); and a free recycle allowance of one per 24 hours, upgradeable,
+**The simulation surfaced a bigger, unasked question: chronic partial blocking.** Full jams
+are almost never reached in ordinary play, but the long-term draw share governs how much of
+the board is *chronically* constrained — 28% of lines at a 2% share, up to 75% at 30%, and
+this barely depends on player behaviour. `D-2026-09-19-3`'s prose describes occasional
+friction; the mechanics at a careless default would have produced constant friction. The
+draw share is set to ~5% (`D-2026-09-19-12`), targeting ~45–50% ambient blocking — see §10.4.
+
+**Q13 is closed.** Board balance is fed by mark-based challenges, which keep paying during a
+jam, and personal rewards spend from a separate budget so cashing out cannot strand the
+player (`D-2026-09-19-6`); a free recycle allowance of one per 24 hours, upgradeable,
 guarantees an action exists at zero balance (`D-2026-09-19-7`).
-
-**The floor is sound in structure but unbounded in time, and that is the one open risk.**
-Reviews two and three found the guarantee assumed things it had not established: that
-challenges pay during a jam (fixed — they pay per mark, `D-2026-09-19-8`), that a recycle
-produces something markable (it does not always — `D-2026-09-19-9` accepts a probabilistic
-floor to preserve §4.3's friction), and that board balance is earned at all (fixed — §8.2
-now requires a matching challenge to always be active). Expected time-to-unjam should be
-finite and small and the worst case is unbounded, but **neither number is established.**
 
 ## Next up
 
 - **Answer the cheap questions that gate mining.** Q2, Q3 and Q4 (line rules) and Q14
-  (perpendicular progress destroyed by a clear) block §3.4. The tuning questions (Q1, Q6,
-  Q7, Q8, Q10, Q17) do not need answers before a prototype exists and should not be guessed.
+  (perpendicular progress destroyed by a clear) block §3.4. The tuning questions (Q1, Q7,
+  Q8, Q10, Q17, Q21, Q22) do not need answers before a prototype exists and should not be
+  guessed.
 - **Q18 before any economy tuning.** Which mark-based challenges ship, and what each pays
-  per mark and on completion. This is now load-bearing for the jam guarantee rather than a
-  progression nicety — board balance cannot be tuned until it exists.
-- **Q20 is the prototype's headline measurement.** Expected time-to-unjam from a maximal jam
-  at zero balance. It is simulable without any UI, so it can be answered before a playable
-  build exists — and it is the one number that says whether the recovery floor works.
-- **Q19 rides with it.** Whether one free recycle per 24 hours outpaces re-jamming. The rate
-  was chosen on daily rhythm, not on evidence.
+  per mark and on completion. Load-bearing for the jam guarantee, not a progression nicety.
+- **Q23 and Q24 are the simulation's own aftertaste.** Q23 asks whether ambient blocking
+  should target a fixed share or vary with grid size — the sim held it roughly constant
+  across grids 3/5/7 at a fixed draw share, but did not test whether 50% of 6 lines *feels*
+  like 50% of 14. Q24 asks whether the sim's harsher assumptions (Q14 read as marks lost,
+  swap not modelled, challenge income idealised) should be re-run once those settle, to
+  confirm the floor still holds under friendlier ones. Neither blocks a prototype.
 - **Write the missing decision records.** §9.2 commits to local-first with no account, and
   §4.2 to fixed categories before user-defined ones. Both state rejected alternatives in
   prose but have no `D-` record, so the reverse walk has no root for them.
@@ -53,13 +52,14 @@ finite and small and the worst case is unbounded, but **neither number is establ
   as their source.
 - **Wire the back-map gate** once a requirement set exists — `backmap_check.py --source
   docs/design-description.md --requirements requirements/`. The design description is
-  already written to the format it parses (36 numbered headings, verified against the
+  already written to the format it parses (37 numbered headings, verified against the
   gate's own section reader, with `requirements: none` declarations on the 12 that state no
   obligation).
 - **Link 4 — decomposition.** Cut the set into work packages and prove the partition. This
   is where the build order for the full vision gets decided (`D-2026-09-19-4`).
-- **Build the deadlock test first.** §10.3 names the design's central risk. Whatever
-  prototype gets built should be built to test that, not to look finished.
+- **Playtest against §10.4's felt-friction judgement**, not against jam frequency — jam
+  frequency is now measured and closed. Whatever prototype gets built should be built to
+  test whether ~5% draw share actually feels like "regular presence", not to look finished.
 
 ## Done means
 
@@ -140,3 +140,20 @@ directions, and link 4 has cut it into work packages with a shippable first pack
   review passes actually caught rather than generic advice.
 - **Smoke-tested on PR #5** and the reviewer posted a real inline finding, which was acted
   on. The exception should not be needed again.
+- **Cadence taxonomy.** Goals now sit on two independent axes: category (theme — health,
+  study, ...) and cadence (rhythm — hourly, daily, weekly, long-term). The three recurring
+  tiers are what the document calls "short-term"; long-term stays the one-off blocker
+  (`D-2026-09-19-11`).
+- **Built `sim/jam_sim.py`** to answer Q20 without a UI: a headless model of the board,
+  weighted draw, recycle rules, and four player behaviours, standard library only. Results
+  in `sim/results.md`. **Q20 closed**: the recovery floor breaks a maximal jam same-day at
+  median, p99 one to two days, zero unresolved trials across every setting tested — the
+  reserved tightening turned out not to be needed.
+- **The simulation found a risk nobody had asked about.** Full jams are rare, as `D-3`
+  predicted, but the long-term draw share governs *chronic partial blocking* — the share of
+  lines constrained by an unmarked long-term goal at any moment — almost independent of
+  player behaviour, ranging 28% to 75% across the values tested. This makes the draw share
+  the single most load-bearing number for how the game feels. Set to ~5%
+  (`D-2026-09-19-12`), targeting ~45–50% ambient blocking, after being put to a decision
+  rather than left at the simulation's arbitrary starting default. §10.4 records the finding
+  and the choice; four new questions (Q21–Q24) came out of building the instrument.

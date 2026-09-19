@@ -1,8 +1,13 @@
 # Goal Bingo — working conventions
 
 A continuous bingo game played with the player's own real-life goals. **Design stage:
-nothing is built.** The repository holds a design document, decision records and a session
-log, and that is all it should hold until link 3 produces a requirement set.
+nothing is built.** The repository holds a design document, decision records, a session log,
+and `sim/` — and that is all it should hold until link 3 produces a requirement set.
+
+`sim/` is a **design instrument, not product code.** It exists to answer open questions in
+the design document by measurement (Q20 first). It shares no code with any eventual build,
+carries its assumptions in its docstring, and writes its results to `sim/results.md`, which
+the design document cites. Changing a rule in the design means re-running it.
 
 ## The chain
 

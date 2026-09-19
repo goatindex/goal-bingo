@@ -3,6 +3,51 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-19-12 — Long-term draw share set to roughly 5%
+
+- **Status:** open
+- **Context:** `§4.4`'s draw weighting left the long-term share entirely open (Q6). Building
+  the Q20 simulation needed a concrete value to run, and running it across a range (2–30%)
+  showed that value is the dial that governs how much of the board is blocked by an
+  unmarked long-term goal at any given moment — a chronic, ambient state distinct from a
+  full jam, and one nobody had asked a question about until the numbers existed (§10.4).
+- **Options considered:** light, ~2% (28% of lines blocked on average, ~130 clears per 180
+  days — rejected, long-term goals become rare enough to undercut the design's central
+  mechanic) · heavy, 10%+ (60%+ of lines blocked, matching what `D-2026-09-19-3`'s prose
+  reads as occasional friction but the simulation shows as constant — rejected as more
+  friction than the design's own language describes) · **moderate, ~5% (chosen)**
+- **Why:** At 5% roughly 45–50% of lines carry a long-term tile at any moment — long-term
+  goals as a regular presence rather than either an occasional event or the board's
+  permanent condition. This is a felt-experience judgement the simulation could measure but
+  not make; the choice itself is the point of asking.
+- **Expected outcome:** Playtesting confirms the board reads as "often constrained,
+  sometimes wide open" rather than "rarely constrained" or "always constrained".
+- **Revisit:** After the first playable prototype. If long-term goals feel absent, raise it
+  toward the 10% band; if the board feels permanently jammed, lower it toward 2%.
+
+## D-2026-09-19-11 — Goals sit on two independent axes: category and cadence
+
+- **Status:** open
+- **Context:** Specifying the Q20 simulation needed concrete goal types. The document had
+  a thematic axis (§4.2: health, study, hobby, volunteering) and a loose duration axis
+  (§4.3: short-term versus long-term) without saying how they related, and "short-term"
+  covered everything from drinking water to a weekly lesson.
+- **Options considered:** cadence replaces the thematic categories, so a goal's category *is*
+  its cadence (rejected — §5.2's category combos and §8.2's challenges lose their meaning;
+  "mark twenty daily goals" is a far weaker hook for a goal app than "mark twenty health
+  goals") · hourly/daily/weekly replace long-term goals, making a week the longest block
+  (rejected — it defuses §10.3 and turns `D-2026-09-19-3`'s friction mild, unpicking four
+  decisions) · **two independent axes, with four cadences: hourly, daily, weekly (recurring,
+  collectively "short-term") and long-term (one-off, weeks to months) (chosen)**
+- **Why:** Theme and rhythm are genuinely orthogonal — a health goal can be hourly or a
+  months-long programme. Keeping long-term as a distinct fourth cadence preserves the
+  blocking friction the design is built on, and the three recurring tiers give the draw
+  weighting and the simulation concrete rates instead of a vague "short".
+- **Expected outcome:** The Q20 simulation can be parameterised directly from this table
+  without inventing a goal type, and §4.4's draw weighting can be stated per cadence.
+- **Revisit:** If playtesting shows players do not distinguish hourly from daily goals in
+  practice, collapse them.
+
 ## D-2026-09-19-10 — A recycle operates on unmarked tiles only
 
 - **Status:** open
@@ -32,15 +77,20 @@ source of requirements, so the reverse walk from a failing test ends here.
   it preserves the friction. The cost is accepted knowingly: where the recycled cell's row
   and column hold no other blocker, the rule permits a long-term goal back into the same
   cell, so a recycle can fail to help.
-- **Consequence:** **the recovery floor is probabilistic, not absolute.** The expected time
-  to break a jam is short but unbounded. This is a deliberate trade of a guarantee for
-  friction, and the design owes a measured bound in exchange (Q20).
+- **Consequence:** **the recovery floor is probabilistic, not absolute.** At the time this
+  decision was made, whether the expected time to break a jam was actually short was
+  unestablished — that gap became Q20.
 - **Expected outcome:** Simulation over the eventual draw weighting shows a median
   time-to-unjam of a small number of days from a maximal jam at zero balance. If the tail is
   long, the minimal tightening — never returning a long-term goal to the cell just vacated —
   closes it deterministically.
-- **Revisit:** At the first prototype, against measured data. This is the headline thing a
-  prototype exists to measure.
+- **Outcome (2026-09-19, same day):** **Confirmed, without needing the tightening.**
+  `sim/jam_sim.py` measured median 0 days, p99 one to two days, zero trials still jammed
+  after 180 days, across every grid size, project duration, draw share and recycle cost
+  tested. See `sim/results.md` and `docs/design-description.md` §10.3.
+- **Revisit:** Only if a later change to the draw or recycle rules could plausibly weaken
+  the guarantee — grid expansion, a change to rule 1, or a much higher long-term draw share
+  than `D-2026-09-19-12` sets. Not otherwise; this is measured, not assumed.
 
 ## D-2026-09-19-8 — Challenges pay board balance incrementally, per qualifying mark
 
@@ -188,8 +238,16 @@ source of requirements, so the reverse walk from a failing test ends here.
   grid, and a fully deadlocked board (no line completable) is rare. **Amended 2026-09-19:**
   resolution is no longer claimed to come from power-ups the player can afford — the floor
   is the *free* recycle allowance (`D-2026-09-19-7`), and resolution is probabilistic rather
-  than certain (`D-2026-09-19-9`), bounded only by measurement under Q20.
-- **Revisit:** After the first playable prototype has run for two weeks of real daily use.
+  than certain (`D-2026-09-19-9`).
+- **Outcome (2026-09-19, same day):** "Rare" is confirmed by simulation — full jams occurred
+  in under 0.05% of hours across every player model tested (`sim/results.md`). But the
+  simulation also found the risk this decision anticipated is not the one that matters most:
+  chronic *partial* blocking, not full jam, is the design's real ambient texture, and it is
+  governed by the long-term draw share rather than by player behaviour (§10.4,
+  `D-2026-09-19-12`).
+- **Revisit:** After the first playable prototype has run for two weeks of real daily use —
+  now specifically against §10.4's felt-friction judgement, not against jam frequency, which
+  is already measured.
 
 ## D-2026-09-19-2 — A mark persists until its line clears
 
