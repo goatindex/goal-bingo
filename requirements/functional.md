@@ -895,3 +895,16 @@ verification-method: test
 verification-criteria: A goal currently on the board can appear in a subsequent draw into
   a different cell.
 priority: must
+
+### GB-FUN-068 — Adjacency combinations are configurable
+statement: Goal Bingo shall store the adjacency combination list and each combination's
+  bonus value in configuration that can be changed without modifying application code.
+type: functional
+rationale: Adjacency values are tuning (Q7). A configurable table lets playtesting adjust
+  without a rebuild. Supports GB-FUN-031.
+trace-to-source: design-description.md 5.2
+verification-method: test
+verification-criteria: Changing the adjacency configuration and restarting the app causes
+  a subsequent clear to score using the new values, with no application-code change.
+priority: must
+notes: Initial combination list and values remain deferred to Q7.
