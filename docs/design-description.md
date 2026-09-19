@@ -329,12 +329,23 @@ so a long-term goal stops being an opaque block and becomes a visible count.
 
 ### 7.2 Mini-grid tiles
 
-A tile containing its own small grid. Clearing a line inside the mini-grid marks the parent
-tile. This makes a large goal into a structured one — the sub-tasks become a board of their
-own rather than a checklist hidden behind a cell.
+A tile containing its own small grid. The mini-grid is **internal** to the tile — a
+self-contained small board within a single cell of the main grid. Completing a line inside
+the mini-grid is the sole condition for the parent tile to count as cleared on the main
+board (`D-2026-09-19-20`). Nothing from the main board's draw or scoring logic reaches
+inside; the mini-grid is its own object.
 
-How a mini-grid is filled, whether it draws from the same pool, and how it scores are open
-(§11).
+This makes a large goal into a structured one — the sub-tasks become a board of their own
+rather than a checklist hidden behind a cell.
+
+**Population:** The mini-grid draws from the player's goal pool by default — the same pool
+the main board uses (`D-2026-09-19-24`). Two upgrade options exist but do not ship in the
+base game: a *sub-pool* (player designates goals specifically for mini-grid tiles) and
+*player-placed* (player manually assigns goals to each cell).
+
+**Scoring:** Completing the internal line scores the same as any normal clear. One
+exception: if the mini-grid tile is the last tile to clear on the main board, it earns an
+additional full-board bonus (`D-2026-09-19-24`).
 
 ## 8 Progression and record
 
@@ -557,7 +568,7 @@ invented here reads as fact once it is a requirement.
 | Q8 | Which combos exist and what each multiplies by | §5.2 |
 | ~~Q9~~ | ~~Settle the two-counter model~~ — **resolved** by `D-2026-09-19-6`: three counters, two of them spendable | §5.3 |
 | Q10 | Power-up prices — constrained by the recovery floor, not free to tune | §6.2, §10.3 |
-| Q11 | How a mini-grid is populated and scored | §7.2 |
+  | ~~Q11~~ | ~~How a mini-grid is populated and scored~~ — **resolved** by `D-2026-09-19-24`: same pool default; sub-pool and player-placed as upgrades; scores as normal clear; full-board bonus if last tile | §7.2 |
 | Q12 | Whether cross-device sync is offered | §9.2 |
 | ~~Q13~~ | ~~The recovery floor~~ — **resolved** by `D-2026-09-19-6` (jam-proof income) and `D-2026-09-19-7` (a free action at zero balance) | §10.3, §6.2 |
   | ~~Q14~~ | ~~What happens to perpendicular progress a clear destroys — lost, preserved, or compensated~~ — **resolved** by `D-2026-09-19-15`: marks lost; compensation is a designated upgrade area | §3.4 |
@@ -569,7 +580,7 @@ invented here reads as fact once it is a requirement.
 | ~~Q20~~ | ~~The floor's bound~~ — **resolved by measurement.** Simulated median time-to-unjam is same-day, p99 one to two days, zero trials still jammed after 180 days, at every setting tested. The reserved tightening is not needed to make the floor safe | §10.3, §4.4 |
 | Q21 | What share of the board counts as one category dominating it (§4.4 rule 2) | §4.4 |
 | Q22 | How the remaining draw weight splits across the three short-term cadences (hourly/daily/weekly), now that the long-term share is set | §4.4, §4.3 |
-| Q23 | Whether ambient blocking (§10.4) should target a fixed share, or vary with grid size — the simulation held it roughly constant across grids 3, 5 and 7 at a fixed draw share, but did not test whether a player perceives 50% of 6 lines the same as 50% of 14 | §10.4, §3.1 |
+  | ~~Q23~~ | ~~Whether ambient blocking (§10.4) should target a fixed share, or vary with grid size~~ — **resolved** by `D-2026-09-19-25`: fixed percentage; expansion scales the blocked count proportionally | §10.4, §3.1 |
   | Q24 | Whether `sim/jam_sim.py`'s remaining harsher assumptions (swap not modelled; challenge income idealised as always-available) should be revisited once those questions settle — the Q14 assumption (marks lost) is now the decided rule (`D-2026-09-19-15`) and is confirmed | §10.3, §10.4 |
 
 Q22 through Q24 are new, surfaced by building the Q20 simulation rather than by review. A
@@ -601,6 +612,8 @@ measured and closed.
 | `D-2026-09-19-10` | A recycle operates on unmarked tiles only |
   | `D-2026-09-19-11` | Goals sit on two independent axes: category and cadence |
   | `D-2026-09-19-12` | Long-term draw share set to roughly 5% |
+  | `D-2026-09-19-24` | Mini-grid population defaults to the same pool; scoring equals a normal clear plus a full-board bonus |
+  | `D-2026-09-19-25` | Ambient blocking targets a fixed percentage at every grid size |
   | `D-2026-09-19-13` | Diagonals count as lines; all completing lines resolve on a simultaneous mark |
   | `D-2026-09-19-14` | The intersection cell is the visual focal point and anchor for the multi-clear bonus |
   | `D-2026-09-19-15` | Perpendicular progress is lost on a clear; compensation is an upgrade area |

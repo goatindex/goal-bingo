@@ -166,6 +166,64 @@ source of requirements, so the reverse walk from a failing test ends here.
   move the least-used two to early unlocks. If players routinely create categories that
   overlap the defaults, the defaults need splitting or renaming.
 
+## D-2026-09-19-25 — Ambient blocking targets a fixed percentage at every grid size
+
+- **Status:** open
+- **Context:** Q23 — whether the ~45–50% ambient blocking target (`D-2026-09-19-12`) should
+  hold at a fixed percentage as the grid grows, or whether the *absolute* number of blocked
+  lines should stay roughly constant. The Q20 simulation held ambient blocking roughly
+  constant as a percentage across grids 3, 5 and 7 at a fixed long-term draw share, but
+  did not test whether a player perceives 50% of 6 lines the same as 50% of 14.
+- **Options considered:** fixed absolute count (e.g., always 4–6 lines blocked regardless
+  of grid size) — a larger grid feels progressively more open as the player expands;
+  expansion becomes a way to escape friction rather than extend it (rejected — this
+  undermines `D-2026-09-19-3`'s design intent; the friction should scale with the board)
+  · **fixed percentage, ~45–50% of lines blocked at any grid size (chosen)**
+- **Why:** A fixed percentage means the board always feels equally constrained relative to
+  its size. As the player expands, the number of blocked lines grows with the board, and
+  the strategic challenge of managing long-term goals scales proportionally. Expansion
+  unlocks more play surface, not an easier board. This is also what the simulation already
+  implements — the draw share controls percentage directly, so no additional mechanism is
+  needed to hold it.
+- **Expected outcome:** A player on a 7×7 board has the same *proportion* of their lines
+  constrained as they did on a 5×5; expansion feels like growth, not escape.
+- **Revisit:** After playtesting at multiple grid sizes. If a larger board feels
+  oppressively blocked at 50%, lower the draw share slightly for expanded grids (a
+  per-grid-size draw share is a small mechanical change); if it feels too open, raise it.
+
+## D-2026-09-19-24 — Mini-grid population defaults to the same pool; scoring equals a normal clear plus a full-board bonus
+
+- **Status:** open
+- **Context:** Q11 — how a mini-grid tile is populated and how completing the internal line
+  scores. `D-2026-09-19-20` settled the clearing condition (one internal line). This
+  decision settles the two remaining parts.
+- **Population decision:** The mini-grid draws from the player's own goal pool by default —
+  the same pool the main board draws from. Two upgrade options exist but do not ship in
+  the base game:
+  - *Sub-pool*: the player designates specific goals for mini-grid tiles.
+  - *Player-placed*: the player manually assigns goals to each mini-grid cell.
+- **Options considered for population:** sub-pool or player-placed as the default (rejected
+  — adds a curation step before the player has experienced the mechanic; the base game
+  should introduce mini-grids with minimum friction) · **same pool as default, upgrades
+  add more control (chosen)**
+- **Scoring decision:** Completing a line inside a mini-grid tile and clearing it on the
+  main board scores the same as clearing any other tile's line on the main board. One
+  exception: if the mini-grid tile is the last tile to clear on the main board — completing
+  a full board clear — it earns an additional bonus on top.
+- **Options considered for scoring:** higher base score than a normal clear (rejected —
+  the difficulty premium is already captured by the mechanic requiring an internal line;
+  double-counting it in the score creates a runaway incentive to fill the board with
+  mini-grid tiles) · lower or same with no special case (rejected — completing a full
+  board is a significant milestone; the last tile deserves acknowledgement regardless of
+  type, and a mini-grid as the last tile is the hardest version of that milestone) ·
+  **same as normal; bonus if last tile on the main board (chosen)**
+- **Expected outcome:** Mini-grid tiles feel harder because they are, not because they pay
+  disproportionately; a full-board clear ending on a mini-grid tile is the highest-value
+  single moment in the game.
+- **Revisit:** After first prototype with mini-grid tiles in play. If players avoid
+  mini-grid tiles because the difficulty premium is not reflected in the score, revisit the
+  base scoring; if they seek them out specifically for the score, the balance is right.
+
 ## D-2026-09-19-12 — Long-term draw share set to roughly 5%
 
 - **Status:** open
