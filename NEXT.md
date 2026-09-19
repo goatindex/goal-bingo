@@ -5,61 +5,27 @@ _Convention: update at end of each working session. The weekly portfolio review 
 ## Current focus
 
 Design stage. The framing document (`docs/design-description.md`) is written and covers the
-full vision; the founding decisions are recorded. Nothing is built.
+full vision; decisions are recorded. Nothing is built.
 
-Links 0–2 are complete and merged (PR #1, PR #2). Twelve decisions, twenty-four questions
-registered in §11 with three struck through as resolved. Three adversarial review passes
-have run on the design; all findings are fixed. The reviewer is adopted and proven (PR #4,
-PR #5).
-
-**Q20 is answered, by simulation, and the recovery floor holds.** `sim/jam_sim.py` measured
-time-to-unjam from a maximal jam at zero balance: median same-day, p99 one to two days,
-zero trials still jammed after 180 days, across every setting tested. The reserved
-tightening is not needed — see `sim/results.md` and §10.3.
-
-**The simulation surfaced a bigger, unasked question: chronic partial blocking.** Full jams
-are almost never reached in ordinary play, but the long-term draw share governs how much of
-the board is *chronically* constrained — 28% of lines at a 2% share, up to 75% at 30%, and
-this barely depends on player behaviour. `D-2026-09-19-3`'s prose describes occasional
-friction; the mechanics at a careless default would have produced constant friction. The
-draw share is set to ~5% (`D-2026-09-19-12`), targeting ~45–50% ambient blocking — see §10.4.
-
-**Q13 is closed.** Board balance is fed by mark-based challenges, which keep paying during a
-jam, and personal rewards spend from a separate budget so cashing out cannot strand the
-player (`D-2026-09-19-6`); a free recycle allowance of one per 24 hours, upgradeable,
-guarantees an action exists at zero balance (`D-2026-09-19-7`).
+**The pre-link-3 checklist is complete** (pending merge of PRs #7, #8, #9). Six more open
+questions are closed, two missing decision records are written, and §3.4, §4.2, §8.2, §9.2
+are fully settled prose. Eighteen decisions are on record. The next step is link 3 —
+requirements — starting with the glossary.
 
 ## Next up
 
-- **Answer the cheap questions that gate mining.** Q2, Q3 and Q4 (line rules) and Q14
-  (perpendicular progress destroyed by a clear) block §3.4. The tuning questions (Q1, Q7,
-  Q8, Q10, Q17, Q21, Q22) do not need answers before a prototype exists and should not be
-  guessed.
-- **Q18 before any economy tuning.** Which mark-based challenges ship, and what each pays
-  per mark and on completion. Load-bearing for the jam guarantee, not a progression nicety.
-- **Q23 and Q24 are the simulation's own aftertaste.** Q23 asks whether ambient blocking
-  should target a fixed share or vary with grid size — the sim held it roughly constant
-  across grids 3/5/7 at a fixed draw share, but did not test whether 50% of 6 lines *feels*
-  like 50% of 14. Q24 asks whether the sim's harsher assumptions (Q14 read as marks lost,
-  swap not modelled, challenge income idealised) should be re-run once those settle, to
-  confirm the floor still holds under friendlier ones. Neither blocks a prototype.
-- **Write the missing decision records.** §9.2 commits to local-first with no account, and
-  §4.2 to fixed categories before user-defined ones. Both state rejected alternatives in
-  prose but have no `D-` record, so the reverse walk has no root for them.
-- **Link 3 — requirements.** Fix the entity, boundary and glossary first; the entity is the
-  app, and terms like *tile*, *cell*, *line*, *clear*, *pool*, *mark* and *balance* need
-  pinning down before any `shall` is written. Requirements cite `design-description.md <n>`
-  as their source.
-- **Wire the back-map gate** once a requirement set exists — `backmap_check.py --source
-  docs/design-description.md --requirements requirements/`. The design description is
-  already written to the format it parses (37 numbered headings, verified against the
-  gate's own section reader, with `requirements: none` declarations on the 12 that state no
-  obligation).
-- **Link 4 — decomposition.** Cut the set into work packages and prove the partition. This
-  is where the build order for the full vision gets decided (`D-2026-09-19-4`).
-- **Playtest against §10.4's felt-friction judgement**, not against jam frequency — jam
-  frequency is now measured and closed. Whatever prototype gets built should be built to
-  test whether ~5% draw share actually feels like "regular presence", not to look finished.
+- **Merge PRs #7, #8, #9** once adversarial reviews pass — #7 is already green.
+- **Link 3 — requirements.** Pin the glossary first (*tile*, *cell*, *line*, *clear*,
+  *pool*, *mark*, *balance* — one meaning each, no overlaps), then mine
+  `docs/design-description.md` section by section using the `incose-requirements` skill.
+  Requirements cite `design-description.md §n` as their source.
+- **Wire the back-map gate** once a requirement set exists —
+  `backmap_check.py --source docs/design-description.md --requirements requirements/`.
+- **Link 4 — decomposition.** Cut the requirement set into work packages and prove the
+  partition. Build order decided here, not before (`D-2026-09-19-4`).
+- **Playtest against §10.4's felt-friction judgement** — jam frequency is measured and
+  closed; the prototype exists to test whether ~5% draw share actually *feels* like
+  "regular presence".
 
 ## Done means
 
@@ -87,6 +53,28 @@ directions, and link 4 has cut it into work packages with a shippable first pack
 - Whether this project gets a `project-tracking` hub entry alongside the other projects.
 
 ## Done (2026-09-19 session)
+
+**Evening continuation — pre-link-3 questions and missing records (PRs #7, #8, #9):**
+
+- **Q2/Q3/Q4/Q14 closed** — four §3.4 questions answered in one design conversation;
+  three decision records written (D-13, D-14, D-15); §3.4 rewritten from open-questions
+  prose to settled rules (PR #7, adversarial review passed).
+  - Diagonals count as lines; simultaneous completion resolves every line with bonus points
+  - Intersection cell is the visual focal point and multi-clear bonus anchor
+  - Perpendicular progress is lost; compensation is a designated upgrade area (sim's Q14
+    assumption confirmed — Q24 narrowed to swap and challenge-income assumptions only)
+- **Q5 and Q18 closed, §4.2 missing D- record written** (PR #8, review running):
+  - Categories are player-defined from day one; seven defaults ship — `health`, `study`,
+    `creative`, `volunteering`, `relationship`, `home`, `work`; further categories unlock
+    through progression (D-16). *Creative* replaces the original *hobby* placeholder.
+  - Challenges: three types (universal, category, cadence) run in parallel; a mark counts
+    toward every challenge it qualifies for simultaneously; the universal challenge is the
+    coverage guarantee; rates are tuning (D-17). Category challenges unlock with their
+    category — one mechanic, not two.
+- **§9.2 missing D- record written** — local-first, no account required; sync deferred to
+  Q12 (D-18, PR #9, review running).
+
+**Earlier in the day — cadence taxonomy and simulation (PRs #1–6; all merged):**
 
 - **Intake:** new work, entering at link 1 and taking the full chain. Impact: requirements
   none, work packages none — an earlier Phaser prototype existed in this repo but had
@@ -157,3 +145,7 @@ directions, and link 4 has cut it into work packages with a shippable first pack
   (`D-2026-09-19-12`), targeting ~45–50% ambient blocking, after being put to a decision
   rather than left at the simulation's arbitrary starting default. §10.4 records the finding
   and the choice; four new questions (Q21–Q24) came out of building the instrument.
+
+## Last updated
+
+2026-09-19
