@@ -3,6 +3,83 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-19-15 — Perpendicular progress is lost on a clear; compensation is an upgrade area
+
+- **Status:** open
+- **Context:** Clearing a row or diagonal empties cells that were contributing marks toward
+  perpendicular lines. A player building a column can lose progress against their will when
+  a row they also wanted to clear fires. Whether those marks are lost, preserved, or
+  compensated is a core pacing rule (`§3.4`, Q14). The Q20 simulation assumed marks lost as
+  its harsher input; the floor held under that assumption.
+- **Options considered:** marks preserved across clears — reduces strategic tension, makes
+  grid progress independent of clearing order, and makes any future upgrade doing the same
+  thing meaningless (rejected) · automatic base-game compensation, e.g. a small balance
+  credit — makes the game more forgiving but removes the differentiation space for upgrades
+  and hides the pacing consequence that makes the rule interesting (rejected) · **marks
+  lost; compensation mechanics are a flagged upgrade area (chosen)**
+- **Why:** The loss is the rule that creates the pacing tension `D-2026-09-19-3` describes.
+  Removing it at the base game level defuses that tension and eliminates the most natural
+  space for upgrades that feel meaningful — a power-up that preserves or compensates
+  perpendicular progress is a genuine purchase decision only if the base game does not
+  already do it for free. Flagging it as an upgrade area records the intent without
+  inventing mechanics that belong to a later link.
+- **Expected outcome:** Players notice perpendicular loss and factor it into marking
+  decisions; upgrade mechanics introduced later offer meaningful mitigation at a cost rather
+  than fixing a base-game frustration.
+- **Revisit:** After first playtest. If perpendicular loss is a major frustration point
+  before any upgrades exist, consider adding a passive signal (count, notification) before
+  adding compensation.
+
+## D-2026-09-19-14 — The intersection cell is the visual focal point and anchor for the multi-clear bonus
+
+- **Status:** open
+- **Context:** When one mark completes two lines simultaneously, one cell is shared by both
+  clearing lines (`§3.4`, Q4). What happens to that cell — visually and mechanically — was
+  open.
+- **Options considered:** intersection treated identically to any other cleared cell —
+  wastes the most naturally dramatic moment in a round; a double-clear deserves a moment
+  that acknowledges it (rejected) · flat bonus for the double-clear, unrelated to the
+  intersection cell — misses the opportunity to make the cell itself feel significant; the
+  goal it held is the obvious anchor (rejected) · **intersection cell receives distinct
+  visual treatment and is the anchor for the multi-clear bonus calculation (chosen)**
+- **Why:** The intersection is the only cell in the game that simultaneously completes two
+  independent obligations. Making it the focal point of the reward is consistent with how
+  the game values marks, and gives the player a clear read on what scored what. The exact
+  animation and bonus formula are tuning questions; the principle that the cell is the
+  anchor is the decision.
+- **Expected outcome:** Double-clears are visually distinct and feel earned; players begin
+  positioning for multi-line completions deliberately.
+- **Revisit:** After first playable prototype. If the intersection animation makes it
+  unclear which lines scored what, decouple the visual focal point from the bonus
+  calculation.
+
+## D-2026-09-19-13 — Diagonals count as lines; all completing lines resolve on a simultaneous mark
+
+- **Status:** open
+- **Context:** `§3.4` left two questions open: whether diagonals count as lines (Q2), and
+  what happens when one mark completes a row and a column — or any two lines — at once (Q3).
+  They are decided together because the answer to Q3 determines whether adding diagonals
+  creates an exotic edge case or a natural play pattern.
+- **Options considered for Q2:** diagonals excluded — reduces the strategic surface; on a
+  5×5 grid drops from 12 lines to 10; the two diagonal lines are the ones most likely to
+  intersect multiple rows and columns, so excluding them removes the most interesting
+  multi-clear setups (rejected) · **diagonals count as lines (chosen)**
+- **Options considered for Q3:** only one line resolves per mark, player chooses — punishes
+  a positive outcome and introduces arbitrary choice at the moment of completion (rejected)
+  · both lines resolve but only one refills — partial resolution is bookkeeping complexity
+  for no gameplay benefit (rejected) · **every completing line resolves: each clears,
+  scores, and refills; bonus points awarded for the multi-clear (chosen)**
+- **Why:** Diagonals extend the board's strategic surface without changing its rules; they
+  are lines like any other and should behave like any other. Full resolution of every
+  completing line on a single mark rewards deliberate play and is the only resolution rule
+  with no arbitrary component.
+- **Expected outcome:** Multi-line completions — including diagonal intersections — are
+  recognised as high-value plays; diagonals appear in planned lines rather than as
+  incidental completions.
+- **Revisit:** If diagonals make the grid too easy to complete or the diagonal placement
+  constraint (`§4.4` rule 1) becomes a bottleneck in practice, consider removing diagonals
+  as a later difficulty option rather than from the base game.
+
 ## D-2026-09-19-12 — Long-term draw share set to roughly 5%
 
 - **Status:** open
