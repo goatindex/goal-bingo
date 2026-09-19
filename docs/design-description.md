@@ -235,13 +235,16 @@ any number means anything (§11).
 On top of the base value, a clear is multiplied by how *interesting* the line was:
 
 - **Category combos** — a line all of one category, or one deliberately spanning many.
-  Both are harder than a line that happens to be mixed, and both should pay.
+  Both are harder than a mixed line, and both pay a bonus (`D-2026-09-19-19`):
+  - *Matching* — every tile in the line shares the same category. Rewards focus.
+  - *Variety* — every tile in the line is a different category. Rewards strategic spread.
+  Multipliers are tuning questions waiting for a prototype.
 - **Adjacency** — what sits next to the cleared line. This is what stops the grid being
   five independent rows and makes the board a single object the player is arranging.
 - **Advanced tiles** — a line containing a multi-completion or mini-grid tile (§7) carries
   the weight of what it took to clear it.
 
-Which combinations exist, and what each is worth, is open (§11).
+Which adjacency combinations exist and what each is worth is open (§11).
 
 ### 5.3 Score, and the balance it is spent from
 
@@ -289,12 +292,11 @@ Power-ups are bought with **board balance** (§5.3) and act on the board itself:
 - **Raise the free recycle allowance** — permanently increase how many free recycles a
   24-hour period grants (`D-2026-09-19-7`). This turns the release valve into a progression
   axis rather than a static safety net.
-- **Swap two adjacent tiles** — move a blocking goal into a line the player can afford to
-  stall. A swap does not by itself reduce how many lines are blocked: a blocker moved one
-  cell still blocks one row and one column. It helps by **consolidating** — putting two
-  blockers into the same line so the rest of the board frees up. Whether that is the
-  intended mechanic, and whether adjacent-only swapping is enough to achieve it, is open
-  (Q15).
+  - **Swap two adjacent tiles** — move a goal into a line the player is building, or
+    cluster two blockers into the same line to free the rest of the board. The purpose is
+    **consolidation** (`D-2026-09-19-22`): reducing how many lines are obstructed by
+    concentrating blockers. Adjacent-only is the base mechanic; wider swap capabilities
+    are an upgrade area.
 - **Recycle a tile** — discard a goal and draw a replacement from the pool. This is the
   primary way out of a blocked line. Three rules apply:
   - **Unmarked tiles only** (`D-2026-09-19-10`). A mark is never destroyed before its line
@@ -318,9 +320,11 @@ Advanced tiles are bought into after some play (`D-2026-09-19-3`). They exist so
 long-term goals can eventually feel like they are *moving* rather than just sitting, without
 that complexity being present on day one.
 
-How they are acquired — bought with balance like a power-up, unlocked at a progression
-threshold, or both — is open (Q16). They are not in the power-up list in §6.2, so the
-economy does not currently carry them.
+They are acquired through a mix of per-category progression and economy unlock
+(`D-2026-09-19-23`). A player who marks many goals in a category earns access to
+advanced tiles in that category; board balance can provide a secondary unlock path. The
+specific thresholds and prices are link 4 decisions. Global unlocks can be layered on top
+of the per-category foundation in a later release.
 
 ### 7.1 Multi-completion tiles
 
@@ -329,12 +333,17 @@ so a long-term goal stops being an opaque block and becomes a visible count.
 
 ### 7.2 Mini-grid tiles
 
-A tile containing its own small grid. Clearing a line inside the mini-grid marks the parent
-tile. This makes a large goal into a structured one — the sub-tasks become a board of their
-own rather than a checklist hidden behind a cell.
+A tile containing its own small grid. The mini-grid is **internal** to the tile — a
+self-contained small board within a single cell of the main grid (`D-2026-09-19-20`).
+Completing a line inside the mini-grid is the sole condition for the parent tile to count
+as cleared on the main board. Nothing from the main board's draw or scoring logic reaches
+inside; the mini-grid is its own object.
 
-How a mini-grid is filled, whether it draws from the same pool, and how it scores are open
-(§11).
+This makes a large goal into a structured one — the sub-tasks become a board of their own
+rather than a checklist hidden behind a cell.
+
+How the mini-grid is populated (from the same pool, a sub-pool, or player-placed) and how
+completing the internal line scores relative to a normal clear are open (§11).
 
 ## 8 Progression and record
 
@@ -554,15 +563,15 @@ invented here reads as fact once it is a requirement.
   | ~~Q5~~ | ~~The starting category list~~ — **resolved** by `D-2026-09-19-16`: health, study, creative, volunteering, relationship, home, work; player-defined unlocks beyond that | §4.2 |
 | Q6 | The draw-weighting formula, and its grid-awareness rules | §4.4 |
 | Q7 | Base point values | §5.1 |
-| Q8 | Which combos exist and what each multiplies by | §5.2 |
+  | ~~Q8~~ | ~~Which combos exist and what each multiplies by~~ — **resolved** by `D-2026-09-19-19`: matching (all same category) and variety (all different); multipliers are tuning | §5.2 |
 | ~~Q9~~ | ~~Settle the two-counter model~~ — **resolved** by `D-2026-09-19-6`: three counters, two of them spendable | §5.3 |
 | Q10 | Power-up prices — constrained by the recovery floor, not free to tune | §6.2, §10.3 |
-| Q11 | How a mini-grid is populated and scored | §7.2 |
-| Q12 | Whether cross-device sync is offered | §9.2 |
+  | Q11 | How the mini-grid is populated (same pool, sub-pool, or player-placed), and how completing the internal line scores relative to a normal clear — clearing mechanic confirmed (`D-2026-09-19-20`) | §7.2 |
+  | ~~Q12~~ | ~~Whether cross-device sync is offered~~ — **resolved** by `D-2026-09-19-21`: no sync in first release; local storage only; deferred as a long-term feature | §9.2 |
 | ~~Q13~~ | ~~The recovery floor~~ — **resolved** by `D-2026-09-19-6` (jam-proof income) and `D-2026-09-19-7` (a free action at zero balance) | §10.3, §6.2 |
   | ~~Q14~~ | ~~What happens to perpendicular progress a clear destroys — lost, preserved, or compensated~~ — **resolved** by `D-2026-09-19-15`: marks lost; compensation is a designated upgrade area | §3.4 |
-| Q15 | Whether consolidation is the intended swap mechanic, and whether adjacent-only swapping achieves it | §6.2 |
-| Q16 | How advanced tiles are acquired, and whether the economy carries them | §7 |
+  | ~~Q15~~ | ~~Whether consolidation is the intended swap mechanic, and whether adjacent-only swapping achieves it~~ — **resolved** by `D-2026-09-19-22`: consolidation confirmed; adjacent-only base; upgrades expand range | §6.2 |
+  | ~~Q16~~ | ~~How advanced tiles are acquired, and whether the economy carries them~~ — **resolved** by `D-2026-09-19-23`: per-category progression primary; economy secondary; global unlocks additive later | §7 |
 | Q17 | How far the free recycle allowance can be upgraded, what each step costs, and whether it is capped | §6.2 |
   | ~~Q18~~ | ~~Which mark-based challenges ship first, and what each pays per mark and on completion~~ — **resolved** by `D-2026-09-19-17`: universal + category + cadence, all parallel; rates are tuning | §8.2, §5.3 |
 | Q19 | Whether one free recycle per 24 hours is fast enough against how quickly a board re-jams. The rate was chosen on daily rhythm, not on any showing that it outpaces re-jamming | §6.2, §10.3 |
@@ -601,6 +610,11 @@ measured and closed.
 | `D-2026-09-19-10` | A recycle operates on unmarked tiles only |
   | `D-2026-09-19-11` | Goals sit on two independent axes: category and cadence |
   | `D-2026-09-19-12` | Long-term draw share set to roughly 5% |
+  | `D-2026-09-19-19` | Category combos: matching (all same) and variety (all different) are the two base types |
+  | `D-2026-09-19-20` | A mini-grid tile is cleared on the main board when a line completes inside it |
+  | `D-2026-09-19-21` | No cross-device sync in first release; deferred as a long-term feature |
+  | `D-2026-09-19-22` | The swap mechanic's purpose is consolidation; adjacent-only for base game; upgrades expand it |
+  | `D-2026-09-19-23` | Advanced tile acquisition: per-category progression and economy; global unlocks can follow |
   | `D-2026-09-19-13` | Diagonals count as lines; all completing lines resolve on a simultaneous mark |
   | `D-2026-09-19-14` | The intersection cell is the visual focal point and anchor for the multi-clear bonus |
   | `D-2026-09-19-15` | Perpendicular progress is lost on a clear; compensation is an upgrade area |

@@ -166,6 +166,145 @@ source of requirements, so the reverse walk from a failing test ends here.
   move the least-used two to early unlocks. If players routinely create categories that
   overlap the defaults, the defaults need splitting or renaming.
 
+## D-2026-09-19-23 — Advanced tile acquisition: per-category progression and economy; global unlocks can follow
+
+- **Status:** open
+- **Context:** §7 — how advanced tiles are acquired. The document left open whether they
+  are bought with board balance like power-ups, unlocked at progression thresholds, or
+  both. `D-2026-09-19-16` established that categories are player-defined with per-player
+  progression, which bears on how advanced tile unlocks are structured.
+- **Options considered:** global progression threshold only — one unlock level for the
+  whole board, regardless of category (rejected — too coarse; a player who has worked
+  heavily in one category should not wait for global progress to reflect it; also misses
+  the design space of per-category tile variety) · economy purchase only, like a power-up
+  (rejected — creates a recurring cost for what should be a structural board upgrade; also
+  does not model the "earned through experience in a category" feel the design intends) ·
+  **per-category progression as the primary gate, with economy as a secondary unlock;
+  global unlocks can be added on top of a per-category foundation (chosen)**
+- **Why:** Per-category trackers make the progression system legible — a player can see
+  that their health tiles have advanced because they have done a lot of health goals. This
+  is more motivating and more personal than a global level. Starting with per-category also
+  means global upgrades can be introduced later without removing information; going global
+  first and adding per-category later requires retrofitting all the tracking. The economy
+  layer (board balance as a secondary unlock) keeps the progression purchasable for players
+  who plateau in a category, without making it purely monetary.
+- **Scope:** the specific progression metrics — what is tracked per category, what
+  thresholds gate each advanced tile type, and what the economy price is — are link 4
+  decisions. The principle here is: per-category primary, economy secondary, global
+  additive-only.
+- **Expected outcome:** A player who marks many health goals gains access to health-themed
+  advanced tiles before a player who marks few; the unlock feels like an achievement in
+  that category rather than a global level-up.
+- **Revisit:** After first prototype. If per-category tracking produces too many separate
+  progress axes to follow, consider collapsing closely related categories or adding a
+  summary view before removing the per-category structure.
+
+## D-2026-09-19-22 — The swap mechanic's purpose is consolidation; adjacent-only for base game; upgrades expand it
+
+- **Status:** open
+- **Context:** §6.2 — the swap power-up. The document described it as "consolidating"
+  blockers into the same line, but left open whether consolidation was the *intended*
+  mechanic and whether adjacent-only swapping was sufficient to achieve it (Q15).
+- **Options considered:** swap as a general-purpose repositioning tool with no specific
+  purpose (rejected — without a clear purpose the swap has no design constraint and risks
+  becoming a solve-everything button) · multi-cell or free-placement swap from the start
+  (rejected — too powerful as a base mechanic; removes strategic friction before the player
+  has felt it) · **swap-for-consolidation as the stated purpose; adjacent-only in the base
+  game; wider swap capabilities as upgrades or power-ups (chosen)**
+- **Why — purpose:** Consolidation is the right framing. A swap that moves an achievable
+  goal *into* a line the player is building, or that clusters two blockers into the same
+  line to free the rest of the board, is strategically meaningful and consistent with the
+  game's core loop. Naming the purpose sets the design constraint: a swap upgrade that
+  bypasses consolidation is out of scope; one that makes consolidation easier or faster
+  is in scope.
+- **Why — adjacent-only:** Adjacent-only is a natural constraint that makes the swap cost
+  something in planning. Moving a blocker two cells over requires two swaps or an upgrade;
+  that is friction worth keeping. It is also the minimum implementation surface for a base
+  mechanic.
+- **Expected outcome:** Players use the swap to set up a clear or a favourable category
+  combo, not as a general-purpose board editor; adjacent-only is enough of a constraint
+  that swaps feel earned rather than routine.
+- **Revisit:** After first prototype. If players find adjacent-only too limiting for the
+  board sizes being played, introduce a non-adjacent swap upgrade before widening the base
+  mechanic.
+
+## D-2026-09-19-21 — No cross-device sync in first release; deferred as a long-term feature
+
+- **Status:** open
+- **Context:** Q12 — whether cross-device sync is offered, and on what terms. `D-2026-09-19-18`
+  established local-first as the data default but explicitly left Q12 open. The answer now
+  is: no sync in the first release. Local storage only.
+- **Options considered:** sync via a cloud account at first release (rejected — adds
+  server infrastructure and an account gate before the core game is proven; `D-2026-09-19-18`
+  already explains why an account gate on the baseline is wrong) · opt-in file export and
+  import as a lightweight sync substitute (deferred — useful but not the first release
+  priority) · **no sync; local storage save only; defer to a later release (chosen)**
+- **Why:** The first release needs to prove the game loop, not the infrastructure. Sync
+  raises real questions — conflict resolution, account design, privacy model — that are
+  worth solving properly rather than quickly. Deferring keeps the first release lean and
+  makes sync a deliberate feature release rather than a rushed bolt-on.
+- **Expected outcome:** The first release ships with no data leaving the device; a player
+  switching devices starts fresh. This is acceptable for a first release of a goal-tracking
+  game.
+- **Revisit:** After the first release, based on player demand. If players are asking for
+  sync more than any other missing feature, implement it as a deliberate feature with a
+  proper account model. Export/import is the natural stepping stone.
+
+## D-2026-09-19-20 — A mini-grid tile is cleared on the main board when a line completes inside it
+
+- **Status:** open
+- **Context:** §7.2 — mini-grid tiles. The document described the clearing mechanic
+  ("clearing a line inside the mini-grid marks the parent tile") but left population,
+  scoring, and the internal/external relationship open (Q11).
+- **Decision:** The mini-grid is **internal** to its tile — it is a self-contained small
+  board within a single cell of the main grid. Completing a line within the mini-grid is
+  the sole condition for the parent tile to count as cleared on the main board. Nothing
+  from the main board's draw or scoring logic reaches inside the mini-grid; the mini-grid
+  is its own object.
+- **Options considered:** mini-grid cleared when *all* cells inside are marked (rejected —
+  too long; a 3×3 internal grid requiring nine marks makes the tile essentially
+  incompletable at normal play speed) · mini-grid cleared when any cell inside is marked
+  (rejected — trivialises the tile; it becomes a slower-resolving ordinary tile) ·
+  **one completed internal line clears the parent tile (chosen)**
+- **Why:** A single internal line is proportionate — harder than an ordinary tile, easier
+  than filling the whole mini-grid, and it preserves the bingo mechanic the game is built
+  on. Internal isolation means the mini-grid can be designed independently and avoids draw
+  and scoring leakage between levels.
+- **Still open:** how the mini-grid is populated (from the same pool, a sub-pool, or
+  player-placed), and how completing the internal line scores relative to a normal clear.
+  These are link 4 / tuning decisions.
+- **Expected outcome:** Mini-grid tiles are noticeably harder than ordinary tiles;
+  completing one feels like a meaningful achievement; the internal bingo mechanic is
+  recognisable rather than alien.
+- **Revisit:** After first prototype with mini-grid tiles. If one internal line is too easy
+  on small grids, require two.
+
+## D-2026-09-19-19 — Category combos: matching (all same) and variety (all different) are the two base types
+
+- **Status:** open
+- **Context:** §5.2 — combos and adjacency. The document listed category combos as one of
+  three combo sources alongside adjacency and advanced tiles, but left what combinations
+  exist and what they pay entirely open (Q8).
+- **Decision:** Two category combo types ship in the base game:
+  - **Matching** — every tile in a cleared line shares the same category. Rewards focus and
+    deliberate single-category board building.
+  - **Variety** — every tile in a cleared line is a different category. Rewards strategic
+    spread and cross-category planning.
+  Both are harder to achieve than a mixed line, and both should pay a bonus multiplier on
+  the clear.
+- **Options considered:** matching only (rejected — removes the strategic incentive to
+  spread categories; a player who diversifies gets nothing for it) · variety only (rejected —
+  punishes players who build focused category runs, which is the natural play pattern for
+  a goal app) · matching and variety as named, paying bonus (chosen) · richer taxonomy
+  with partial combos (e.g., 3-of-5 same category) — deferred to a later release; the
+  base game needs the simplest combo surface that rewards both playstyles.
+- **Numbers** (multipliers, thresholds) are tuning questions waiting for a prototype.
+- **Expected outcome:** Players can recognise and aim for both combo types; a matching
+  clear and a variety clear both feel like achievements worth building toward.
+- **Revisit:** After first prototype. If variety combos are too hard to achieve on small
+  grids, relax the all-different requirement to a majority; if matching combos are too easy
+  to engineer, add a minimum line length before the bonus fires.
+
 ## D-2026-09-19-12 — Long-term draw share set to roughly 5%
 
 - **Status:** open
