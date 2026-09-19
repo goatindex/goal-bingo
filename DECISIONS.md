@@ -57,8 +57,13 @@ source of requirements, so the reverse walk from a failing test ends here.
 - **Why:** It closes the hole without a mode switch: one mark produces one payment, so a
   single markable tile restarts income. It is also better feedback — a habit game that pays
   weekly teaches nothing about today.
+- **Scope:** incremental payment only guarantees income if a matching challenge exists.
+  §8.2 therefore carries a standing requirement that **at least one challenge is always
+  active and the shipped set is broad enough that any mark counts toward something**. Without
+  it, a player between challenges — or holding only challenges whose category misses the tile
+  they just drew — earns nothing, and the trap reopens. This constrains Q18.
 - **Expected outcome:** From a maximal jam at zero balance, one free recycle followed by one
-  mark yields non-zero board balance. Directly simulable.
+  mark yields non-zero board balance, given the scope clause above. Directly simulable.
 - **Revisit:** With Q18, when challenge payouts are set.
 
 ## D-2026-09-19-7 — A free recycle allowance of one per 24 hours, upgradeable
@@ -180,8 +185,10 @@ source of requirements, so the reverse walk from a failing test ends here.
   *advanced tiles* — tiles needing two or more completions, or carrying their own mini-grid
   — so the complexity is earned through play rather than present on day one.
 - **Expected outcome:** Players route around a blocked line rather than abandoning the
-  grid, and a fully deadlocked board (no line completable) is rare and always resolvable
-  with power-ups affordable at that point in the game.
+  grid, and a fully deadlocked board (no line completable) is rare. **Amended 2026-09-19:**
+  resolution is no longer claimed to come from power-ups the player can afford — the floor
+  is the *free* recycle allowance (`D-2026-09-19-7`), and resolution is probabilistic rather
+  than certain (`D-2026-09-19-9`), bounded only by measurement under Q20.
 - **Revisit:** After the first playable prototype has run for two weeks of real daily use.
 
 ## D-2026-09-19-2 — A mark persists until its line clears

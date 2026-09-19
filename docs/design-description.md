@@ -148,25 +148,36 @@ weighted by two things:
   should surface often.
 - **What is already on the grid.** The draw reads the current board before placing anything.
 
-The second is three separate obligations, listed separately here because they become
-separate requirements: the draw should avoid placing a long-term goal into a row **or
-column** that already holds one; it should avoid flooding a single category; and it should
-prefer placements that leave at least one line completable.
+The second is three separate obligations. They become separate requirements, and they are
+**not equally binding** — the difference matters, because §10.3's recovery argument rests on
+the first being absolute rather than advisory:
 
-That third obligation is bounded by what a refill can reach. Refill touches only the cells
-a clear has just emptied, so it can influence the board but cannot guarantee a whole-board
-property — and it does not run at all on a board that is already jammed, because nothing is
-clearing. It is a preventive measure, not a cure. §10.3 sets out what that leaves uncovered.
+1. **Binding.** The draw must not place a long-term goal into a row **or column** that
+   already holds one. This constrains the *goal chosen*, not the cell, so it is always
+   satisfiable while the pool holds any short-term goal.
+2. **Binding.** The draw must not let one category dominate the board. The threshold is
+   open (Q21).
+3. **Preference.** Where more than one legal placement exists, the draw prefers one leaving
+   at least one line completable.
 
-**The same placement rules govern a recycle draw** (§6.2, `D-2026-09-19-9`). This matters
-because the recycle path is the only draw that runs on a jammed board: it does not wait for
-a clear. In particular, a recycle will not put a long-term goal into a row or column that
-already holds one.
+Rule 3 is bounded by what a refill can reach. Refill touches only the cells a clear has just
+emptied, so it can influence the board but cannot guarantee a whole-board property — and it
+does not run at all on a board that is already jammed, because nothing is clearing. It is a
+preventive measure, not a cure. §10.3 sets out what that leaves uncovered.
 
-That constraint reduces the chance a recycle hands back another blocker without eliminating
-it — when the recycled cell's row and column hold no *other* long-term goal, the rule permits
-a long-term goal back into the same cell. §10.3 states what that leaves the recovery floor
-guaranteeing.
+**Rules 1 and 2 also govern a recycle draw** (§6.2, `D-2026-09-19-9`). This matters because
+the recycle path is the only draw that runs on a jammed board: it does not wait for a clear.
+
+**Rule 3 does not govern a recycle**, and the omission is deliberate. A recycle fills exactly
+one cell, so there is no choice between placements for the preference to range over.
+Extending rule 3's *intent* to the recycle path — requiring the draw to leave a completable
+line where it can — would make the recovery floor deterministic rather than probabilistic.
+That is exactly the tightening Q20 holds in reserve, and it is not taken now because it would
+weaken the friction `D-2026-09-19-3` chose.
+
+Rule 1 reduces the chance a recycle hands back another blocker without eliminating it: when
+the recycled cell's row and column hold no *other* long-term goal, the rule permits a
+long-term goal back into the same cell. §10.3 states what that leaves the floor guaranteeing.
 
 The weighting formula is open (§11).
 
@@ -259,9 +270,10 @@ Power-ups are bought with **board balance** (§5.3) and act on the board itself:
     (`D-2026-09-19-7`). Beyond the allowance, further recycles cost board balance.
 
 **These are not only progression. They are the release valve** for the blocking behaviour
-in §4.3. Two things make the valve reliable, and both are needed: the recycle allowance
-exists at zero balance, and board balance is fed by something a jam cannot switch off
-(§5.3). §10.3 sets out the failure they jointly close.
+in §4.3. Two things hold the valve open, and both are needed: the recycle allowance exists
+at zero balance, and board balance is fed by something a jam cannot switch off (§5.3).
+Whether any *given* recycle helps is probabilistic — §10.3 sets out both what they close and
+what they leave open.
 
 ## 7 Advanced tiles
 
@@ -316,6 +328,12 @@ Paying only on completion would break the recovery floor: a jammed board that yi
 markable tile a day cannot finish a weekly target, so income would stop at exactly the point
 it is needed. Incremental payment also gives the player continuous feedback rather than a
 weekly lump.
+
+**At least one challenge must always be active, and the shipped set must be broad enough
+that any mark counts toward something** (`D-2026-09-19-8`). A player between challenges, or
+holding only challenges whose category does not match the tile a recycle just handed them,
+would earn nothing — which reopens the trap §10.3 closes. This is a constraint on Q18 rather
+than a free choice.
 
 Challenges are therefore the game's meta-goal layer, and the thing that keeps the board
 solvent.
@@ -392,8 +410,9 @@ was not a difficulty spike; it was an unrecoverable save.
 - **An action that costs nothing.** One free recycle per 24 hours, taken before any balance
   is spent, with the allowance itself upgradeable (§6.2).
 
-The first guarantees the player can always *earn* a way out; the second guarantees they can
-always *take* one at zero.
+The first lets the player *earn* a way out — provided a challenge is active that their marks
+count toward, which §8.2 makes a standing requirement rather than a hope. The second
+guarantees they can always *take* an action at zero.
 
 Neither is sufficient alone, and the reason is sharper than it first looks. **Mark-based
 income assumes there is something markable.** In a maximal jam every unmarked cell *is* a
@@ -407,8 +426,10 @@ load-bearing at the extreme; the budgets carry everything short of it.
 placement rules, which forbid putting a long-term goal into a row or column that already
 holds one — but where the recycled cell's lines hold no *other* blocker, those rules permit
 a long-term goal straight back into the same cell. A recycle can therefore hand back another
-blocker. The weighted draw makes that unlikely and another allowance arrives in 24 hours, so
-the expected time to break a jam is short. It is not *bounded*.
+blocker. How often that happens depends on the draw weighting, which is itself undecided
+(Q6), and another allowance arrives in 24 hours regardless. So the expected time to break a
+jam should be finite and small while the worst case stays unbounded — but **neither number is
+established**, and asserting "short" here would claim precisely what Q20 exists to measure.
 
 That is a deliberate trade (`D-2026-09-19-9`): the stricter rules that would make the floor
 deterministic all weaken the friction `D-2026-09-19-3` chose. What the design owes in
@@ -423,7 +444,7 @@ The three original guards, restated honestly:
 | Guard | What it actually does | When it acts |
 |---|---|---|
 | Grid-aware draw (§4.4) | Refuses to stack long-term tiles into the same lines | **Preventive only.** It runs on refill, and refill happens only when a line clears — so it never runs on a board that is already jammed |
-| Recycle and swap, plus the free allowance (§6.2) | Let a player move or discard a blocker | Curative, and now reliable — the allowance exists at zero balance, and board balance survives a jam |
+| Recycle and swap, plus the free allowance (§6.2) | Let a player move or discard a blocker | Curative, and now **funded** — the allowance exists at zero balance and board balance survives a jam. Whether a given recycle helps remains probabilistic |
 | Advanced tiles (§7) | Turn a long block into visible progress | **Not present at first release** (`D-2026-09-19-3`). A multi-completion tile also makes its line *harder*, not easier — this guards motivation, not jams |
 
 Grid expansion (§3.1) still aggravates jam risk rather than relieving it, and its pricing
@@ -462,7 +483,8 @@ invented here reads as fact once it is a requirement.
 | Q17 | How far the free recycle allowance can be upgraded, what each step costs, and whether it is capped | §6.2 |
 | Q18 | Which mark-based challenges ship first, and what each pays per mark and on completion | §8.2, §5.3 |
 | Q19 | Whether one free recycle per 24 hours is fast enough against how quickly a board re-jams. The rate was chosen on daily rhythm, not on any showing that it outpaces re-jamming | §6.2, §10.3 |
-| Q20 | **The floor's bound.** What expected time-to-unjam is acceptable, and does the draw weighting deliver it? If not, the recycle rule needs tightening — the minimal version being "never return a long-term goal to the cell just vacated", which would make the floor deterministic at some cost to §4.3's friction | §10.3, §4.4 |
+| Q20 | **The floor's bound.** What expected time-to-unjam is acceptable, and does the draw weighting deliver it? If not, the recycle rule needs tightening — the minimal version being to extend §4.4's rule 3 to the recycle path, which would make the floor deterministic at some cost to §4.3's friction | §10.3, §4.4 |
+| Q21 | What share of the board counts as one category dominating it (§4.4 rule 2) | §4.4 |
 
 Resolved questions are struck through rather than deleted — the register is a record, and a
 question that was asked and answered is different from one nobody raised.
