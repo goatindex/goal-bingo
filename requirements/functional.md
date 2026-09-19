@@ -303,7 +303,9 @@ statement: Goal Bingo shall not draw a long-term goal into a cell whose row or c
 type: functional
 rationale: Binding placement rule 1. Prevents lines being blocked in multiple places by
   long-term goals, which would make them impossible to unblock. 10.3 recovery argument
-  rests on this being absolute. D-2026-09-19-9.
+  rests on this being absolute. D-2026-09-19-9. Advisory placement rule 3 (former
+  GB-FUN-025): where more than one legal placement exists on refill, prefer one that
+  leaves at least one line completable; does not apply to recycle draws.
 trace-to-source: design-description.md 4.4
 verification-method: test
 verification-criteria: After any draw, no row and no column contains more than one
@@ -315,7 +317,8 @@ statement: Goal Bingo shall not draw a goal of any one category into a cell if d
   would cause that category to exceed the domination threshold on the board.
 type: functional
 rationale: Binding placement rule 2. Prevents a board where one life area crowds out
-  others. 4.4.
+  others. 4.4. Refill preference (rule 3 / former GB-FUN-025) still applies after this
+  binding rule: among legal placements, prefer one leaving a completable line.
 trace-to-source: design-description.md 4.4
 verification-method: test
 verification-criteria: After any draw, no single category occupies more than the domination
@@ -323,19 +326,19 @@ verification-criteria: After any draw, no single category occupies more than the
 priority: must
 notes: Domination threshold is TBD (owner: k, blocks: Q21).
 
-### GB-FUN-025 â€” Draw prefers completable-line placement (preference rule)
+### GB-FUN-025 — Draw prefers completable-line placement (preference rule)
 statement: Where more than one legally placed goal exists and at least one placement leaves
   at least one line completable, Goal Bingo shall select among placements that leave at
   least one line completable.
 type: functional
-rationale: Advisory placement rule 3. Preventive only â€” runs on refill, not on a jammed
-  board. Does not apply to recycle draws (one cell only, no placement choice). 4.4.
+status: deleted
+rationale: Retired. Placement preference is advisory, not an obligation.
 trace-to-source: design-description.md 4.4
-verification-method: test
-verification-criteria: After a refill where non-blocking placements were available, at
-  least one line on the board is completable.
-priority: should
-notes: This rule does not apply to recycle draws.
+verification-method: n-a
+verification-criteria: n-a
+priority: deleted
+notes: Intent preserved as rationale on GB-FUN-023 and GB-FUN-024. ID retained for
+  trace honesty.
 
 ### GB-FUN-026 â€” Recycle draw obeys binding placement rules
 statement: When the player recycles a tile, Goal Bingo shall apply placement rules 1 and 2
@@ -349,18 +352,20 @@ verification-criteria: After a recycle, no row or column contains two long-term 
   no category exceeds the domination threshold.
 priority: must
 
-### GB-FUN-027 â€” Long-term draw share approximately 5%
+### GB-FUN-027 — Long-term draw share approximately 5%
 statement: Goal Bingo shall configure the draw algorithm so that long-term goals receive
   approximately 5% of the total draw weight.
 type: functional
-rationale: At 5% draw share, ambient blocking runs at approximately 45â€“50% â€” a regular
-  presence without dominating. D-2026-09-19-12.
+rationale: At 5% draw share, ambient blocking runs at approximately 45–50% — a regular
+  presence without dominating. D-2026-09-19-12. Verification band ±5 pp is
+  D-2026-09-20-5; the weighting formula itself remains Q6.
 trace-to-source: design-description.md 4.4 design-description.md 10.4
 verification-method: test
 verification-criteria: In a large sample of draws from a pool of mixed cadences, long-term
-  goals are drawn in 5% ± TBD% of cases.
+  goals are drawn in a share between 0% and 10% of cases (target 5%, tolerance ±5
+  percentage points).
 priority: must
-notes: Exact tolerance is TBD (owner: k, blocks: Q6).
+notes: Tolerance of ±5 pp (0–10% band) is D-2026-09-20-5. Exact formula is deferred to Q6 (owner: k).
 
 ---
 
@@ -406,20 +411,22 @@ verification-criteria: A cleared line where all goals have distinct categories s
 priority: must
 notes: Multiplier value is TBD (owner: k, blocks: Q7).
 
-### GB-FUN-031 â€” Adjacency bonus applied on clear
-statement: Goal Bingo shall compute and apply an adjacency bonus based on the board
-  position of the cleared line relative to surrounding tiles.
+### GB-FUN-031 — Adjacency bonus mechanism
+statement: Goal Bingo shall compute an adjacency bonus for each line clear, where the
+  bonus value is a function of the board state at the time of the clear.
 type: functional
 rationale: Adjacency scoring makes the board a single spatial object, not a set of
-  independent rows. 5.2.
+  independent rows. The specific formula is deferred to Q7; this requirement asserts
+  the mechanism exists and is board-state-sensitive. 5.2.
 trace-to-source: design-description.md 5.2
 verification-method: test
-verification-criteria: The adjacency component of a clear score varies with the board state
-  at the time of the clear; clearing the same line in different board configurations
-  produces different adjacency scores.
+verification-criteria: Clearing the same line in two different board configurations
+  produces different total clear scores; the delta is attributable to the adjacency
+  component. A line clear with no qualifying adjacency condition produces an adjacency
+  bonus of zero.
 priority: must
-notes: Which adjacency combinations exist and what each is worth is TBD (owner: k, blocks:
-  Q7).
+notes: Specific adjacency combinations and their values are deferred to Q7 (owner: k).
+  See GB-FUN-068 for the configurability obligation.
 
 ---
 
@@ -536,38 +543,47 @@ verification-criteria: After a recycle, the selected cell contains a different g
   prior goal is no longer visible in that cell.
 priority: must
 
-### GB-FUN-040 â€” Recycle unavailable on marked tiles
+### GB-FUN-040 — Recycle unavailable on marked tiles
 statement: If the player selects a marked tile for recycle, Goal Bingo shall reject the
   action.
 type: functional
-rationale: A mark is never destroyed before its line clears. D-2026-09-19-10,
-  D-2026-09-19-2. This requirement is the positive obligation; GB-CON-008 is the
-  constraint twin.
+status: deleted
+rationale: Retired as duplicate of GB-CON-008.
 trace-to-source: design-description.md 6.2
-verification-method: test
-verification-criteria: Selecting a marked tile in the recycle flow produces no state change.
-priority: must
+verification-method: n-a
+verification-criteria: n-a
+priority: deleted
+notes: ID retained for trace honesty.
 
-### GB-FUN-041 â€” One free recycle per 24 hours
-statement: Goal Bingo shall grant the player one free recycle action per 24-hour period,
-  available unconditionally regardless of board balance.
+### GB-FUN-041 — Free recycle allowance resets on 24-hour rolling window
+statement: Goal Bingo shall grant the player a free recycle allowance equal to the
+  player's current recycle upgrade level, restoring the full allowance 24 h after the
+  first recycle in each window is used.
 type: functional
-rationale: The free recycle is the action of last resort at zero balance. D-2026-09-19-7.
+rationale: Rolling window from first use, not a fixed clock boundary. Default is 1;
+  upgrades increase it (GB-FUN-037). Free tier originated in D-2026-09-19-7; epoch
+  settled by D-2026-09-20-4.
 trace-to-source: design-description.md 6.2
 verification-method: test
-verification-criteria: With board balance at zero and within a 24-hour period that has not
-  used the free allowance, the player can activate one recycle at no cost.
+verification-criteria: With current allowance N, a player who uses the first free
+  recycle of a window at time T may activate up to N free recycles within that window,
+  consuming the allowance counter each time; once the counter reaches zero, further free
+  recycles are unavailable until 24 h after T, at which point the full current allowance
+  restores.
 priority: must
+notes: Default allowance is 1. The 24 h duration is fixed; epoch resets on each first use.
 
-### GB-FUN-042 â€” Free recycle taken before balance-spending recycles
-statement: Goal Bingo shall spend the free recycle allowance before deducting board balance
-  for any recycle within the same 24-hour period.
+### GB-FUN-042 — Free allowance consumed before balance-spending recycles
+statement: Goal Bingo shall deduct from the free recycle allowance before deducting board
+  balance for each recycle within the same 24-hour window.
 type: functional
-rationale: The free tier must be consumed first to prevent it being wasted. D-2026-09-19-7.
+rationale: The free tier must be consumed first so it is not silently skipped.
+  D-2026-09-19-7; rolling-window epoch D-2026-09-20-4.
 trace-to-source: design-description.md 6.2
 verification-method: test
-verification-criteria: The first recycle within a 24-hour period does not reduce board
-  balance; subsequent recycles in the same period deduct board balance.
+verification-criteria: Each recycle within a 24-hour window reduces the free allowance
+  counter before any board balance is deducted; board balance is deducted only once the
+  free allowance counter reaches zero.
 priority: must
 
 ---
@@ -841,3 +857,57 @@ verification-criteria: The shipped achievement list contains entries for each of
   named milestone types.
 priority: must
 notes: "Large grid", "sustained run", and "rare combination" thresholds are TBD.
+
+---
+
+## Unwanted behaviour — pool and storage
+
+### GB-FUN-065 — Empty pool blocks draw with player prompt
+statement: If the pool contains no goals eligible under the placement rules, Goal Bingo
+  shall refuse the draw and prompt the player to add or edit goals.
+type: functional
+rationale: Never leave an empty playable cell (GB-FUN-007, GB-FUN-008). Auto-injecting
+  goals would invent content the player did not choose. D-2026-09-20-1.
+trace-to-source: design-description.md 4.1 design-description.md 4.4
+verification-method: test
+verification-criteria: With an empty pool, a clear or recycle that would refill a cell
+  does not leave an empty playable cell; a prompt to edit the pool is shown.
+priority: must
+
+### GB-FUN-066 — Soft reset on unreadable local storage
+statement: If Goal Bingo cannot read the player's stored pool, board, or balances, Goal
+  Bingo shall reset to a playable fresh install with the starter goal set.
+type: functional
+rationale: Local-first with no account means there is no remote restore path. Soft reset
+  beats a permanent refuse. Recoverable counters may be preserved when cheap; playability
+  is mandatory. D-2026-09-20-1.
+trace-to-source: design-description.md 9.2
+verification-method: test
+verification-criteria: With corrupted local storage, the next launch presents a playable
+  board with a non-empty starter pool.
+priority: must
+
+### GB-FUN-067 — Goals already on the board remain eligible for redraw
+statement: Goal Bingo shall allow a goal already present on the board to be drawn again
+  into another cell.
+type: functional
+rationale: The pool is not a queue; goals may recur. A later preference to avoid
+  duplicates can be an upgrade without changing this base rule. D-2026-09-20-1.
+trace-to-source: design-description.md 4.1
+verification-method: test
+verification-criteria: A goal currently on the board can appear in a subsequent draw into
+  a different cell.
+priority: must
+
+### GB-FUN-068 — Adjacency combinations are configurable
+statement: Goal Bingo shall store the adjacency combination list and each combination's
+  bonus value in configuration that can be changed without modifying application code.
+type: functional
+rationale: Adjacency values are tuning (Q7). A configurable table lets playtesting adjust
+  without a rebuild. Supports GB-FUN-031.
+trace-to-source: design-description.md 5.2
+verification-method: test
+verification-criteria: Changing the adjacency configuration and restarting the app causes
+  a subsequent clear to score using the new values, with no application-code change.
+priority: must
+notes: Initial combination list and values remain deferred to Q7.

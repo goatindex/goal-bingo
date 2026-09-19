@@ -116,7 +116,10 @@ queue — a goal stays in the pool after it is drawn, and can be drawn again.
 
 The pool is the player's own; the game ships with a starting set they can edit rather than
 an empty box, because an empty pool is a blank page at the exact moment the player is least
-invested.
+invested. If a draw finds no eligible goals, the game refuses the draw and prompts the
+player to add or edit goals rather than inventing content or leaving an empty playable
+cell (`D-2026-09-20-1`). Goals already on the board remain eligible to be drawn again —
+the pool is not a queue; a prefer-not-on-board preference can come later as an upgrade.
 
 ### 4.2 Categories
 
@@ -210,7 +213,7 @@ the recycled cell's row and column hold no *other* long-term goal, the rule perm
 long-term goal back into the same cell. §10.3 states what that leaves the floor guaranteeing.
 
 The exact weighting formula is open (§11), but **the long-term draw share is set at
-roughly 5%** (`D-2026-09-19-12`) — the share of the draw's own-rate weighting (the first
+roughly 5%** (`D-2026-09-19-12`), with a verification tolerance of ±5 percentage points (`D-2026-09-20-5`) — the share of the draw's own-rate weighting (the first
 bullet above) given to long-term goals. Simulation showed this is the dial that governs
 ambient friction far more than any player behaviour does: at 5% roughly half the board's
 lines carry an unmarked long-term tile at any moment, which is what `D-2026-09-19-3`'s "the
@@ -288,7 +291,9 @@ need to feel earned rather than dispensed.
 
 Power-ups are bought with **board balance** (§5.3) and act on the board itself:
 
-- **Expand the grid** — permanent, the main long-arc progression (§3.1).
+- **Expand the grid** — permanent, the main long-arc progression (§3.1). Pricing and
+  unlock rules must leave the recovery floor holding at the expanded size
+  (`D-2026-09-20-3`); the exact formula is open (Q10).
 - **Raise the free recycle allowance** — permanently increase how many free recycles a
   24-hour period grants (`D-2026-09-19-7`). This turns the release valve into a progression
   axis rather than a static safety net.
@@ -304,9 +309,12 @@ Power-ups are bought with **board balance** (§5.3) and act on the board itself:
     the recovery floor never needs to recycle a marked tile.
   - **The draw obeys §4.4's placement rules** (`D-2026-09-19-9`) — it will not put a
     long-term goal into a row or column that already holds one.
-  - **A free tier** of one recycle per 24 hours, taken before any board balance is spent and
-    available **unconditionally** rather than only when the board is stuck
-    (`D-2026-09-19-7`). Beyond the allowance, further recycles cost board balance.
+  - **A free tier** whose allowance equals the player's recycle upgrade level (default
+    one), taken before any board balance is spent and available **unconditionally**
+    rather than only when the board is stuck (`D-2026-09-19-7`). The allowance uses a
+    **rolling 24-hour window from first use**: the full current budget restores 24 h
+    after the first recycle in that window (`D-2026-09-20-4`). Beyond the allowance,
+    further recycles cost board balance.
 
 **These are not only progression. They are the release valve** for the blocking behaviour
 in §4.3. Two things hold the valve open, and both are needed: the recycle allowance exists
@@ -418,9 +426,9 @@ depend on a reminder it cannot reliably send.
 
 The player's pool, board, score and rewards are personal. The default is local-first: the
 game works with no account and no network, and data stays on the device unless the player
-asks otherwise (`D-2026-09-19-18`).
-
-Whether sync across devices is offered, and on what terms, is open (§11).
+asks otherwise (`D-2026-09-19-18`). Cross-device sync is deferred (`D-2026-09-19-21`).
+If stored state cannot be read, the game soft-resets to a playable fresh install with the
+starter pool, preserving recoverable counters when cheap (`D-2026-09-20-1`).
 
 ## 10 Scope
 
@@ -506,7 +514,9 @@ up to 30%, well past the shipped value. The mechanical reason is simple once see
 tiles sharing a line, so a maximal jam is always exactly one blocker per line, and any
 successful recycle frees two lines at once. The reserved tightening (extending rule 3 to
 the recycle path) helps, but the untightened floor was already fast. **The recovery floor
-holds.**
+holds.** That measured property is recorded as a soft constraint (`D-2026-09-20-2`);
+re-running the simulation after floor-affecting changes is a link-5 process concern,
+not a link-3 CI gate.
 
 **Board jam itself remains, and is meant to. It is also, on this evidence, rare.** Full jams
 occurred in under 0.05% of simulated hours across every player model — `D-2026-09-19-3`'s
@@ -631,3 +641,8 @@ measured and closed.
   | `D-2026-09-19-18` | Local-first, no account required; sync is a separate question |
   | `D-2026-09-19-24` | Mini-grid population defaults to same pool; sub-pool and player-placed are upgrade options |
   | `D-2026-09-19-25` | Ambient blocking targets a fixed share regardless of grid size |
+  | `D-2026-09-20-1` | Empty pool prompts; corruption soft-resets; on-board goals may redraw |
+  | `D-2026-09-20-2` | Recovery floor is a soft constraint; CI gate deferred to link 5 |
+  | `D-2026-09-20-3` | Grid expansion pricing must preserve the recovery floor |
+  | `D-2026-09-20-4` | Free recycle allowance uses a rolling 24-hour window from first use |
+  | `D-2026-09-20-5` | Long-term draw-share verification tolerance is ±5 percentage points |

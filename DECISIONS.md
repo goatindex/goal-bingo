@@ -3,6 +3,99 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-20-5 — Long-term draw-share verification tolerance is ±5 percentage points
+
+- **Status:** open
+- **Context:** `D-2026-09-19-12` sets the long-term draw share at roughly 5%. Link-3
+  verification for GB-FUN-027 needs a falsifiable band. Without one, "approximately 5%"
+  cannot be tested. The full draw-weighting formula remains open (Q6).
+- **Options considered:** ±1 pp (4–6%) — tighter than simulation resolution and early
+  tuning need (rejected) · leave TBD until Q6 — blocks verifying an already-decided
+  target (rejected) · **±5 percentage points, i.e. observed share in 0–10% with target
+  5% (chosen)**
+- **Why:** Wide enough to absorb formula churn under Q6 without inventing the formula
+  itself; narrow enough that a draw that behaves like 20% long-term fails. Matches the
+  link-3 intent to make the settled dial testable.
+- **Expected outcome:** Large-sample draw tests pass when long-term share is within
+  0–10%; implementations outside that band fail GB-FUN-027.
+- **Revisit:** When Q6 settles the formula. If the formula can hit 5% ±1 pp reliably,
+  tighten the band; if ambient blocking drifts outside the intended feel at the edges
+  of 0–10%, revisit the band before the formula.
+
+## D-2026-09-20-4 — Free recycle allowance uses a rolling 24-hour window from first use
+
+- **Status:** open
+- **Context:** `D-2026-09-19-7` grants a free recycle allowance per 24 hours but does not
+  define the epoch — calendar day, rolling window from last recycle, or rolling window from
+  first use of the current budget. Link-3 mining needs a falsifiable clock.
+- **Options considered:** calendar-day reset — simple but punishes late-evening play and
+  couples the game to local midnight (rejected) · rolling window from each recycle —
+  fragments the budget into per-use cooldowns and fights the "full budget restores"
+  upgrade story (rejected) · **rolling window from first use of the current budget, with
+  the full allowance restored at expiry (chosen)**
+- **Why:** Matches player rhythm, keeps the upgradeable budget as a single pool, and stays
+  independent of timezone. Default allowance is 1; upgrades raise the maximum restored.
+- **Expected outcome:** Players who spend their first free recycle at time T recover the
+  full current allowance at T+24h; mid-window spends draw down the remaining budget.
+- **Revisit:** After first playtest. If players report the window as confusing relative to
+  a calendar day, reconsider a local-midnight alternative.
+
+## D-2026-09-20-3 — Grid expansion pricing must preserve the recovery floor
+
+- **Status:** open
+- **Context:** §3.1 and §6.2 note that expansion raises jam risk and that pricing "has to
+  answer for" that. Q10 leaves prices open. Link 3 needs a binding *principle* without
+  inventing a formula.
+- **Options considered:** cost-relative price (price ≥ expected unjam cost) — needs settled
+  challenge rates first (deferred) · progression gate alone — viable later as one way to
+  satisfy the principle, not required now (deferred) · no principle — reopens the economic
+  trap at larger grids (rejected) · **floor-relative: expansion pricing and unlock rules
+  must leave the recovery floor holding at the expanded size (chosen)**
+- **Why:** Protects the load-bearing recovery property while leaving price, progression
+  gate, or both as later instruments. Verification reuses `sim/jam_sim.py`.
+- **Expected outcome:** Every supported grid size meets the same floor bounds as
+  `D-2026-09-20-2` / GB-CON-013 before that size ships as purchasable.
+- **Revisit:** When Q10 prices are set. If the only way to hold the floor is an unlock gate
+  that feels punitive, revisit the long-term draw share rather than abandon the principle.
+
+## D-2026-09-20-2 — Recovery floor is a soft constraint; CI gate deferred to link 5
+
+- **Status:** open
+- **Context:** Q20 measured the floor (median same-day, p99 one to two days, zero trials
+  jammed after 180 days). The property is distributed across draw, recycle, allowance, and
+  challenge-income requirements. Link 3 needs it named without freezing process.
+- **Options considered:** hard requirement that every related change re-runs the sim in CI —
+  strong but premature before a build pipeline exists (deferred to link 5) · leave unstated —
+  the floor silently disappears from the obligation set (rejected) · **name the property as
+  a soft constraint verified by analysis; defer CI/process enforcement to link 5 (chosen)**
+- **Why:** Keeps the measured guarantee visible and falsifiable. Avoids inventing CI
+  machinery at requirements time.
+- **Expected outcome:** GB-CON-013 cites the sim bounds; a link-5 work package owns when
+  the sim is re-run after draw/recycle/allowance/income changes.
+- **Revisit:** At link 5 decomposition. If the first build changes floor inputs without a
+  regression check, promote to a hard gate immediately.
+
+## D-2026-09-20-1 — Empty pool prompts; corruption soft-resets; on-board goals may redraw
+
+- **Status:** open
+- **Context:** Link-3 mining exposed three unwanted-behaviour gaps: empty/ineligible pool
+  on draw, unreadable local storage, and whether goals already on the board may be redrawn.
+- **Options considered:**
+  - Empty pool: auto-inject starter goals — unjams the draw but invents player content
+    (rejected) · leave empty cells — breaks the board invariant (rejected) · **refuse draw
+    and prompt to add/edit goals (chosen)**
+  - Corruption: refuse until fixed — dead app with no support path (rejected) · silent
+    repair — hides data loss (rejected) · **soft reset to a playable fresh install with
+    starter pool; preserve recoverable counters when cheap (chosen)**
+  - Redraw: forbid duplicates — fights "pool is not a queue" (`§4.1`) (rejected) ·
+    **allow redraw; prefer-not-on-board can be a later preference (chosen)**
+- **Why:** Keeps the board invariant, stays local-first without an account, and leaves
+  upgrade space for duplicate avoidance without changing the base draw rule.
+- **Expected outcome:** Empty-pool draws never present an empty playable board; corrupted
+  storage always relaunches playable; duplicate goals on the board remain legal.
+- **Revisit:** After first playtest. If soft reset loses too much progress, add an export
+  or optional backup path before inventing accounts.
+
 ## D-2026-09-19-25 — Ambient blocking targets a fixed share regardless of grid size
 
 - **Status:** open
