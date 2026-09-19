@@ -3,6 +3,51 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-19-25 — Ambient blocking targets a fixed share regardless of grid size
+
+- **Status:** open
+- **Context:** §10.4 describes ambient blocking — the fraction of lines on the board that
+  carry at least one unmarked long-term goal. The draw-rate formula (`D-2026-09-19-12`)
+  holds that share roughly constant across the three grid sizes tested in simulation
+  (3×3, 5×5, 7×7). Q23 asked whether a fixed share is the right target, or whether it
+  should vary with grid size — because 50% of 6 lines may feel different to a player than
+  50% of 14 lines.
+- **Options considered:** vary target share with grid size (e.g. lower share on large grids
+  to keep absolute blocked-line count constant) — adds a free parameter with no data yet
+  on player perception; can be revisited once playtesting exists (rejected for now) ·
+  **fixed share regardless of grid size (chosen)**
+- **Why:** The simulation held the floor safe at a fixed draw share across all grid sizes
+  tested, and the perception difference is speculative — no playtest data yet justifies
+  adding a second dial. A fixed share is the simpler rule. If playtesting reveals that a
+  large board with 50% blocked lines feels overwhelming, this is the dial to touch.
+- **Expected outcome:** Players on all grid sizes encounter roughly the same *proportion*
+  of long-term blocked lines; whether absolute count matters is deferred to playtesting.
+- **Revisit:** After first playtest on multiple grid sizes. If players report that large
+  grids feel more oppressive or small grids feel too easy, adjust the target share by grid
+  size.
+
+## D-2026-09-19-24 — Mini-grid population defaults to the same goal pool; sub-pool and player-placed are upgrade options
+
+- **Status:** open
+- **Context:** A mini-grid tile contains a smaller internal bingo grid (`D-2026-09-19-20`).
+  Q11 asks how the cells of that mini-grid are populated. Three options were on the table:
+  draw from the same pool the main board uses, draw from a player-designated sub-pool, or
+  let the player place goals manually.
+- **Options considered:** sub-pool by default — requires the player to curate a second list
+  before the mini-grid is useful; too much friction for a base feature (rejected) ·
+  player-placed by default — same problem; the blank grid blocks progress until filled
+  (rejected) · **same pool as default; sub-pool and player-placed available as upgrades
+  (chosen)**
+- **Why:** Drawing from the main pool is consistent with how every other tile is populated;
+  the player has no extra setup work, and the mini-grid is immediately useful. Sub-pool and
+  player-placed are genuine upgrades — they give more control at the cost of curation effort
+  — and unlock later without cluttering the base game.
+- **Expected outcome:** Mini-grid tiles work out of the box with no new player configuration;
+  players who want finer control can unlock the sub-pool or player-placed upgrade.
+- **Revisit:** If playtesting shows the default pool produces poor mini-grid goal sets (e.g.
+  all same cadence, all same category), revisit whether the draw rules inside the mini-grid
+  should differ from the main board's draw rules.
+
 ## D-2026-09-19-15 — Perpendicular progress is lost on a clear; compensation is an upgrade area
 
 - **Status:** open
