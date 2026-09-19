@@ -2,8 +2,8 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/workflows/adversarial-review.yml
-# Commit: 407115d
-# Copied: 2026-09-19
+# Commit: 4110f7c
+# Copied: 2026-09-20
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
 # lost at the next refresh, and drift is reported by --check.
@@ -100,6 +100,13 @@ jobs:
             These are not hypothetical. Each cost real defects in this estate and each
             passed CI, tests and a human read.
 
+            **Before reading further:** check whether this diff contains any code, tests,
+            or CI changes. If the diff is documentation-only (only markdown, prose, or
+            config files — no source code, no test files, no workflow files), skip items
+            1, 2, and 3 below entirely. Jump straight to item 4 and then Part 2. Items
+            1–3 require code or tests to exist; spending turns looking for them in a
+            documentation diff wastes the turn budget on nothing.
+
             1. **A test that restates the implementation's assumption instead of reading
                the source of truth.** Where a test and the code both name the same literal -
                a string key, an output format, a schema field, a section name - ask where
@@ -131,8 +138,11 @@ jobs:
             Ways of working requires that work carrying a documentation obligation updates
             it in the same pull request, reviewed independently, and that this is blocking.
 
-            - Does this change alter what a reader of README.md, STATE.md, CHAIN.md,
-              ARCHITECTURE.md or a requirement set would need to know? If so, is that
+            - Does this change alter what a reader of the repository's documentation
+              files would need to know? Check which of README.md, STATE.md, CHAIN.md,
+              ARCHITECTURE.md exist in this repository first (use Glob or Read — do not
+              assume any of them are present). For each that exists: is the relevant
+              update in this diff? Also check for a requirement set directory. If so, is that
               update in this diff?
             - Is any figure or status in an updated document now stale because of this very
               diff? State the number the diff implies against the number written.
