@@ -8,15 +8,25 @@ Design stage. The framing document (`docs/design-description.md`) is written and
 full vision; the founding decisions are recorded. Nothing is built.
 
 The next move is **link 3 — requirements**: mine the design description section by section
-into a conformant requirement set, using the `incose-requirements` skill. Twelve open
-questions (§11) need answers before the sections that depend on them can be mined, but most
-sections do not depend on them and can be mined now.
+into a conformant requirement set, using the `incose-requirements` skill. Sixteen open
+questions (§11) are registered; most sections do not depend on them and can be mined now.
+
+**Q13 is the one that matters.** The design as it stands has an unrecoverable state — a
+jammed board earns no balance, and balance is the only way to buy the power-ups that unjam
+it. Until there is a recovery floor, a prototype can be built into a dead end. Answer Q13
+before building anything, not before mining.
 
 ## Next up
 
-- **Answer the open questions that gate mining.** Q2, Q3, Q4 (line rules) and Q9 (the
-  two-counter model) block §3.4 and §5.3 and are cheap to settle. The tuning questions (Q1,
-  Q6, Q7, Q8, Q10) do not need answers before a prototype exists and should not be guessed.
+- **Answer Q13 — the recovery floor.** What income or action exists at zero balance on a
+  jammed board? This is a design decision, not a tuning number, and it needs a `D-` record.
+- **Answer the cheap questions that gate mining.** Q2, Q3 and Q4 (line rules), Q14
+  (perpendicular progress destroyed by a clear) and Q9 (the two-counter model) block §3.4
+  and §5.3. The tuning questions (Q1, Q6, Q7, Q8, Q10) do not need answers before a
+  prototype exists and should not be guessed.
+- **Write the missing decision records.** §9.2 commits to local-first with no account, and
+  §4.2 to fixed categories before user-defined ones. Both state rejected alternatives in
+  prose but have no `D-` record, so the reverse walk has no root for them.
 - **Link 3 — requirements.** Fix the entity, boundary and glossary first; the entity is the
   app, and terms like *tile*, *cell*, *line*, *clear*, *pool*, *mark* and *balance* need
   pinning down before any `shall` is written. Requirements cite `design-description.md <n>`
@@ -59,11 +69,20 @@ directions, and link 4 has cut it into work packages with a shippable first pack
   new work superseding unchained code, not as a change (`D-2026-09-19-5`).
 - Cleared `goatindex/goal-bingo` to design stage. The prototype is preserved at tag
   `v1-phaser-prototype` and in history; nothing was force-pushed or rewritten.
-- **Link 1 — decisions.** Four records in `DECISIONS.md`: mobile-first PWA
+- **Link 1 — decisions.** Five records in `DECISIONS.md`: mobile-first PWA
   (`D-2026-09-19-1`), marks persist until the line clears (`D-2026-09-19-2`), long-term
   goals block by design with advanced tiles as the later release valve (`D-2026-09-19-3`),
-  and the design description covering the full vision with the cut deferred to link 4
-  (`D-2026-09-19-4`).
-- **Link 2 — framing.** Wrote `docs/design-description.md`: twelve numbered sections, four
-  carrying explicit `requirements: none` declarations, twelve open questions registered
-  rather than guessed at.
+  the design description covering the full vision with the cut deferred to link 4
+  (`D-2026-09-19-4`), and restarting rather than evolving the prototype
+  (`D-2026-09-19-5`).
+- **Link 2 — framing.** Wrote `docs/design-description.md`: 36 numbered sections, 12
+  carrying explicit `requirements: none` declarations, 16 open questions registered rather
+  than guessed at.
+- **Link 6 — review.** An adversarial review of the design found eight substantive defects,
+  all fixed on the branch before merge. The important one: §10.3's risk analysis was wrong.
+  It named board jam as the central risk and claimed three guards, but two of the three do
+  not hold — the grid-aware draw is preventive only and cannot run on an already-jammed
+  board, and advanced tiles are not present at first release by decision. The real worst
+  case is an **economic trap**: balance is earned only by clearing, so a jammed board earns
+  nothing and cannot pay for the power-ups that would unjam it. Now registered as Q13, the
+  one question that blocks a prototype.

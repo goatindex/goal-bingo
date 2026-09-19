@@ -60,13 +60,19 @@ offers more lines, and makes higher-scoring combinations possible.
 
 Starting size and the sizes expansion steps through are open (§11).
 
+Expansion is not purely a benefit. A larger grid means longer lines, so any given line is
+more likely to contain a blocking long-term goal (§4.3), and every line already in progress
+is retroactively lengthened. Expansion therefore raises the risk described in §10.3 at the
+same time as it raises the ceiling, and its pricing has to answer for that.
+
 ### 3.2 Cells and tiles
 
 A cell holds one tile. A tile carries the goal drawn into it, its category, and whether it
 is marked. Ordinary tiles need one completion. Advanced tiles (§7) need more.
 
-An empty cell is a transient state between a line clearing and the refill landing; the
-board is never left with holes the player can see for long.
+An empty cell is a transient state between a line clearing and the refill landing. The
+board is never presented to the player as playable while it holds an empty cell: the refill
+completes before the player can act again.
 
 ### 3.3 Marking
 
@@ -85,9 +91,15 @@ A line is a complete row or column. Whether diagonals also count is open (§11).
 When a line's every cell is marked, the line clears at once: score is awarded (§5), the
 cells empty, and the refill draws new goals into them (§4.4).
 
-Two resolution questions fall out of this and are open (§11): what happens when completing
-one cell finishes a row and a column simultaneously, and what happens to a cell that sits
-in the intersection of two clearing lines.
+Three resolution questions fall out of this and are open (§11): what happens when completing
+one cell finishes a row and a column simultaneously (Q3), what happens to a cell in the
+intersection of two clearing lines (Q4), and — the common case, not the exotic one — what
+happens to the **perpendicular progress a clear destroys** (Q14).
+
+That last one needs stating plainly, because it is easy to miss. Clearing a row empties
+cells that were also marked contributions to their columns. A player one cell short of
+completing a column can have that column reset by a row clear they wanted. Whether those
+marks are lost, preserved, or compensated is a core pacing rule and is not yet decided.
 
 ## 4 Goals
 
@@ -133,12 +145,19 @@ weighted by two things:
 
 - **The goal's own rate.** A long-term goal should surface rarely; a daily health goal
   should surface often.
-- **What is already on the grid.** The draw reads the current board so it does not stack
-  long-term tiles into the same row, flood one category, or hand the player a board with no
-  completable line.
+- **What is already on the grid.** The draw reads the current board before placing anything.
 
-The second is what keeps the board playable, and it is the first line of defence against
-the deadlock described in §10.3. The weighting formula is open (§11).
+The second is three separate obligations, listed separately here because they become
+separate requirements: the draw should avoid placing a long-term goal into a row **or
+column** that already holds one; it should avoid flooding a single category; and it should
+prefer placements that leave at least one line completable.
+
+That third obligation is bounded by what a refill can reach. Refill touches only the cells
+a clear has just emptied, so it can influence the board but cannot guarantee a whole-board
+property — and it does not run at all on a board that is already jammed, because nothing is
+clearing. It is a preventive measure, not a cure. §10.3 sets out what that leaves uncovered.
+
+The weighting formula is open (§11).
 
 ## 5 Scoring
 
@@ -170,10 +189,13 @@ Which combinations exist, and what each is worth, is open (§11).
 Points do two incompatible jobs: they are the record of what the player has achieved, and
 they are the currency they spend. Spending must not erase achievement.
 
-The game therefore keeps **two counters**: a **lifetime score** that only ever rises and
-drives statistics, achievements and progression, and a **spendable balance** that a clear
-adds to and a purchase subtracts from. Cashing in a reward costs balance and leaves the
-lifetime record untouched.
+The model proposed here — proposed, not decided, see Q9 — is **two counters**: a **lifetime
+score** that only ever rises and drives statistics, achievements and progression, and a
+**spendable balance** that a clear adds to and a purchase subtracts from. Cashing in a
+reward would cost balance and leave the lifetime record untouched.
+
+Nothing else in this document depends on which way Q9 is settled. §10.3 does depend on the
+separate fact that balance is earned only by clearing lines.
 
 ## 6 The economy
 
@@ -194,18 +216,27 @@ Power-ups are bought with balance and act on the board itself:
 
 - **Expand the grid** — permanent, the main long-arc progression (§3.1).
 - **Swap two adjacent tiles** — move a blocking goal into a line the player can afford to
-  stall.
+  stall. A swap does not by itself reduce how many lines are blocked: a blocker moved one
+  cell still blocks one row and one column. It helps by **consolidating** — putting two
+  blockers into the same line so the rest of the board frees up. Whether that is the
+  intended mechanic, and whether adjacent-only swapping is enough to achieve it, is open
+  (Q15).
 - **Re-draw a tile** — discard a goal and draw a replacement from the pool.
 
 **These are not only progression. They are the release valve** for the blocking behaviour
-in §4.3, which is why §10.3 matters and why pricing them is a correctness question rather
-than a balance preference.
+in §4.3, which is why pricing them is a correctness question rather than a balance
+preference. §10.3 explains why pricing alone does not settle it: a valve a player cannot
+afford at zero balance is not a valve.
 
 ## 7 Advanced tiles
 
 Advanced tiles are bought into after some play (`D-2026-09-19-3`). They exist so that
 long-term goals can eventually feel like they are *moving* rather than just sitting, without
 that complexity being present on day one.
+
+How they are acquired — bought with balance like a power-up, unlocked at a progression
+threshold, or both — is open (Q16). They are not in the power-up list in §6.2, so the
+economy does not currently carry them.
 
 ### 7.1 Multi-completion tiles
 
@@ -285,22 +316,38 @@ economy and power-ups, advanced tiles, statistics, challenges and achievements
   not offer coaching, wellbeing advice or clinical content.
 - **Real-money purchase of points or power-ups.** Balance is earned by clearing lines.
 
-### 10.3 The risk this design carries
+### 10.3 The risks this design carries
 
-The combination of §3.3's persistent marks and §4.3's blocking long-term goals has a
-failure mode: over time the board fills with marked cells that cannot clear because every
-line contains an unfinished long-term tile. The player then has a board where nothing is
-completable and the only available action is to wait — which is the moment a habit game
-loses its player.
+Two failure modes fall out of the interaction between persistent marks (§2 step 3, §3.4)
+and blocking long-term goals (§4.3). The second is the more dangerous.
 
-Three things guard against it, and all three have to hold:
+**Board jam.** Over time the board fills with marked cells that cannot clear, because every
+line contains an unfinished long-term tile. Nothing is completable and the only available
+action is to wait — which is the moment a habit game loses its player.
 
-1. The **grid-aware draw** (§4.4) refuses to stack long-term tiles into the same lines.
-2. The **swap and re-draw power-ups** (§6.2) let a player break a jam, which means they must
-   stay affordable at the point a jam is likely rather than being priced as luxuries.
-3. **Advanced tiles** (§7) turn a long block into visible progress once the player has them.
+**The economic trap, which is worse.** Balance is earned *only* by clearing lines, and
+§10.2 forbids buying points. A jammed board clears nothing, so it earns nothing — and the
+power-ups that would break the jam (§6.2) draw on the one income stream the jam has stopped.
+A player who has also spent balance on rewards (§6.1) can reach a state with a jammed board,
+no balance, and no mechanism that produces either. That is not a difficulty spike; it is an
+unrecoverable save.
 
-This is the design's central tension and the thing a prototype must be built to test first.
+Jams and the trap are different problems, and the guards do not cover them equally:
+
+| Guard | What it actually does | When it acts |
+|---|---|---|
+| Grid-aware draw (§4.4) | Refuses to stack long-term tiles into the same lines | **Preventive only.** It runs on refill, and refill happens only when a line clears — so it never runs on a board that is already jammed |
+| Swap and re-draw power-ups (§6.2) | Let a player move or discard a blocker | Curative, but only while balance lasts, and the trap above is exactly the case where it does not |
+| Advanced tiles (§7) | Turn a long block into visible progress | **Not present at first release** (`D-2026-09-19-3`). A multi-completion tile also makes its line *harder*, not easier — this guards motivation, not jams |
+
+So the shipped configuration has one preventive guard that cannot act once the problem has
+occurred, and one curative guard that the problem itself can disable. **That is not enough.**
+The missing piece is a **recovery floor** — income or an action that still exists at zero
+balance. What form it takes is open (Q13).
+
+Grid expansion (§3.1) aggravates both modes rather than relieving them.
+
+This is the design's central tension, and the first thing a prototype must be built to test.
 
 ## 11 Open questions
 
@@ -319,10 +366,17 @@ invented here reads as fact once it is a requirement.
 | Q6 | The draw-weighting formula, and its grid-awareness rules | §4.4 |
 | Q7 | Base point values | §5.1 |
 | Q8 | Which combos exist and what each multiplies by | §5.2 |
-| Q9 | Confirm the two-counter model (lifetime score vs spendable balance) | §5.3 |
-| Q10 | Power-up prices — constrained by the deadlock guard, not free to tune | §6.2, §10.3 |
+| Q9 | Settle the two-counter model (lifetime score vs spendable balance) | §5.3 |
+| Q10 | Power-up prices — constrained by the recovery floor, not free to tune | §6.2, §10.3 |
 | Q11 | How a mini-grid is populated and scored | §7.2 |
 | Q12 | Whether cross-device sync is offered | §9.2 |
+| Q13 | **The recovery floor.** What income or action exists at zero balance on a jammed board? Without an answer the design has an unrecoverable state | §10.3, §6.2 |
+| Q14 | What happens to perpendicular progress a clear destroys — lost, preserved, or compensated | §3.4 |
+| Q15 | Whether consolidation is the intended swap mechanic, and whether adjacent-only swapping achieves it | §6.2 |
+| Q16 | How advanced tiles are acquired, and whether the economy carries them | §7 |
+
+Q13 is the one that blocks a prototype. The others can be answered by playing; Q13 has to be
+answered before there is anything safe to play.
 
 ## 12 Decision index
 
