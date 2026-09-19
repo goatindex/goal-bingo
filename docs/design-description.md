@@ -87,20 +87,23 @@ from.
 
 ### 3.4 Lines and clearing
 
-A line is a complete row or column. Whether diagonals also count is open (§11).
+A line is a complete row, column, or diagonal (`D-2026-09-19-13`).
 
 When a line's every cell is marked, the line clears at once: score is awarded (§5), the
 cells empty, and the refill draws new goals into them (§4.4).
 
-Three resolution questions fall out of this and are open (§11): what happens when completing
-one cell finishes a row and a column simultaneously (Q3), what happens to a cell in the
-intersection of two clearing lines (Q4), and — the common case, not the exotic one — what
-happens to the **perpendicular progress a clear destroys** (Q14).
+**Simultaneous completion.** When one mark completes more than one line at once, every line
+resolves — each clears, scores, and refills — and bonus points are awarded for the
+multi-clear (`D-2026-09-19-13`). The cell at the intersection of two clearing lines receives
+distinct visual treatment and is the anchor for the multi-clear bonus calculation
+(`D-2026-09-19-14`).
 
-That last one needs stating plainly, because it is easy to miss. Clearing a row empties
-cells that were also marked contributions to their columns. A player one cell short of
-completing a column can have that column reset by a row clear they wanted. Whether those
-marks are lost, preserved, or compensated is a core pacing rule and is not yet decided.
+**Perpendicular progress.** Clearing a row or diagonal empties cells that were also marked
+contributions toward their columns (or other perpendicular lines). A player one cell short
+of completing a column can have that progress reset by a row clear they intended. Those
+marks are lost — the perpendicular count drops (`D-2026-09-19-15`). This is the base rule.
+Power-up and upgrade mechanics that preserve, carry forward, or compensate perpendicular
+progress are a designated upgrade area; none ship with the base game.
 
 ## 4 Goals
 
@@ -529,9 +532,9 @@ invented here reads as fact once it is a requirement.
 | # | Question | Blocks |
 |---|---|---|
 | Q1 | Starting grid size, and the sizes expansion steps through | §3.1 |
-| Q2 | Do diagonals count as lines? | §3.4 |
-| Q3 | Resolution when one mark completes a row and a column at once | §3.4 |
-| Q4 | What happens to a cell shared by two clearing lines | §3.4 |
+  | ~~Q2~~ | ~~Do diagonals count as lines?~~ — **resolved** by `D-2026-09-19-13`: diagonals count | §3.4 |
+  | ~~Q3~~ | ~~Resolution when one mark completes a row and a column at once~~ — **resolved** by `D-2026-09-19-13`: every completing line resolves; bonus points for the multi-clear | §3.4 |
+  | ~~Q4~~ | ~~What happens to a cell shared by two clearing lines~~ — **resolved** by `D-2026-09-19-14`: distinct visual treatment; anchor for the multi-clear bonus | §3.4 |
 | Q5 | The starting category list | §4.2 |
 | Q6 | The draw-weighting formula, and its grid-awareness rules | §4.4 |
 | Q7 | Base point values | §5.1 |
@@ -541,7 +544,7 @@ invented here reads as fact once it is a requirement.
 | Q11 | How a mini-grid is populated and scored | §7.2 |
 | Q12 | Whether cross-device sync is offered | §9.2 |
 | ~~Q13~~ | ~~The recovery floor~~ — **resolved** by `D-2026-09-19-6` (jam-proof income) and `D-2026-09-19-7` (a free action at zero balance) | §10.3, §6.2 |
-| Q14 | What happens to perpendicular progress a clear destroys — lost, preserved, or compensated | §3.4 |
+  | ~~Q14~~ | ~~What happens to perpendicular progress a clear destroys — lost, preserved, or compensated~~ — **resolved** by `D-2026-09-19-15`: marks lost; compensation is a designated upgrade area | §3.4 |
 | Q15 | Whether consolidation is the intended swap mechanic, and whether adjacent-only swapping achieves it | §6.2 |
 | Q16 | How advanced tiles are acquired, and whether the economy carries them | §7 |
 | Q17 | How far the free recycle allowance can be upgraded, what each step costs, and whether it is capped | §6.2 |
@@ -551,7 +554,7 @@ invented here reads as fact once it is a requirement.
 | Q21 | What share of the board counts as one category dominating it (§4.4 rule 2) | §4.4 |
 | Q22 | How the remaining draw weight splits across the three short-term cadences (hourly/daily/weekly), now that the long-term share is set | §4.4, §4.3 |
 | Q23 | Whether ambient blocking (§10.4) should target a fixed share, or vary with grid size — the simulation held it roughly constant across grids 3, 5 and 7 at a fixed draw share, but did not test whether a player perceives 50% of 6 lines the same as 50% of 14 | §10.4, §3.1 |
-| Q24 | Whether `sim/jam_sim.py`'s harsher assumptions (Q14 read as marks lost on a perpendicular clear; swap not modelled; challenge income idealised as always-available) should be revisited once those questions settle, to confirm the floor still holds under friendlier ones | §10.3, §10.4 |
+  | Q24 | Whether `sim/jam_sim.py`'s remaining harsher assumptions (swap not modelled; challenge income idealised as always-available) should be revisited once those questions settle — the Q14 assumption (marks lost) is now the decided rule (`D-2026-09-19-15`) and is confirmed | §10.3, §10.4 |
 
 Q22 through Q24 are new, surfaced by building the Q20 simulation rather than by review. A
 simulation answers the question it was pointed at and exposes the ones nobody had framed
@@ -560,11 +563,9 @@ yet — Q23 and Q24 are exactly that, and neither was visible before the numbers
 Resolved questions are struck through rather than deleted — the register is a record, and a
 question that was asked and answered is different from one nobody raised.
 
-**Nothing now blocks a prototype.** Q13 did; it is closed. Q20 is the one a prototype exists
-to answer — the recovery floor is sound in structure but unbounded in time, and only
-measurement settles whether that is acceptable. Q18 must be answered before board balance
-can be tuned at all, and Q14 is the next most valuable after that because it changes how the
-board feels to play.
+**Nothing now blocks a prototype.** Q13 did; it is closed. Q18 must be answered before
+board balance can be tuned at all — it is the next most valuable open question. Q20 is
+measured and closed.
 
 ## 12 Decision index
 
@@ -582,5 +583,8 @@ board feels to play.
 | `D-2026-09-19-8` | Challenges pay board balance incrementally, per qualifying mark |
 | `D-2026-09-19-9` | The recycle draw obeys §4.4's placement rules; the floor is probabilistic |
 | `D-2026-09-19-10` | A recycle operates on unmarked tiles only |
-| `D-2026-09-19-11` | Goals sit on two independent axes: category and cadence |
-| `D-2026-09-19-12` | Long-term draw share set to roughly 5% |
+  | `D-2026-09-19-11` | Goals sit on two independent axes: category and cadence |
+  | `D-2026-09-19-12` | Long-term draw share set to roughly 5% |
+  | `D-2026-09-19-13` | Diagonals count as lines; all completing lines resolve on a simultaneous mark |
+  | `D-2026-09-19-14` | The intersection cell is the visual focal point and anchor for the multi-clear bonus |
+  | `D-2026-09-19-15` | Perpendicular progress is lost on a clear; compensation is an upgrade area |
