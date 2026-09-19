@@ -72,11 +72,12 @@ directions, and link 4 has cut it into work packages with a shippable first pack
   labels and forms. Worth adding before the first build work, not before the requirements
   exist. (Branch protection is unavailable on a private repo under the current plan — F-36;
   the session hook is what enforces branch-and-PR here.)
-- **The adversarial reviewer needs its secret before it can run.** The workflow is adopted
-  as a generated copy, but `CLAUDE_CODE_OAUTH_TOKEN` is not set on this repo and the
-  workflow **fails rather than skips** without it — deliberately, since an unreviewed pull
-  request is not a reviewed one. Until the secret is set, every PR check goes red and the
-  `GUARD_ALLOW_UNREVIEWED=1` exception is still needed.
+- ~~The adversarial reviewer needs its secret~~ — **done 2026-09-19.** The workflow is
+  adopted as a generated copy, `CLAUDE_CODE_OAUTH_TOKEN` is set, and PR #4 merged. Its own
+  check failed by design: `claude-code-action` refuses to run when a pull request adds or
+  modifies its own workflow file, so that merge took the last recorded
+  `GUARD_ALLOW_UNREVIEWED=1`. From here the reviewer runs on every non-draft pull request
+  and the exception should not be needed again.
 - **Mine the prototype before building.** `v1-phaser-prototype` has working Phaser scene
   management, a layout manager, a UI container and an audio system. Its *game* is not this
   game (`D-2026-09-19-5`), but that scaffolding is real and reading it is cheaper than
