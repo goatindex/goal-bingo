@@ -37,7 +37,7 @@ The loop is continuous. There is no end state, no level to finish, and no sessio
    from the pool.
 5. Clearing scores points, based on what was in the line.
 6. Points are spent on personal rewards and on power-ups.
-7. Power-ups change the board itself — a larger grid, a swap, a re-draw.
+7. Power-ups change the board itself — a larger grid, a swap, a recycle.
 
 ### 2.1 Why bingo rather than a checklist
 
@@ -189,13 +189,21 @@ Which combinations exist, and what each is worth, is open (§11).
 Points do two incompatible jobs: they are the record of what the player has achieved, and
 they are the currency they spend. Spending must not erase achievement.
 
-The model proposed here — proposed, not decided, see Q9 — is **two counters**: a **lifetime
-score** that only ever rises and drives statistics, achievements and progression, and a
-**spendable balance** that a clear adds to and a purchase subtracts from. Cashing in a
-reward would cost balance and leave the lifetime record untouched.
+There are **three counters** (`D-2026-09-19-6`):
 
-Nothing else in this document depends on which way Q9 is settled. §10.3 does depend on the
-separate fact that balance is earned only by clearing lines.
+| Counter | Fed by | Spent on | Direction |
+|---|---|---|---|
+| **Lifetime score** | every clear | nothing — it is a record, not a currency | only ever rises |
+| **Reward balance** | clearing lines (§5.1, §5.2) | personal rewards (§6.1) | rises and falls |
+| **Board balance** | mark-based challenges (§8.2) | board actions — power-ups, recycles, grid expansion (§6.2) | rises and falls |
+
+The split between the two balances is not bookkeeping. It is what stops the economy having
+an unrecoverable state, and §10.3 explains the mechanism. The short version: **marking still
+works on a jammed board; only clearing stops.** Board balance is therefore fed by something
+a jam cannot switch off, and personal rewards cannot drain it.
+
+It also means the two layers of the game fund each other. Playing the board well buys
+rewards in real life; doing your goals consistently buys power on the board.
 
 ## 6 The economy
 
@@ -207,26 +215,36 @@ The player defines their own rewards and their own prices — a takeaway, an eve
 purchase they have been deferring. The game holds the ledger; it does not supply the
 rewards or judge them.
 
+Rewards are bought with **reward balance**, which comes from clearing lines (§5.3). They
+cannot be bought with board balance, and spending here can never affect the player's ability
+to act on the board.
+
 This is what connects the grid to the player's actual life, and it is the reason points
 need to feel earned rather than dispensed.
 
 ### 6.2 Power-ups
 
-Power-ups are bought with balance and act on the board itself:
+Power-ups are bought with **board balance** (§5.3) and act on the board itself:
 
 - **Expand the grid** — permanent, the main long-arc progression (§3.1).
+- **Raise the free recycle allowance** — permanently increase how many free recycles a
+  24-hour period grants (`D-2026-09-19-7`). This turns the release valve into a progression
+  axis rather than a static safety net.
 - **Swap two adjacent tiles** — move a blocking goal into a line the player can afford to
   stall. A swap does not by itself reduce how many lines are blocked: a blocker moved one
   cell still blocks one row and one column. It helps by **consolidating** — putting two
   blockers into the same line so the rest of the board frees up. Whether that is the
   intended mechanic, and whether adjacent-only swapping is enough to achieve it, is open
   (Q15).
-- **Re-draw a tile** — discard a goal and draw a replacement from the pool.
+- **Recycle a tile** — discard a goal and draw a replacement from the pool. This is the
+  primary way out of a blocked line, so it carries a **free tier**: one recycle per 24 hours
+  at no cost, before any board balance is spent (`D-2026-09-19-7`). Beyond the allowance,
+  further recycles cost board balance.
 
 **These are not only progression. They are the release valve** for the blocking behaviour
-in §4.3, which is why pricing them is a correctness question rather than a balance
-preference. §10.3 explains why pricing alone does not settle it: a valve a player cannot
-afford at zero balance is not a valve.
+in §4.3. Two things make the valve reliable, and both are needed: the recycle allowance
+exists at zero balance, and board balance is fed by something a jam cannot switch off
+(§5.3). §10.3 sets out the failure they jointly close.
 
 ## 7 Advanced tiles
 
@@ -265,9 +283,18 @@ modes and achievements.
 
 ### 8.2 Challenge modes
 
-Self-set targets for a number of clears by category over a period — a health push, a study
-block. The first cut ships a few predefined challenges with sensible progression rather
-than a free-form builder, for the same reason categories are fixed first (§4.2).
+Self-set targets over a period — a health push, a study block. The first cut ships a few
+predefined challenges with sensible progression rather than a free-form builder, for the
+same reason categories are fixed first (§4.2).
+
+**Challenges are counted from marks, not from clears** (`D-2026-09-19-6`), and this is a
+constraint rather than a preference. Challenges are the sole source of board balance (§5.3),
+so a challenge that required clearing lines would stop paying in exactly the situation the
+board balance exists to rescue. "Mark twenty health goals this week" survives a jam; "clear
+ten lines this week" does not.
+
+Challenges are therefore the game's meta-goal layer, and the thing that keeps the board
+solvent.
 
 ### 8.3 Achievements
 
@@ -325,29 +352,43 @@ and blocking long-term goals (§4.3). The second is the more dangerous.
 line contains an unfinished long-term tile. Nothing is completable and the only available
 action is to wait — which is the moment a habit game loses its player.
 
-**The economic trap, which is worse.** Balance is earned *only* by clearing lines, and
-§10.2 forbids buying points. A jammed board clears nothing, so it earns nothing — and the
-power-ups that would break the jam (§6.2) draw on the one income stream the jam has stopped.
-A player who has also spent balance on rewards (§6.1) can reach a state with a jammed board,
-no balance, and no mechanism that produces either. That is not a difficulty spike; it is an
-unrecoverable save.
+**The economic trap, which was worse.** In this document's first draft, balance was earned
+*only* by clearing lines, and §10.2 forbids buying points. A jammed board cleared nothing,
+so it earned nothing — and the power-ups that would break the jam (§6.2) drew on the one
+income stream the jam had stopped. A player who had also spent balance on rewards could
+reach a board with no completable line, no balance, and no mechanism producing either. That
+was not a difficulty spike; it was an unrecoverable save.
 
-Jams and the trap are different problems, and the guards do not cover them equally:
+**It is closed by `D-2026-09-19-6` and `D-2026-09-19-7`,** which attack it from both ends:
+
+- **Income a jam cannot stop.** Board balance is fed by mark-based challenges (§8.2), and
+  marking still works when nothing is clearing. Personal rewards spend from a separate
+  budget, so cashing out cannot strand the player (§5.3).
+- **An action that costs nothing.** One free recycle per 24 hours, taken before any balance
+  is spent, with the allowance itself upgradeable (§6.2).
+
+The first guarantees the player can always *earn* a way out; the second guarantees they can
+always *take* one at zero. Neither is sufficient alone — a new player has no challenge
+income yet, and an allowance by itself would run out against a badly jammed board.
+
+**Board jam itself remains, and is meant to.** It is the friction `D-2026-09-19-3` chose.
+What has been removed is the state where a jam is permanent.
+
+The three original guards, restated honestly:
 
 | Guard | What it actually does | When it acts |
 |---|---|---|
 | Grid-aware draw (§4.4) | Refuses to stack long-term tiles into the same lines | **Preventive only.** It runs on refill, and refill happens only when a line clears — so it never runs on a board that is already jammed |
-| Swap and re-draw power-ups (§6.2) | Let a player move or discard a blocker | Curative, but only while balance lasts, and the trap above is exactly the case where it does not |
+| Recycle and swap, plus the free allowance (§6.2) | Let a player move or discard a blocker | Curative, and now reliable — the allowance exists at zero balance, and board balance survives a jam |
 | Advanced tiles (§7) | Turn a long block into visible progress | **Not present at first release** (`D-2026-09-19-3`). A multi-completion tile also makes its line *harder*, not easier — this guards motivation, not jams |
 
-So the shipped configuration has one preventive guard that cannot act once the problem has
-occurred, and one curative guard that the problem itself can disable. **That is not enough.**
-The missing piece is a **recovery floor** — income or an action that still exists at zero
-balance. What form it takes is open (Q13).
+Grid expansion (§3.1) still aggravates jam risk rather than relieving it, and its pricing
+has to answer for that.
 
-Grid expansion (§3.1) aggravates both modes rather than relieving them.
+How long a jam should be *allowed* to last before the design treats it as a defect is still
+open, and Q10 bears on it directly.
 
-This is the design's central tension, and the first thing a prototype must be built to test.
+This remains the first thing a prototype must be built to test.
 
 ## 11 Open questions
 
@@ -366,17 +407,23 @@ invented here reads as fact once it is a requirement.
 | Q6 | The draw-weighting formula, and its grid-awareness rules | §4.4 |
 | Q7 | Base point values | §5.1 |
 | Q8 | Which combos exist and what each multiplies by | §5.2 |
-| Q9 | Settle the two-counter model (lifetime score vs spendable balance) | §5.3 |
+| ~~Q9~~ | ~~Settle the two-counter model~~ — **resolved** by `D-2026-09-19-6`: three counters, two of them spendable | §5.3 |
 | Q10 | Power-up prices — constrained by the recovery floor, not free to tune | §6.2, §10.3 |
 | Q11 | How a mini-grid is populated and scored | §7.2 |
 | Q12 | Whether cross-device sync is offered | §9.2 |
-| Q13 | **The recovery floor.** What income or action exists at zero balance on a jammed board? Without an answer the design has an unrecoverable state | §10.3, §6.2 |
+| ~~Q13~~ | ~~The recovery floor~~ — **resolved** by `D-2026-09-19-6` (jam-proof income) and `D-2026-09-19-7` (a free action at zero balance) | §10.3, §6.2 |
 | Q14 | What happens to perpendicular progress a clear destroys — lost, preserved, or compensated | §3.4 |
 | Q15 | Whether consolidation is the intended swap mechanic, and whether adjacent-only swapping achieves it | §6.2 |
 | Q16 | How advanced tiles are acquired, and whether the economy carries them | §7 |
+| Q17 | How far the free recycle allowance can be upgraded, what each step costs, and whether it is capped | §6.2 |
+| Q18 | Which mark-based challenges ship first, and what each pays into board balance | §8.2, §5.3 |
 
-Q13 is the one that blocks a prototype. The others can be answered by playing; Q13 has to be
-answered before there is anything safe to play.
+Resolved questions are struck through rather than deleted — the register is a record, and a
+question that was asked and answered is different from one nobody raised.
+
+**Nothing now blocks a prototype.** Q13 did; it is closed. Q14 is the next most valuable
+answer because it changes how the board feels to play, and Q18 is the one that must be
+answered before board balance can be tuned at all.
 
 ## 12 Decision index
 
@@ -389,3 +436,5 @@ answered before there is anything safe to play.
 | `D-2026-09-19-3` | Long-term goals block; advanced tiles are the later release valve |
 | `D-2026-09-19-4` | This document covers the full vision; the cut happens at link 4 |
 | `D-2026-09-19-5` | Restart from design rather than evolve the Phaser prototype |
+| `D-2026-09-19-6` | Two spendable budgets; meta-goals fund board actions |
+| `D-2026-09-19-7` | A free recycle allowance of one per 24 hours, upgradeable |

@@ -8,22 +8,24 @@ Design stage. The framing document (`docs/design-description.md`) is written and
 full vision; the founding decisions are recorded. Nothing is built.
 
 The next move is **link 3 — requirements**: mine the design description section by section
-into a conformant requirement set, using the `incose-requirements` skill. Sixteen open
-questions (§11) are registered; most sections do not depend on them and can be mined now.
+into a conformant requirement set, using the `incose-requirements` skill. Eighteen questions
+are registered in §11, two of them now resolved; most sections do not depend on the rest and
+can be mined now.
 
-**Q13 is the one that matters.** The design as it stands has an unrecoverable state — a
-jammed board earns no balance, and balance is the only way to buy the power-ups that unjam
-it. Until there is a recovery floor, a prototype can be built into a dead end. Answer Q13
-before building anything, not before mining.
+**Q13 is closed, and nothing else blocks a prototype.** The economic trap is answered from
+both ends: board balance is fed by mark-based challenges, which keep paying during a jam,
+and personal rewards spend from a separate budget so cashing out cannot strand the player
+(`D-2026-09-19-6`); and a free recycle allowance of one per 24 hours, upgradeable,
+guarantees an action exists at zero balance (`D-2026-09-19-7`).
 
 ## Next up
 
-- **Answer Q13 — the recovery floor.** What income or action exists at zero balance on a
-  jammed board? This is a design decision, not a tuning number, and it needs a `D-` record.
-- **Answer the cheap questions that gate mining.** Q2, Q3 and Q4 (line rules), Q14
-  (perpendicular progress destroyed by a clear) and Q9 (the two-counter model) block §3.4
-  and §5.3. The tuning questions (Q1, Q6, Q7, Q8, Q10) do not need answers before a
-  prototype exists and should not be guessed.
+- **Answer the cheap questions that gate mining.** Q2, Q3 and Q4 (line rules) and Q14
+  (perpendicular progress destroyed by a clear) block §3.4. The tuning questions (Q1, Q6,
+  Q7, Q8, Q10, Q17) do not need answers before a prototype exists and should not be guessed.
+- **Q18 before any economy tuning.** Which mark-based challenges ship, and what each pays
+  into board balance. This is now load-bearing for the jam guarantee rather than a
+  progression nicety — board balance cannot be tuned until it exists.
 - **Write the missing decision records.** §9.2 commits to local-first with no account, and
   §4.2 to fixed categories before user-defined ones. Both state rejected alternatives in
   prose but have no `D-` record, so the reverse walk has no root for them.
@@ -84,5 +86,12 @@ directions, and link 4 has cut it into work packages with a shippable first pack
   not hold — the grid-aware draw is preventive only and cannot run on an already-jammed
   board, and advanced tiles are not present at first release by decision. The real worst
   case is an **economic trap**: balance is earned only by clearing, so a jammed board earns
-  nothing and cannot pay for the power-ups that would unjam it. Now registered as Q13, the
-  one question that blocks a prototype.
+  nothing and cannot pay for the power-ups that would unjam it.
+- **Q13 answered, same session.** Two decisions close it (`D-2026-09-19-6`,
+  `D-2026-09-19-7`). The key observation is that **marking still works on a jammed board;
+  only clearing stops** — so board balance is fed by mark-based challenges and cannot be
+  switched off by a jam, while personal rewards spend from a separate budget. Beneath that
+  sits a free recycle: one per 24 hours, upgradeable, so an action exists even at zero. Side
+  effects: the tile power-up is renamed *recycle*, challenges are now constrained to be
+  mark-based rather than clear-based, and the game gains its first timer (an allowance
+  refreshing, not a mark decaying — `D-2026-09-19-2` stands).

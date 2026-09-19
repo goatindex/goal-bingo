@@ -3,6 +3,58 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-19-7 — A free recycle allowance of one per 24 hours, upgradeable
+
+- **Status:** open
+- **Context:** Two budgets (`D-2026-09-19-6`) keep income alive during a jam, but a new
+  player with no meta-goal income yet, or one whose board jams early, still needs an action
+  that costs nothing. This is the floor beneath the economy.
+- **Options considered:** free and unlimited abandon of a blocking tile (rejected — lets a
+  player strip out every hard goal and flatten the friction `D-2026-09-19-3` deliberately
+  chose) · no free tier, rely on pricing alone (rejected — a valve the player cannot afford
+  at zero balance is not a valve) · **a rate-limited free recycle, one per 24 hours, with
+  the rate itself upgradeable (chosen)**
+- **Why:** Rate-limiting is what stops the free action trivialising long-term goals — the
+  cost is scarcity rather than currency. Making the rate upgradeable turns the release valve
+  into a progression axis instead of a static safety net. This is the existing tile-recycle
+  power-up (§6.2) gaining a free tier, not a new mechanic — the design description calls it
+  "recycle" rather than "re-draw" from this decision onward.
+- **Relationship to `D-2026-09-19-2`:** this introduces the game's first timer. It refreshes
+  an *allowance*; it does not decay a *mark*. `D-2026-09-19-2` stands unchanged, and the
+  24-hour period is chosen because the game's natural rhythm is already daily.
+- **Expected outcome:** No board state persists longer than 24 hours without the player
+  having at least one action available, measured on a simulated jammed board at zero
+  balance.
+- **Revisit:** After the first playable prototype. If players routinely bank and never spend
+  the free recycle, the rate is too generous.
+
+## D-2026-09-19-6 — Two spendable budgets; meta-goals fund board actions
+
+- **Status:** open
+- **Context:** The economic trap in §10.3. Balance was earned only by clearing lines, so a
+  jammed board earned nothing and could not pay for the power-ups that would unjam it — and
+  personal rewards drained the same pool, letting a player strand themselves voluntarily.
+- **Options considered:** single balance with a jam-triggered grant (rejected — "jammed" is
+  not reliably computable, since a long-term goal makes a board slow rather than strictly
+  stuck, so any threshold either misfires or never fires) · paying income for marking as
+  well as clearing (rejected — partially restores the checklist the grid exists to beat,
+  §2.1) · line-clear budget buys board actions (rejected — leaves the structural trap fully
+  intact) · both budgets buy both at different rates (rejected — loses the guarantee) ·
+  **two budgets, with meta-goals funding board actions (chosen)**
+- **Why:** Marking still works on a jammed board; only *clearing* stops. A budget fed by
+  mark-based challenges therefore keeps earning straight through a jam, so the way out stays
+  purchasable. Because personal rewards spend from the *other* budget, cashing out can never
+  strand the player. It also makes the two layers fund each other: playing the board well
+  buys real-life rewards, and doing your goals consistently buys board power.
+- **Scope:** meta-goals are **mark-based challenges only** — targets counted from marking
+  goals. Clear-based challenges are excluded because they are jam-blocked exactly like line
+  income. Achievements (§8.3) stay non-monetary badges. Streaks are excluded for now.
+- **Expected outcome:** No reachable state where the board has no completable line and the
+  player cannot earn board balance by marking. Falsifiable on a simulated jammed board at
+  zero balance: marking alone must reach a purchasable recycle.
+- **Revisit:** After the first playable prototype, and immediately if any board action is
+  ever priced against the line-clear budget.
+
 ## D-2026-09-19-5 — Restart from design rather than evolve the Phaser prototype
 
 - **Status:** open
