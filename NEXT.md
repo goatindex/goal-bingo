@@ -4,17 +4,17 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-Design stage. The framing document (`docs/design-description.md`) is written and covers the
-full vision; decisions are recorded. Nothing is built.
+Design stage. **The design document is complete.** `docs/design-description.md` covers
+the full vision with 37 numbered sections; 25 decisions are on record (D-2026-09-19-1
+through D-2026-09-19-25); all non-tuning questions are closed. The only open questions
+are tuning numbers (Q1, Q6, Q7, Q10, Q17, Q19, Q21, Q22) explicitly parked for a
+prototype, and Q24 (sim revisit, low priority). Nothing is built.
 
-**The pre-link-3 checklist is complete** (pending merge of PRs #7, #8, #9). Six more open
-questions are closed, two missing decision records are written, and §3.4, §4.2, §8.2, §9.2
-are fully settled prose. Eighteen decisions are on record. The next step is link 3 —
-requirements — starting with the glossary.
+The next step is link 3 — requirements.
 
 ## Next up
 
-- **Merge PRs #7, #8, #9** once adversarial reviews pass — #7 is already green.
+- **Merge PR #13** (Q11 + Q23, review running) once it passes.
 - **Link 3 — requirements.** Pin the glossary first (*tile*, *cell*, *line*, *clear*,
   *pool*, *mark*, *balance* — one meaning each, no overlaps), then mine
   `docs/design-description.md` section by section using the `incose-requirements` skill.
@@ -22,10 +22,11 @@ requirements — starting with the glossary.
 - **Wire the back-map gate** once a requirement set exists —
   `backmap_check.py --source docs/design-description.md --requirements requirements/`.
 - **Link 4 — decomposition.** Cut the requirement set into work packages and prove the
-  partition. Build order decided here, not before (`D-2026-09-19-4`).
-- **Playtest against §10.4's felt-friction judgement** — jam frequency is measured and
-  closed; the prototype exists to test whether ~5% draw share actually *feels* like
-  "regular presence".
+  partition. Build order decided here (`D-2026-09-19-4`). Per-category progression
+  trackers and the category-unlock gate are the two link 4 decisions to watch
+  (`D-2026-09-19-23`, `D-2026-09-19-16`).
+- **Playtest against §10.4's felt-friction judgement** — jam frequency is measured; the
+  prototype tests whether ~5% draw share *feels* like "regular presence".
 
 ## Done means
 
@@ -54,7 +55,24 @@ directions, and link 4 has cut it into work packages with a shippable first pack
 
 ## Done (2026-09-19 session)
 
-**Evening continuation — pre-link-3 questions and missing records (PRs #7, #8, #9):**
+**Late evening — design complete: 12 more questions closed (PRs #11, #12, #13):**
+
+- **D-18 — §9.2 local-first** finalised and §9.2 cited (PR #11).
+- **Q8, Q12, Q15, Q16 closed; Q11 partially closed** (D-19 through D-23, PR #12):
+  - Combos: matching (all same category) and variety (all different); multipliers tuning
+  - No sync in first release; local storage only; deliberately deferred
+  - Swap = consolidation; adjacent-only base game; upgrades expand range
+  - Advanced tile acquisition: per-category progression primary, economy secondary; global
+    unlocks additive on top
+  - Mini-grid clearing mechanic confirmed: one internal line = parent tile cleared
+- **Q11 fully closed; Q23 closed** (D-24, D-25, PR #13):
+  - Mini-grid population: same pool default; sub-pool and player-placed as upgrade options
+  - Mini-grid scoring: normal clear; full-board bonus if last tile on main board
+  - Ambient blocking: fixed percentage at every grid size; expansion scales proportionally
+- **25 decision records on record** (D-2026-09-19-1 through D-2026-09-19-25). All
+  non-tuning questions closed. Design document is complete.
+
+**Evening continuation — pre-link-3 questions and missing records (PRs #7, #8, #9, #10):**
 
 - **Q2/Q3/Q4/Q14 closed** — four §3.4 questions answered in one design conversation;
   three decision records written (D-13, D-14, D-15); §3.4 rewritten from open-questions
