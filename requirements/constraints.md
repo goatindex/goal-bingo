@@ -229,8 +229,11 @@ rationale: Expansion raises jam risk. Binding the principle now leaves the formu
   (price, progression gate, or both). D-2026-09-20-3.
 trace-to-source: design-description.md 3.1 design-description.md 6.2 design-description.md 10.3
 verification-method: analysis
-verification-criteria: For each supported grid size, sim/jam_sim.py at that size meets the
-  GB-CON-013 verification criteria.
+verification-criteria: For each supported grid size, sim/jam_sim.py run at that static
+  size meets the GB-CON-013 verification criteria. The sim does not model mid-game expansion
+  transitions; static-size runs are the accepted proxy until an expansion-aware model exists.
 priority: must
 notes: Soft / analysis-only constraint. Exact prices and unlock thresholds are deferred to
-  Q10 / link 4.
+  Q10 / link 4. sim/results.md records that grid expansion is not modelled; revisit when
+  the sim gains an expansion path.
+

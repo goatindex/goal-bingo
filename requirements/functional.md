@@ -303,7 +303,9 @@ statement: Goal Bingo shall not draw a long-term goal into a cell whose row or c
 type: functional
 rationale: Binding placement rule 1. Prevents lines being blocked in multiple places by
   long-term goals, which would make them impossible to unblock. 10.3 recovery argument
-  rests on this being absolute. D-2026-09-19-9.
+  rests on this being absolute. D-2026-09-19-9. Advisory placement rule 3 (former
+  GB-FUN-025): where more than one legal placement exists on refill, prefer one that
+  leaves at least one line completable; does not apply to recycle draws.
 trace-to-source: design-description.md 4.4
 verification-method: test
 verification-criteria: After any draw, no row and no column contains more than one
@@ -315,7 +317,8 @@ statement: Goal Bingo shall not draw a goal of any one category into a cell if d
   would cause that category to exceed the domination threshold on the board.
 type: functional
 rationale: Binding placement rule 2. Prevents a board where one life area crowds out
-  others. 4.4.
+  others. 4.4. Refill preference (rule 3 / former GB-FUN-025) still applies after this
+  binding rule: among legal placements, prefer one leaving a completable line.
 trace-to-source: design-description.md 4.4
 verification-method: test
 verification-criteria: After any draw, no single category occupies more than the domination
@@ -422,8 +425,7 @@ verification-criteria: Clearing the same line in two different board configurati
   bonus of zero.
 priority: must
 notes: Specific adjacency combinations and their values are deferred to Q7 (owner: k).
-  Implementation shall make the combination list and values configurable so they can
-  be tuned without a code change.
+  See GB-FUN-068 for the configurability obligation.
 
 ---
 
