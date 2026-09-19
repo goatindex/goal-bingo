@@ -384,7 +384,7 @@ depend on a reminder it cannot reliably send.
 
 The player's pool, board, score and rewards are personal. The default is local-first: the
 game works with no account and no network, and data stays on the device unless the player
-asks otherwise.
+asks otherwise (`D-2026-09-19-18`).
 
 Whether sync across devices is offered, and on what terms, is open (§11).
 
@@ -582,5 +582,6 @@ board feels to play.
 | `D-2026-09-19-8` | Challenges pay board balance incrementally, per qualifying mark |
 | `D-2026-09-19-9` | The recycle draw obeys §4.4's placement rules; the floor is probabilistic |
 | `D-2026-09-19-10` | A recycle operates on unmarked tiles only |
-| `D-2026-09-19-11` | Goals sit on two independent axes: category and cadence |
-| `D-2026-09-19-12` | Long-term draw share set to roughly 5% |
+  | `D-2026-09-19-11` | Goals sit on two independent axes: category and cadence |
+  | `D-2026-09-19-12` | Long-term draw share set to roughly 5% |
+  | `D-2026-09-19-18` | Local-first, no account required; sync is a separate question |
