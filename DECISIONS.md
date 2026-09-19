@@ -3,6 +3,64 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-19-10 — A recycle operates on unmarked tiles only
+
+- **Status:** open
+- **Context:** Review asked whether a marked tile can be recycled. Left undefined, it is an
+  untested interaction with `D-2026-09-19-2`.
+- **Options considered:** recyclable freely (rejected — it lets a mark vanish before its
+  line clears, which reads against `D-2026-09-19-2`, and lets a player destroy banked
+  progress by accident) · **unmarked tiles only (chosen)**
+- **Why:** Blockers are unmarked by definition, so the recovery floor never needs to recycle
+  a marked tile. Restricting it costs the design nothing and removes the conflict entirely.
+- **Expected outcome:** No path exists by which a mark is removed other than its line
+  clearing. Checkable by inspection of the eventual requirement set.
+- **Revisit:** Only if a mechanic later needs to move a marked tile.
+
+## D-2026-09-19-9 — The recycle draw obeys §4.4's placement rules; the floor is probabilistic
+
+- **Status:** open
+- **Context:** `D-2026-09-19-7`'s free recycle only rescues a jam if it produces something
+  markable. A recycle draws from the pool, which contains long-term goals, so it can hand
+  back another blocker.
+- **Options considered:** a recycle always draws a short-term goal (rejected — it makes the
+  floor deterministic, but turns recycling into a reliable way to convert any long-term tile
+  into an easy one, which nibbles at `D-2026-09-19-3`) · constrain the draw only when the
+  board is jammed (rejected — needs the jam detection already rejected in
+  `D-2026-09-19-6`) · **extend §4.4's existing placement rules to the recycle path (chosen)**
+- **Why:** It reuses a rule the design already has rather than inventing a special case, and
+  it preserves the friction. The cost is accepted knowingly: where the recycled cell's row
+  and column hold no other blocker, the rule permits a long-term goal back into the same
+  cell, so a recycle can fail to help.
+- **Consequence:** **the recovery floor is probabilistic, not absolute.** The expected time
+  to break a jam is short but unbounded. This is a deliberate trade of a guarantee for
+  friction, and the design owes a measured bound in exchange (Q20).
+- **Expected outcome:** Simulation over the eventual draw weighting shows a median
+  time-to-unjam of a small number of days from a maximal jam at zero balance. If the tail is
+  long, the minimal tightening — never returning a long-term goal to the cell just vacated —
+  closes it deterministically.
+- **Revisit:** At the first prototype, against measured data. This is the headline thing a
+  prototype exists to measure.
+
+## D-2026-09-19-8 — Challenges pay board balance incrementally, per qualifying mark
+
+- **Status:** open
+- **Context:** Review found that `D-2026-09-19-6`'s jam guarantee assumed challenges pay
+  during a jam, which was never established. §8.2 defines challenges as targets over a
+  period; if they paid only on completion, a jammed board yielding one markable tile a day
+  could never finish a weekly target and board income would be zero in exactly the state it
+  exists to rescue.
+- **Options considered:** pay on completion only (rejected — leaves the guarantee open and
+  makes the recycle allowance carry the whole floor alone) · pay incrementally only while
+  jammed (rejected — needs the jam detection already rejected in `D-2026-09-19-6`) · **pay
+  incrementally per qualifying mark, with a completion bonus (chosen)**
+- **Why:** It closes the hole without a mode switch: one mark produces one payment, so a
+  single markable tile restarts income. It is also better feedback — a habit game that pays
+  weekly teaches nothing about today.
+- **Expected outcome:** From a maximal jam at zero balance, one free recycle followed by one
+  mark yields non-zero board balance. Directly simulable.
+- **Revisit:** With Q18, when challenge payouts are set.
+
 ## D-2026-09-19-7 — A free recycle allowance of one per 24 hours, upgradeable
 
 - **Status:** open
@@ -19,6 +77,11 @@ source of requirements, so the reverse walk from a failing test ends here.
   into a progression axis instead of a static safety net. This is the existing tile-recycle
   power-up (§6.2) gaining a free tier, not a new mechanic — the design description calls it
   "recycle" rather than "re-draw" from this decision onward.
+- **Unconditional.** The allowance is available whether or not the board is stuck. Gating it
+  on a jam was considered and rejected: it needs the jam detection `D-2026-09-19-6` already
+  rejected, and an allowance a player cannot predict is hard to plan around. The known cost
+  is that optimal play spends it daily regardless, which defers roughly seven blockers a
+  week — deferred rather than escaped, since a recycled goal returns to the pool.
 - **Relationship to `D-2026-09-19-2`:** this introduces the game's first timer. It refreshes
   an *allowance*; it does not decay a *mark*. `D-2026-09-19-2` stands unchanged, and the
   24-hour period is chosen because the game's natural rhythm is already daily.
@@ -49,9 +112,11 @@ source of requirements, so the reverse walk from a failing test ends here.
 - **Scope:** meta-goals are **mark-based challenges only** — targets counted from marking
   goals. Clear-based challenges are excluded because they are jam-blocked exactly like line
   income. Achievements (§8.3) stay non-monetary badges. Streaks are excluded for now.
-- **Expected outcome:** No reachable state where the board has no completable line and the
-  player cannot earn board balance by marking. Falsifiable on a simulated jammed board at
-  zero balance: marking alone must reach a purchasable recycle.
+- **Expected outcome:** On a simulated jammed board at zero balance, a player who keeps
+  marking reaches a purchasable recycle. **Limit found in review:** in a *maximal* jam every
+  unmarked cell is a blocker, so nothing is markable and this decision alone does not close
+  the trap. `D-2026-09-19-7` covers that case and `D-2026-09-19-8` makes one mark sufficient
+  to restart income; §10.3 states the combined guarantee and its probabilistic bound.
 - **Revisit:** After the first playable prototype, and immediately if any board action is
   ever priced against the line-clear budget.
 

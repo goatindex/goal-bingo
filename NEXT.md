@@ -18,14 +18,26 @@ and personal rewards spend from a separate budget so cashing out cannot strand t
 (`D-2026-09-19-6`); and a free recycle allowance of one per 24 hours, upgradeable,
 guarantees an action exists at zero balance (`D-2026-09-19-7`).
 
+**The floor is sound in structure but unbounded in time.** A second review found the
+guarantee assumed things it had not established: that challenges pay during a jam (now
+fixed — they pay per mark, `D-2026-09-19-8`) and that a recycle produces something markable
+(it does not always — `D-2026-09-19-9` accepts a probabilistic floor to preserve §4.3's
+friction). **Q20 is what a prototype exists to measure**: the expected time to break a jam.
+If the tail is long, the minimal tightening is already written down.
+
 ## Next up
 
 - **Answer the cheap questions that gate mining.** Q2, Q3 and Q4 (line rules) and Q14
   (perpendicular progress destroyed by a clear) block §3.4. The tuning questions (Q1, Q6,
   Q7, Q8, Q10, Q17) do not need answers before a prototype exists and should not be guessed.
 - **Q18 before any economy tuning.** Which mark-based challenges ship, and what each pays
-  into board balance. This is now load-bearing for the jam guarantee rather than a
+  per mark and on completion. This is now load-bearing for the jam guarantee rather than a
   progression nicety — board balance cannot be tuned until it exists.
+- **Q20 is the prototype's headline measurement.** Expected time-to-unjam from a maximal jam
+  at zero balance. It is simulable without any UI, so it can be answered before a playable
+  build exists — and it is the one number that says whether the recovery floor works.
+- **Q19 rides with it.** Whether one free recycle per 24 hours outpaces re-jamming. The rate
+  was chosen on daily rhythm, not on evidence.
 - **Write the missing decision records.** §9.2 commits to local-first with no account, and
   §4.2 to fixed categories before user-defined ones. Both state rejected alternatives in
   prose but have no `D-` record, so the reverse walk has no root for them.
