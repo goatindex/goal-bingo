@@ -88,8 +88,12 @@ source of requirements, so the reverse walk from a failing test ends here.
 - **Expected outcome:** No board state persists longer than 24 hours without the player
   having at least one action available, measured on a simulated jammed board at zero
   balance.
-- **Revisit:** After the first playable prototype. If players routinely bank and never spend
-  the free recycle, the rate is too generous.
+- **Revisit:** After the first playable prototype, against **two opposite failures**. If
+  players routinely bank the allowance and never spend it, the rate is too generous. If they
+  spend it every day regardless of need — which is what optimal play implies — it is eroding
+  `D-2026-09-19-3`'s friction, and either gating it on a stuck board or cutting the rate
+  should be reconsidered. Measure both: recycles used as a fraction of recycles available,
+  and what share of those were spent while a completable line existed.
 
 ## D-2026-09-19-6 — Two spendable budgets; meta-goals fund board actions
 
