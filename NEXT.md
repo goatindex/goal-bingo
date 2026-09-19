@@ -7,10 +7,15 @@ _Convention: update at end of each working session. The weekly portfolio review 
 Design stage. The framing document (`docs/design-description.md`) is written and covers the
 full vision; the founding decisions are recorded. Nothing is built.
 
-The next move is **link 3 — requirements**: mine the design description section by section
-into a conformant requirement set, using the `incose-requirements` skill. Eighteen questions
-are registered in §11, two of them now resolved; most sections do not depend on the rest and
-can be mined now.
+Links 0–2 are complete and merged (PR #1, PR #2). Ten decisions, twenty-one questions
+registered in §11 with two struck through as resolved. Three adversarial review passes have
+run; all findings are fixed.
+
+**The recommended next move is the Q20 simulation, not link 3.** Q20 measures expected
+time-to-unjam and needs no UI — just the board, the weighted draw and the recycle rules. It
+validates the recovery floor *before* link 3 mints permanent requirement IDs against §10.3
+and §6.2, which are the sections all three reviews landed on. If the tail is long, the
+tightening is already written down and nothing downstream needs unpicking.
 
 **Q13 is closed, and nothing else blocks a prototype.** The economic trap is answered from
 both ends: board balance is fed by mark-based challenges, which keep paying during a jam,
@@ -18,12 +23,13 @@ and personal rewards spend from a separate budget so cashing out cannot strand t
 (`D-2026-09-19-6`); and a free recycle allowance of one per 24 hours, upgradeable,
 guarantees an action exists at zero balance (`D-2026-09-19-7`).
 
-**The floor is sound in structure but unbounded in time.** A second review found the
-guarantee assumed things it had not established: that challenges pay during a jam (now
-fixed — they pay per mark, `D-2026-09-19-8`) and that a recycle produces something markable
-(it does not always — `D-2026-09-19-9` accepts a probabilistic floor to preserve §4.3's
-friction). **Q20 is what a prototype exists to measure**: the expected time to break a jam.
-If the tail is long, the minimal tightening is already written down.
+**The floor is sound in structure but unbounded in time, and that is the one open risk.**
+Reviews two and three found the guarantee assumed things it had not established: that
+challenges pay during a jam (fixed — they pay per mark, `D-2026-09-19-8`), that a recycle
+produces something markable (it does not always — `D-2026-09-19-9` accepts a probabilistic
+floor to preserve §4.3's friction), and that board balance is earned at all (fixed — §8.2
+now requires a matching challenge to always be active). Expected time-to-unjam should be
+finite and small and the worst case is unbounded, but **neither number is established.**
 
 ## Next up
 
@@ -107,3 +113,13 @@ directions, and link 4 has cut it into work packages with a shippable first pack
   effects: the tile power-up is renamed *recycle*, challenges are now constrained to be
   mark-based rather than clear-based, and the game gains its first timer (an allowance
   refreshing, not a mark decaying — `D-2026-09-19-2` stands).
+- **Two further review passes on the fix**, both finding real defects. Pass 2: challenges
+  might never pay during a jam, and a recycle might hand back another blocker — closed by
+  `D-2026-09-19-8`, `D-2026-09-19-9` and `D-2026-09-19-10`. Pass 3: §4.4 stated the
+  load-bearing placement rule as a *preference* while §6.2 and §10.3 restated it as an
+  *absolute*, and board balance was not actually guaranteed because it pays only on a mark
+  counting toward a challenge. Both closed. Findings narrowed across the three passes from a
+  wrong risk model, to unstated assumptions, to statement-strength precision.
+- **Both PRs merged**, each carrying its review record as a comment, each using the
+  documented `GUARD_ALLOW_UNREVIEWED=1` exception because this repo has no reviewer workflow
+  yet. Porting WeeWoo's `claude-review.yml` would remove the need for that.
