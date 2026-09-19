@@ -80,6 +80,33 @@ source of requirements, so the reverse walk from a failing test ends here.
   constraint (`§4.4` rule 1) becomes a bottleneck in practice, consider removing diagonals
   as a later difficulty option rather than from the base game.
 
+## D-2026-09-19-18 — Local-first, no account required; sync is a separate question
+
+- **Status:** open
+- **Context:** §9.2. The player's pool, board, score and rewards are personal data. The
+  question is where that data lives by default and whether an account is required to use
+  the app at all.
+- **Options considered:** account required, cloud-primary (rejected — creates a barrier
+  between a player and their own goals; a player who does not want to register cannot use
+  the app; personal goal data in the cloud by default raises privacy expectations that go
+  beyond what the core game needs) · cloud-first with optional local fallback (rejected —
+  inverts the trust model; the safe default is the one that shares nothing) · **local-first,
+  no account required (chosen)**
+- **Why:** The player's data is theirs. The game is playable with no account, no network
+  and no third-party dependency from day one. An account only makes sense when it enables
+  something the player is actively choosing — sync across devices is the obvious candidate,
+  and that is a separate decision (Q12). Keeping the default local-first also means the app
+  works in any network condition and cannot be bricked by a service going away.
+- **Scope:** this decision covers the baseline — local storage, no account gate. It does not
+  settle whether sync is offered, on what terms, or what an account would unlock. Q12 is
+  still open.
+- **Expected outcome:** A player can install the app, define goals, and play indefinitely
+  with no account created and no network call made for game data.
+- **Revisit:** If the progression system (category unlocks, grid expansion) eventually
+  requires a server-side record — for example, to prevent local manipulation — revisit
+  whether a soft account gate for those features is acceptable. The baseline gameplay must
+  remain account-free regardless.
+
 ## D-2026-09-19-17 — Challenge structure: universal, category, and cadence challenges run in parallel
 
 - **Status:** open

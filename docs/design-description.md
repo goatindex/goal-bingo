@@ -403,7 +403,7 @@ depend on a reminder it cannot reliably send.
 
 The player's pool, board, score and rewards are personal. The default is local-first: the
 game works with no account and no network, and data stays on the device unless the player
-asks otherwise.
+asks otherwise (`D-2026-09-19-18`).
 
 Whether sync across devices is offered, and on what terms, is open (§11).
 
@@ -606,3 +606,4 @@ measured and closed.
   | `D-2026-09-19-15` | Perpendicular progress is lost on a clear; compensation is an upgrade area |
   | `D-2026-09-19-16` | Categories are player-defined; seven defaults ship; new categories unlock through progression |
   | `D-2026-09-19-17` | Challenge structure: universal, category, and cadence challenges run in parallel |
+  | `D-2026-09-19-18` | Local-first, no account required; sync is a separate question |
