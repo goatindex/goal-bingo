@@ -1,0 +1,180 @@
+# GENERATED COPY - DO NOT EDIT
+#
+# Master: goatindex/claude-workflow
+#         skills/adversarial-review/workflows/adversarial-review.yml
+# Commit: 407115d
+# Copied: 2026-09-19
+#
+# Edit the master and re-run scripts/refresh_copies.py. A change made here is
+# lost at the next refresh, and drift is reported by --check.
+# --- end generated header ---
+# Adversarial review of every pull request.
+#
+# GENERATED COPY in consuming repositories - master is
+# goatindex/claude-workflow, skills/adversarial-review/workflows/adversarial-review.yml
+#
+# Trace-chain link 6 has two halves: automated checks and an agent review. Until
+# 2026-09-08 the review half existed in one repository, while CHAIN.md marked link 6
+# "working in four" on the strength of branch-and-PR alone.
+#
+# The reviewer is advisory and the merge is human, always. The moment review and merge
+# share an author the review is theatre - which is exactly what fifteen pull requests on
+# 2026-09-08 were.
+#
+# This workflow holds no repository-specific convention. It reads the repo's own
+# CLAUDE.md, so one master serves every consumer (TB-20).
+name: adversarial-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write        # a sticky summary is an issue comment; read-only denies it silently
+  id-token: write
+
+jobs:
+  review:
+    name: adversarial review
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check the reviewer can run
+        env:
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "No CLAUDE_CODE_OAUTH_TOKEN. The adversarial reviewer cannot run."
+            echo "This is a failure, not a skip: an unreviewed pull request is not a"
+            echo "reviewed one, and treating an absent review as a pass is the exact"
+            echo "failure mode this review exists to catch."
+            exit 1
+          fi
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          use_sticky_comment: true
+          # Without this the agent is denied every tool it needs. A run on
+          # 2026-09-08 took 48 turns and $1.11, was denied 11 times, posted
+          # nothing, and the action still reported success. Naming the tools in
+          # the prompt does not grant them.
+          claude_args: |
+            --model sonnet
+            --max-turns 50
+            --allowedTools "mcp__github_comment__update_claude_comment,mcp__github_inline_comment__create_inline_comment,Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*),Bash(git log:*),Bash(git diff:*)"
+          prompt: |
+            You are the adversarial reviewer for ${{ github.repository }}. Review
+            PR #${{ github.event.pull_request.number }}.
+
+            Ground rules:
+            - Advisory only. Never approve, request changes, push commits, or edit files.
+              Your entire output is comments. The human merges.
+            - Do not duplicate the mechanical gates. Read `.github/workflows/` to see what
+              already runs, and skip what it covers.
+            - Read this repository's CLAUDE.md and hold the diff to its conventions. Do not
+              apply conventions from other repositories.
+            - Always post the sticky summary, even with zero findings. A clean pull request
+              still gets a verdict. If a tool call is denied, do not retry it - continue and
+              still post the summary.
+            - Only report findings that survive scrutiny. A short review of real findings
+              beats a long review of maybes.
+
+            Read the diff with `gh pr diff ${{ github.event.pull_request.number }}` and
+            `gh pr view`. Post inline findings with
+            mcp__github_inline_comment__create_inline_comment and the summary with
+            mcp__github_comment__update_claude_comment.
+
+            Format every finding as a Conventional Comment: "label (decoration): subject"
+            then the discussion. Labels: praise, nitpick, suggestion, issue, todo, question,
+            thought, note. Decorations: (blocking), (non-blocking), (if-minor).
+
+            ## Part 1 - the four failure modes this review exists for
+
+            These are not hypothetical. Each cost real defects in this estate and each
+            passed CI, tests and a human read.
+
+            1. **A test that restates the implementation's assumption instead of reading
+               the source of truth.** Where a test and the code both name the same literal -
+               a string key, an output format, a schema field, a section name - ask where
+               that literal comes from and whether the test derives it or repeats it. A test
+               written from the same belief as the code can only confirm that belief.
+               Real case: a checker keyed on the purpose string "sweep" while the writer
+               emitted "correlation-sweep", with a fixture that seeded "sweep" too. A
+               breached bound was reported with no verdict at all.
+
+            2. **Absence read as success.** A grep that matches nothing, a discovery run
+               that finds no tests, a query returning no rows, a loop over an empty list -
+               each exits 0 and looks like a pass. Ask of every new check: what does it do
+               when it finds nothing, and is that distinguishable from finding nothing
+               wrong? Real case: a CI step named "Copies match their masters" that ran
+               `grep -l` and passed on a hand-edited copy.
+
+            3. **A gate that cannot fail.** Read every added CI step and assertion and ask
+               what input would make it red. If you cannot construct one, say so as
+               issue (blocking). Real case: a test-discovery workflow that reported six
+               suites and zero tests as success.
+
+            4. **A claim in prose that the diff does not support.** Commit messages,
+               README changes and status tables in this estate carry claims like "verified",
+               "covered", "all four checks pass". Check each against the diff. Counting a
+               mention as the thing is a recurring defect here.
+
+            ## Part 2 - documentation, per C8-2
+
+            Ways of working requires that work carrying a documentation obligation updates
+            it in the same pull request, reviewed independently, and that this is blocking.
+
+            - Does this change alter what a reader of README.md, STATE.md, CHAIN.md,
+              ARCHITECTURE.md or a requirement set would need to know? If so, is that
+              update in this diff?
+            - Is any figure or status in an updated document now stale because of this very
+              diff? State the number the diff implies against the number written.
+            - If the repository's CLAUDE.md sets a documentation register (for example
+              Simplified Technical English), hold new prose to it.
+
+            Report a missing or stale documentation update as issue (blocking).
+
+            ## Part 3 - the verdict
+
+            End the sticky summary with one line: the count of blocking findings, and
+            whether you would merge. You do not merge and you do not approve; the line is
+            for the human who does.
+
+      # Two ways this can legitimately produce nothing, and only one is a defect.
+      #
+      # claude-code-action refuses to run at all when the pull request modifies its own
+      # workflow file - "Exiting due to workflow validation skip" - and reports success.
+      # That is a real security property: a pull request that edits its reviewer could
+      # make the reviewer do anything. Such a pull request cannot be reviewed by the
+      # thing it is changing, which is precisely when a person should look hardest, so
+      # this step still fails and the merge takes a recorded GUARD_ALLOW_UNREVIEWED=1.
+      #
+      # The action also reports success when its tool calls were denied. This workflow's
+      # first real run finished green having posted nothing, because `issues: read`
+      # refused the sticky comment without failing anything. A reviewer that cannot say
+      # anything has not reviewed, and a job going green on that is failure mode 2 in its
+      # own prompt.
+      - name: A review was actually posted
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -e
+          author=$(gh pr view "$PR" --json author -q .author.login)
+          others=$(gh pr view "$PR" --json reviews,comments -q \
+            "[.reviews[].author.login, .comments[].author.login] | map(select(. != \"$author\")) | length")
+          echo "reviews or comments by someone other than $author: $others"
+          if [ "$others" -eq 0 ]; then
+            echo "The reviewer produced nothing."
+            echo "Check that this workflow has issues: write and pull-requests: write -"
+            echo "a denied tool call does not fail the action on its own."
+            exit 1
+          fi
