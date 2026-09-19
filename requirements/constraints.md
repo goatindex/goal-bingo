@@ -202,11 +202,13 @@ priority: must
 ## Recovery floor and expansion (soft constraints)
 
 ### GB-CON-013 — Recovery floor property
-statement: Goal Bingo shall keep median time-to-unjam at same-day and the 99th percentile
-  of time-to-unjam at or below 2 days under the jam simulation model in sim/jam_sim.py.
+statement: As measured by sim/jam_sim.py under its documented assumptions, Goal Bingo shall
+  target a median time-to-unjam of same-day and a 99th percentile of time-to-unjam at or
+  below 2 days; this is a probabilistic property subject to re-verification, not an absolute
+  guarantee (D-2026-09-20-2).
 type: constraint
 rationale: The recovery floor is probabilistic and measured. Naming the property keeps it
-  visible without binding a CI gate at link 3. Process enforcement is deferred to link 5.
+  visible without claiming a hard bound. Process enforcement is deferred to link 5.
   D-2026-09-20-2.
 trace-to-source: design-description.md 10.3
 verification-method: analysis
@@ -214,18 +216,21 @@ verification-criteria: Running sim/jam_sim.py at the shipped long-term draw shar
   median time-to-unjam of same-day and p99 of at most 2 days, with zero trials still jammed
   after 180 simulated days.
 priority: must
-notes: Soft constraint. A link-5 work package owns when and how the simulation is re-run
-  after draw, recycle, allowance, or challenge-income changes.
+notes: Soft / analysis-only constraint. A link-5 work package owns when and how the
+  simulation is re-run after draw, recycle, allowance, or challenge-income changes.
 
 ### GB-CON-014 — Expansion preserves the recovery floor
 statement: Goal Bingo shall set grid-expansion pricing and unlock rules so that the
-  recovery floor (GB-CON-013) still holds at each expanded grid size.
+  probabilistic recovery-floor targets in GB-CON-013 still hold under sim/jam_sim.py at each
+  expanded grid size; this is the same soft property, not an absolute guarantee
+  (D-2026-09-20-3).
 type: constraint
 rationale: Expansion raises jam risk. Binding the principle now leaves the formula open
   (price, progression gate, or both). D-2026-09-20-3.
 trace-to-source: design-description.md 3.1 design-description.md 6.2 design-description.md 10.3
 verification-method: analysis
-verification-criteria: For each supported grid size, sim/jam_sim.py at that size meets
-  GB-CON-013.
+verification-criteria: For each supported grid size, sim/jam_sim.py at that size meets the
+  GB-CON-013 verification criteria.
 priority: must
-notes: Exact prices and unlock thresholds are deferred to Q10 / link 4.
+notes: Soft / analysis-only constraint. Exact prices and unlock thresholds are deferred to
+  Q10 / link 4.

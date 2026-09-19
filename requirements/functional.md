@@ -337,7 +337,6 @@ priority: deleted
 notes: Intent preserved as rationale on GB-FUN-023 and GB-FUN-024. ID retained for
   trace honesty.
 
-
 ### GB-FUN-026 â€” Recycle draw obeys binding placement rules
 statement: When the player recycles a tile, Goal Bingo shall apply placement rules 1 and 2
   from 4.4 to the replacement draw.
@@ -363,7 +362,6 @@ verification-criteria: In a large sample of draws from a pool of mixed cadences,
   percentage points).
 priority: must
 notes: Tolerance of ±5 pp gives 0–10% range. Exact formula is deferred to Q6 (owner: k).
-
 
 ---
 
@@ -426,7 +424,6 @@ priority: must
 notes: Specific adjacency combinations and their values are deferred to Q7 (owner: k).
   Implementation shall make the combination list and values configurable so they can
   be tuned without a code change.
-
 
 ---
 
@@ -555,7 +552,6 @@ verification-criteria: n-a
 priority: deleted
 notes: ID retained for trace honesty.
 
-
 ### GB-FUN-041 — Free recycle allowance resets on 24-hour rolling window
 statement: Goal Bingo shall grant the player a free recycle allowance equal to the
   player's current recycle upgrade level, restoring the full allowance 24 h after the
@@ -565,12 +561,13 @@ rationale: Rolling window from first use, not a fixed clock boundary. Default is
   upgrades increase it (GB-FUN-037). D-2026-09-19-7.
 trace-to-source: design-description.md 6.2
 verification-method: test
-verification-criteria: A player who uses the first free recycle at time T can activate
-  the next free recycle no earlier than 24 h after T; at 24 h after T the full allowance
-  is restored to its current maximum.
+verification-criteria: With current allowance N, a player who uses the first free
+  recycle of a window at time T may activate up to N free recycles within that window,
+  consuming the allowance counter each time; once the counter reaches zero, further free
+  recycles are unavailable until 24 h after T, at which point the full current allowance
+  restores.
 priority: must
 notes: Default allowance is 1. The 24 h duration is fixed; epoch resets on each first use.
-
 
 ### GB-FUN-042 — Free allowance consumed before balance-spending recycles
 statement: Goal Bingo shall deduct from the free recycle allowance before deducting board
@@ -583,7 +580,6 @@ verification-criteria: Each recycle within a 24-hour window reduces the free all
   counter before any board balance is deducted; board balance is deducted only once the
   free allowance counter reaches zero.
 priority: must
-
 
 ---
 
