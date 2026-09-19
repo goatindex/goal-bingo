@@ -106,3 +106,6 @@ public
 # Temporary folders
 tmp/
 temp/
+
+# Third-party tooling checked out in place, not part of this project
+godot-mcp/
