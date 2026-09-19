@@ -4,34 +4,36 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-Design stage. **The design document is complete.** `docs/design-description.md` covers
-the full vision with 37 numbered sections; 25 decisions are on record (D-2026-09-19-1
-through D-2026-09-19-25); all non-tuning questions are closed. The only open questions
-are tuning numbers (Q1, Q6, Q7, Q10, Q17, Q19, Q21, Q22) explicitly parked for a
-prototype, and Q24 (sim revisit, low priority). Nothing is built.
-
-The next step is link 3 — requirements.
+**Link 4 — decomposition (cut complete; first package ready).** Requirements baselined at
+v1.0. Ten work packages filed as issues #18–#27 with partition-proven requirement sets and
+native blocked-by build order. Next is link 5 on [WP-01](https://github.com/goatindex/goal-bingo/issues/18).
 
 ## Next up
 
-- **Merge PR #13** (Q11 + Q23, review running) once it passes.
-- **Link 3 — requirements.** Pin the glossary first (*tile*, *cell*, *line*, *clear*,
-  *pool*, *mark*, *balance* — one meaning each, no overlaps), then mine
-  `docs/design-description.md` section by section using the `incose-requirements` skill.
-  Requirements cite `design-description.md §n` as their source.
-- **Wire the back-map gate** once a requirement set exists —
-  `backmap_check.py --source docs/design-description.md --requirements requirements/`.
-- **Link 4 — decomposition.** Cut the requirement set into work packages and prove the
-  partition. Build order decided here (`D-2026-09-19-4`). Per-category progression
-  trackers and the category-unlock gate are the two link 4 decisions to watch
-  (`D-2026-09-19-23`, `D-2026-09-19-16`).
-- **Playtest against §10.4's felt-friction judgement** — jam frequency is measured; the
-  prototype tests whether ~5% draw share *feels* like "regular presence".
+- **File WP-01…WP-10 as issues** mirroring `work-packages/cut.md`; link blocked-by /
+  blocking for build order. → **done** (#18–#27, dependencies wired).
+- **Settle the two named link-4 decisions** when they block a package: category-unlock gate
+  (`D-2026-09-19-16`) and advanced-tile thresholds (`D-2026-09-19-23`).
+- **First shippable slice:** WP-01 → WP-05 (#18–#22) — playable bingo with scoring, no economy.
+- **Link 5 — work items** starting at [WP-01 Platform shell](https://github.com/goatindex/goal-bingo/issues/18).
+- **Playtest against §10.4's felt-friction judgement** once a prototype exists — jam
+  frequency is measured; the prototype tests whether ~5% draw share *feels* like "regular
+  presence".
 
 ## Done means
 
-Design stage is done when the requirement set is baselined, the back-map runs clean in both
-directions, and link 4 has cut it into work packages with a shippable first package.
+Link 4 is done when every live requirement is in exactly one work-package issue, the
+partition check stays green, and build order is expressed as issue dependencies. First
+package (WP-01) is ready for link 5.
+
+## Done (2026-09-20 session)
+
+- **Link 3 complete.** Requirements mined and gap-closed: PRs #16, #17. Glossary pins board
+  balance / reward balance. Soft floor + expansion + failure modes (D-2026-09-20-1…5).
+- **Requirement set baselined** as v1.0 (2026-09-20) in `requirements/_meta.md`.
+- **Link 4 cut started.** `work-packages/cut.md` + `scripts/partition_check.py` — 84 live
+  requirements in exactly 10 packages; first shippable slice WP-01→WP-05.
+- **Work-package issues filed** #18–#27 with blocked-by build order (C4-1, C4-2).
 
 ## Parked
 
@@ -174,4 +176,4 @@ directions, and link 4 has cut it into work packages with a shippable first pack
 
 ## Last updated
 
-2026-09-19
+2026-09-20
