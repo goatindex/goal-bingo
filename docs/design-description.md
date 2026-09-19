@@ -342,8 +342,14 @@ inside; the mini-grid is its own object.
 This makes a large goal into a structured one — the sub-tasks become a board of their own
 rather than a checklist hidden behind a cell.
 
-How the mini-grid is populated (from the same pool, a sub-pool, or player-placed) and how
-completing the internal line scores relative to a normal clear are open (§11).
+**Population (`D-2026-09-19-24`):** The mini-grid draws from the player's goal pool by
+default — the same pool the main board uses. Two upgrade options exist but do not ship in
+the base game: a *sub-pool* (player designates goals specifically for mini-grid tiles) and
+*player-placed* (player manually assigns goals to each cell).
+
+**Scoring (`D-2026-09-19-24`):** Completing the internal line scores the same as any
+normal clear. One exception: if the mini-grid tile is the last tile to clear on the main
+board, it earns an additional full-board bonus.
 
 ## 8 Progression and record
 
@@ -422,13 +428,15 @@ Whether sync across devices is offered, and on what terms, is open (§11).
 
 ### 10.1 In scope
 
+<!-- requirements: none - scope enumeration; each obligation is stated in its own subsection (§2 to §9) -->
+
 Everything described in §2 to §9: the loop, the grid, the pool and draw, scoring, the
 economy and power-ups, advanced tiles, statistics, challenges and achievements
 (`D-2026-09-19-4`). The build order for it is decided at link 4, not here.
 
 ### 10.2 Non-goals
 
-<!-- requirements: none - names what the system will not do; the boundary is drawn by the absence of obligations, not by new ones -->
+<!-- requirements: none is incorrect here; each non-goal generates a constraint in the requirement set -->
 
 - **Multiplayer, social feeds and leaderboards.** The audience is the player.
 - **Automatic verification of goals.** No health-API or sensor integration proving a goal
@@ -566,7 +574,7 @@ invented here reads as fact once it is a requirement.
   | ~~Q8~~ | ~~Which combos exist and what each multiplies by~~ — **resolved** by `D-2026-09-19-19`: matching (all same category) and variety (all different); multipliers are tuning | §5.2 |
 | ~~Q9~~ | ~~Settle the two-counter model~~ — **resolved** by `D-2026-09-19-6`: three counters, two of them spendable | §5.3 |
 | Q10 | Power-up prices — constrained by the recovery floor, not free to tune | §6.2, §10.3 |
-  | Q11 | How the mini-grid is populated (same pool, sub-pool, or player-placed), and how completing the internal line scores relative to a normal clear — clearing mechanic confirmed (`D-2026-09-19-20`) | §7.2 |
+  | ~~Q11~~ | ~~How the mini-grid is populated (same pool, sub-pool, or player-placed), and how completing the internal line scores relative to a normal clear~~ — **resolved** by `D-2026-09-19-20` (clearing mechanic) and `D-2026-09-19-24` (population default same pool; scoring as normal clear with full-board bonus) | §7.2 |
   | ~~Q12~~ | ~~Whether cross-device sync is offered~~ — **resolved** by `D-2026-09-19-21`: no sync in first release; local storage only; deferred as a long-term feature | §9.2 |
 | ~~Q13~~ | ~~The recovery floor~~ — **resolved** by `D-2026-09-19-6` (jam-proof income) and `D-2026-09-19-7` (a free action at zero balance) | §10.3, §6.2 |
   | ~~Q14~~ | ~~What happens to perpendicular progress a clear destroys — lost, preserved, or compensated~~ — **resolved** by `D-2026-09-19-15`: marks lost; compensation is a designated upgrade area | §3.4 |
@@ -578,7 +586,7 @@ invented here reads as fact once it is a requirement.
 | ~~Q20~~ | ~~The floor's bound~~ — **resolved by measurement.** Simulated median time-to-unjam is same-day, p99 one to two days, zero trials still jammed after 180 days, at every setting tested. The reserved tightening is not needed to make the floor safe | §10.3, §4.4 |
 | Q21 | What share of the board counts as one category dominating it (§4.4 rule 2) | §4.4 |
 | Q22 | How the remaining draw weight splits across the three short-term cadences (hourly/daily/weekly), now that the long-term share is set | §4.4, §4.3 |
-| Q23 | Whether ambient blocking (§10.4) should target a fixed share, or vary with grid size — the simulation held it roughly constant across grids 3, 5 and 7 at a fixed draw share, but did not test whether a player perceives 50% of 6 lines the same as 50% of 14 | §10.4, §3.1 |
+  | ~~Q23~~ | ~~Whether ambient blocking (§10.4) should target a fixed share, or vary with grid size~~ — **resolved** by `D-2026-09-19-25`: fixed share regardless of grid size; perception difference is speculative | §10.4, §3.1 |
   | Q24 | Whether `sim/jam_sim.py`'s remaining harsher assumptions (swap not modelled; challenge income idealised as always-available) should be revisited once those questions settle — the Q14 assumption (marks lost) is now the decided rule (`D-2026-09-19-15`) and is confirmed | §10.3, §10.4 |
 
 Q22 through Q24 are new, surfaced by building the Q20 simulation rather than by review. A
@@ -621,3 +629,5 @@ measured and closed.
   | `D-2026-09-19-16` | Categories are player-defined; seven defaults ship; new categories unlock through progression |
   | `D-2026-09-19-17` | Challenge structure: universal, category, and cadence challenges run in parallel |
   | `D-2026-09-19-18` | Local-first, no account required; sync is a separate question |
+  | `D-2026-09-19-24` | Mini-grid population defaults to same pool; sub-pool and player-placed are upgrade options |
+  | `D-2026-09-19-25` | Ambient blocking targets a fixed share regardless of grid size |

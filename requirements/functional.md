@@ -1,0 +1,843 @@
+﻿# Functional requirements â€” Goal Bingo
+
+Mined from `docs/design-description.md`. Every statement cites the source section(s).
+Shortcut path: requirements trace to design-description.md section numbers; needs are not
+captured separately. The set is verifiable but not independently validatable.
+
+---
+
+## 2 â€” The core loop
+
+### GB-FUN-001 â€” No end state
+statement: Goal Bingo shall run continuously without an end state, a level boundary, or a
+  session boundary.
+type: functional
+rationale: The game is a continuous bingo loop. An end state would terminate the habit
+  tracker.
+trace-to-source: design-description.md 2
+verification-method: test
+verification-criteria: After any number of line clears the game remains playable; no
+  "game over" or "level complete" screen is presented.
+priority: must
+
+### GB-FUN-002 â€” Mark persists until line clears
+statement: When the player marks a cell, Goal Bingo shall preserve that mark until the
+  cell's line clears.
+type: functional
+rationale: Persistent marks are the mechanism that makes the game a bingo game rather than
+  a daily checklist. D-2026-09-19-2.
+trace-to-source: design-description.md 2 design-description.md 3.4
+verification-method: test
+verification-criteria: A marked cell remains visually marked across app restarts and
+  session boundaries until its line clears.
+priority: must
+
+### GB-FUN-003 â€” Clearing awards reward balance
+statement: When a line clears, Goal Bingo shall increase the player's reward balance by the
+  value of the clear.
+type: functional
+rationale: Reward balance funds personal rewards. D-2026-09-19-6.
+trace-to-source: design-description.md 2 design-description.md 5.3
+verification-method: test
+verification-criteria: After a line clears, the reward balance counter is greater by a
+  positive amount equal to the computed clear value.
+priority: must
+
+### GB-FUN-004 â€” Marking toward a challenge awards board balance
+statement: When the player marks a cell and that mark qualifies toward at least one active
+  challenge, Goal Bingo shall increase the player's board balance at the moment the mark is
+  made.
+type: functional
+rationale: Board balance is fed by marks, not clears. This is what keeps income flowing on
+  a jammed board. D-2026-09-19-6, D-2026-09-19-8.
+trace-to-source: design-description.md 2 design-description.md 5.3 design-description.md 8.2
+verification-method: test
+verification-criteria: Board balance increases immediately after a qualifying mark, without
+  waiting for a line to clear.
+priority: must
+
+---
+
+## 3.1 â€” Size and shape
+
+### GB-FUN-005 â€” Grid is square and variable-size
+statement: Goal Bingo shall maintain a square grid whose size can be increased by spending
+  board balance.
+type: functional
+rationale: Grid expansion is the main long-arc progression. A square grid is the bingo
+  convention. D-2026-09-19-4.
+trace-to-source: design-description.md 3.1
+verification-method: test
+verification-criteria: Starting from the smallest grid size, the player can spend board
+  balance to reach each successive grid size, and the board dimensions are equal on both
+  axes at every size.
+priority: must
+notes: Starting size and expansion sizes are TBD (owner: k, blocks: Q1).
+
+### GB-FUN-006 â€” Grid expansion is permanent
+statement: When the player purchases a grid expansion, Goal Bingo shall increase the grid
+  size permanently.
+type: functional
+rationale: Expansion is a progression reward, not a temporary boost.
+trace-to-source: design-description.md 3.1
+verification-method: test
+verification-criteria: After purchasing an expansion, the grid size is retained across app
+  restarts.
+priority: must
+
+---
+
+## 3.2 â€” Cells and tiles
+
+### GB-FUN-007 â€” One tile per cell
+statement: Goal Bingo shall hold exactly one tile in each cell at all times during active
+  play.
+type: functional
+rationale: Cells that hold zero or two tiles are undefined game states.
+trace-to-source: design-description.md 3.2
+verification-method: test
+verification-criteria: At no point during active play does any cell render without a tile
+  or with more than one tile.
+priority: must
+
+### GB-FUN-008 â€” Board is never presented with empty cells
+statement: When a line clears and cells empty, Goal Bingo shall complete the refill before
+  presenting the board to the player as playable.
+type: functional
+rationale: An empty cell is a transient state; the player should never see a partially
+  filled board.
+trace-to-source: design-description.md 3.2
+verification-method: test
+verification-criteria: Between the moment a line clears and the moment the board is next
+  interactive, all cells that emptied are filled.
+priority: must
+
+---
+
+## 3.3 â€” Marking
+
+### GB-FUN-009 â€” Marking requires only player input
+statement: Goal Bingo shall accept a mark on a cell when the player taps it, requiring no
+  external verification.
+type: functional
+rationale: Marking is self-reported. No health API, sensor, or integration is required.
+  D-2026-09-19-5 (restart from design, not prototype), 3.3 position.
+trace-to-source: design-description.md 3.3
+verification-method: test
+verification-criteria: Tapping an unmarked cell marks it without any network request, API
+  call, or additional confirmation step.
+priority: must
+
+---
+
+## 3.4 â€” Lines and clearing
+
+### GB-FUN-010 â€” Lines include diagonals
+statement: Goal Bingo shall treat each complete row, each complete column, and each main
+  diagonal as a line.
+type: functional
+rationale: Diagonals count. D-2026-09-19-13.
+trace-to-source: design-description.md 3.4
+verification-method: test
+verification-criteria: Marking the final cell of a diagonal triggers a clear; the same
+  applies to rows and columns.
+priority: must
+
+### GB-FUN-011 â€” Line clears when every cell is marked
+statement: When every cell in a line is marked, Goal Bingo shall clear the line: award
+  score, empty the cells, and draw new goals into them from the pool.
+type: functional
+rationale: This is the core bingo mechanic. D-2026-09-19-13.
+trace-to-source: design-description.md 3.4
+verification-method: test
+verification-criteria: Marking the final cell of a line triggers the clear sequence: score
+  is incremented, cells empty, and are refilled before the board is playable again.
+priority: must
+
+### GB-FUN-012 â€” All completing lines resolve on a simultaneous mark
+statement: When a single mark simultaneously completes more than one line, Goal Bingo shall
+  clear every completing line.
+type: functional
+rationale: D-2026-09-19-13.
+trace-to-source: design-description.md 3.4
+verification-method: test
+verification-criteria: A mark that completes two lines triggers two separate clear awards
+  and refills all cells from both lines.
+priority: must
+
+### GB-FUN-013 â€” Multi-clear bonus for simultaneous completion
+statement: When a single mark clears more than one line simultaneously, Goal Bingo shall
+  award bonus points for the multi-clear in addition to each line's base score.
+type: functional
+rationale: D-2026-09-19-13, D-2026-09-19-14.
+trace-to-source: design-description.md 3.4
+verification-method: test
+verification-criteria: A double-clear produces a higher total score than two sequential
+  single clears of the same lines; the increment is attributable to the multi-clear bonus.
+priority: must
+notes: Bonus formula is TBD (owner: k, blocks: Q7).
+
+### GB-FUN-014 â€” Intersection cell has distinct visual treatment
+statement: When two lines clear simultaneously, Goal Bingo shall render the cell at their
+  intersection with a visual treatment distinct from cells that belong to only one clearing
+  line.
+type: functional
+rationale: The intersection is the anchor for the multi-clear bonus. D-2026-09-19-14.
+trace-to-source: design-description.md 3.4
+verification-method: inspection
+verification-criteria: In a double-clear, the shared cell is visually distinguishable from
+  the other cells in both lines during the clear animation.
+priority: must
+notes: Exact animation is a design decision deferred to implementation.
+
+### GB-FUN-015 â€” Perpendicular progress is lost on a clear
+statement: When a line clears, Goal Bingo shall discard the marks of cells that were
+  contributing progress toward perpendicular lines.
+type: functional
+rationale: Marks are not preserved when their cells empty. This is the base rule;
+  compensation is a designated upgrade area. D-2026-09-19-15.
+trace-to-source: design-description.md 3.4
+verification-method: test
+verification-criteria: After a row clears, cells that were marked and also belonged to
+  in-progress columns have their marks removed; the column progress count reflects the loss.
+priority: must
+
+---
+
+## 4.1 â€” The goal pool
+
+### GB-FUN-016 â€” Goal stays in pool after being drawn
+statement: Goal Bingo shall return each goal to the pool after it is drawn into a cell,
+  leaving it available for future draws.
+type: functional
+rationale: The pool is not a queue; goals can recur.
+trace-to-source: design-description.md 4.1
+verification-method: test
+verification-criteria: A goal that is currently on the board can also be drawn into another
+  cell on the same or a subsequent refill.
+priority: must
+
+### GB-FUN-017 â€” Starter goal set
+statement: Goal Bingo shall provide a non-empty starting set of goals that the player can
+  edit.
+type: functional
+rationale: An empty pool at first launch creates a blank-page barrier.
+trace-to-source: design-description.md 4.1
+verification-method: inspection
+verification-criteria: On first launch, the pool contains at least one goal in each default
+  category; the player can add, edit, and remove goals from the pool.
+priority: must
+
+---
+
+## 4.2 â€” Categories
+
+### GB-FUN-018 â€” Every goal carries exactly one category
+statement: Goal Bingo shall assign exactly one category to each goal in the pool.
+type: functional
+rationale: Category drives combos, statistics, and challenges. D-2026-09-19-11.
+trace-to-source: design-description.md 4.2
+verification-method: test
+verification-criteria: Every goal record has a non-null, non-empty category value; no goal
+  has more than one category.
+priority: must
+
+### GB-FUN-019 â€” Seven default categories ship
+statement: Goal Bingo shall provide the following seven categories on first install: health,
+  study, creative, volunteering, relationship, home, work.
+type: functional
+rationale: D-2026-09-19-16. These are defaults, not the only categories.
+trace-to-source: design-description.md 4.2
+verification-method: inspection
+verification-criteria: On first launch, the category list contains exactly these seven
+  entries and the starter goals are distributed across them.
+priority: must
+
+### GB-FUN-020 â€” New categories unlock through progression
+statement: Goal Bingo shall allow the player to unlock additional categories beyond the
+  seven defaults through in-game progression.
+type: functional
+rationale: Player-defined categories are earned through play. D-2026-09-19-16.
+trace-to-source: design-description.md 4.2
+verification-method: test
+verification-criteria: After satisfying the unlock condition, a new category slot is
+  available for the player to name and use.
+priority: must
+notes: Unlock gate (what earns a new category slot) is a link 4 decision.
+
+---
+
+## 4.3 â€” Cadence
+
+### GB-FUN-021 â€” Every goal has exactly one cadence
+statement: Goal Bingo shall assign exactly one cadence to each goal: hourly, daily, weekly,
+  or long-term.
+type: functional
+rationale: Cadence determines draw rate and blocking behaviour. D-2026-09-19-11.
+trace-to-source: design-description.md 4.3
+verification-method: test
+verification-criteria: Every goal record has a cadence field with one of the four
+  permitted values; no goal has zero or multiple cadence values.
+priority: must
+
+---
+
+## 4.4 â€” Draw rates and refill
+
+### GB-FUN-022 â€” Draw is weighted by cadence
+statement: Goal Bingo shall weight each goal's draw probability according to its cadence,
+  with long-term goals drawn at a lower rate than short-term goals.
+type: functional
+rationale: Hourly goals should surface often; long-term goals rarely. 4.4.
+trace-to-source: design-description.md 4.4
+verification-method: test
+verification-criteria: In a large sample of draws from a mixed pool, long-term goals are
+  drawn at a lower frequency than daily goals.
+priority: must
+notes: Exact weighting formula is TBD (owner: k, blocks: Q6). Long-term share approximately
+  5% (D-2026-09-19-12).
+
+### GB-FUN-023 â€” No two long-term goals in the same row or column (binding)
+statement: Goal Bingo shall not draw a long-term goal into a cell whose row or column
+  already contains a long-term goal.
+type: functional
+rationale: Binding placement rule 1. Prevents lines being blocked in multiple places by
+  long-term goals, which would make them impossible to unblock. 10.3 recovery argument
+  rests on this being absolute. D-2026-09-19-9.
+trace-to-source: design-description.md 4.4
+verification-method: test
+verification-criteria: After any draw, no row and no column contains more than one
+  long-term goal.
+priority: must
+
+### GB-FUN-024 â€” No single category dominates the board (binding)
+statement: Goal Bingo shall not draw a goal of any one category into a cell if doing so
+  would cause that category to exceed the domination threshold on the board.
+type: functional
+rationale: Binding placement rule 2. Prevents a board where one life area crowds out
+  others. 4.4.
+trace-to-source: design-description.md 4.4
+verification-method: test
+verification-criteria: After any draw, no single category occupies more than the domination
+  threshold proportion of cells on the board.
+priority: must
+notes: Domination threshold is TBD (owner: k, blocks: Q21).
+
+### GB-FUN-025 â€” Draw prefers completable-line placement (preference rule)
+statement: Where more than one legally placed goal exists and at least one placement leaves
+  at least one line completable, Goal Bingo shall select among placements that leave at
+  least one line completable.
+type: functional
+rationale: Advisory placement rule 3. Preventive only â€” runs on refill, not on a jammed
+  board. Does not apply to recycle draws (one cell only, no placement choice). 4.4.
+trace-to-source: design-description.md 4.4
+verification-method: test
+verification-criteria: After a refill where non-blocking placements were available, at
+  least one line on the board is completable.
+priority: should
+notes: This rule does not apply to recycle draws.
+
+### GB-FUN-026 â€” Recycle draw obeys binding placement rules
+statement: When the player recycles a tile, Goal Bingo shall apply placement rules 1 and 2
+  from 4.4 to the replacement draw.
+type: functional
+rationale: The recycle path is the only draw that runs on a jammed board; the binding rules
+  must hold there too. D-2026-09-19-9.
+trace-to-source: design-description.md 4.4 design-description.md 6.2
+verification-method: test
+verification-criteria: After a recycle, no row or column contains two long-term goals, and
+  no category exceeds the domination threshold.
+priority: must
+
+### GB-FUN-027 â€” Long-term draw share approximately 5%
+statement: Goal Bingo shall configure the draw algorithm so that long-term goals receive
+  approximately 5% of the total draw weight.
+type: functional
+rationale: At 5% draw share, ambient blocking runs at approximately 45â€“50% â€” a regular
+  presence without dominating. D-2026-09-19-12.
+trace-to-source: design-description.md 4.4 design-description.md 10.4
+verification-method: test
+verification-criteria: In a large sample of draws from a pool of mixed cadences, long-term
+  goals are drawn in 5% ± TBD% of cases.
+priority: must
+notes: Exact tolerance is TBD (owner: k, blocks: Q6).
+
+---
+
+## 5.1 â€” What a clear is worth
+
+### GB-FUN-028 â€” Clear base value scales with cadence
+statement: Goal Bingo shall compute the base value of a clear as a function of the cadences
+  of the goals in the cleared line, with higher-cadence goals contributing more value.
+type: functional
+rationale: A line of long-term goals costs more to assemble than a line of daily ones. 5.1.
+trace-to-source: design-description.md 5.1
+verification-method: test
+verification-criteria: A cleared line of long-term goals produces a higher base clear value
+  than a cleared line of daily goals of equal length.
+priority: must
+notes: Point values are TBD (owner: k, blocks: Q7).
+
+---
+
+## 5.2 â€” Combos and adjacency
+
+### GB-FUN-029 â€” Matching category combo bonus
+statement: When every tile in a cleared line belongs to the same category, Goal Bingo shall
+  apply a matching combo bonus multiplier to the clear value.
+type: functional
+rationale: Matching combos reward focus. D-2026-09-19-19.
+trace-to-source: design-description.md 5.2
+verification-method: test
+verification-criteria: A cleared line where all goals share one category scores higher than
+  a cleared line of the same cadences with mixed categories.
+priority: must
+notes: Multiplier value is TBD (owner: k, blocks: Q7).
+
+### GB-FUN-030 â€” Variety category combo bonus
+statement: When every tile in a cleared line belongs to a different category, Goal Bingo
+  shall apply a variety combo bonus multiplier to the clear value.
+type: functional
+rationale: Variety combos reward strategic spread. D-2026-09-19-19.
+trace-to-source: design-description.md 5.2
+verification-method: test
+verification-criteria: A cleared line where all goals have distinct categories scores higher
+  than a cleared line of the same cadences with repeated categories.
+priority: must
+notes: Multiplier value is TBD (owner: k, blocks: Q7).
+
+### GB-FUN-031 â€” Adjacency bonus applied on clear
+statement: Goal Bingo shall compute and apply an adjacency bonus based on the board
+  position of the cleared line relative to surrounding tiles.
+type: functional
+rationale: Adjacency scoring makes the board a single spatial object, not a set of
+  independent rows. 5.2.
+trace-to-source: design-description.md 5.2
+verification-method: test
+verification-criteria: The adjacency component of a clear score varies with the board state
+  at the time of the clear; clearing the same line in different board configurations
+  produces different adjacency scores.
+priority: must
+notes: Which adjacency combinations exist and what each is worth is TBD (owner: k, blocks:
+  Q7).
+
+---
+
+## 5.3 â€” Score and the balance it is spent from
+
+### GB-FUN-032 â€” Three counters maintained
+statement: Goal Bingo shall maintain three independent counters for each player: lifetime
+  score, reward balance, and board balance.
+type: functional
+rationale: Two incompatible jobs (record and currency) require separate counters.
+  D-2026-09-19-6.
+trace-to-source: design-description.md 5.3
+verification-method: test
+verification-criteria: The player can view all three counter values distinctly; each
+  changes independently.
+priority: must
+
+### GB-FUN-033 â€” Lifetime score only ever increases
+statement: Goal Bingo shall increase the lifetime score when each line clears.
+type: functional
+rationale: Lifetime score is a record of achievement, not a currency. D-2026-09-19-6.
+  A separate constraint (GB-CON-007) forbids any action from decreasing it.
+trace-to-source: design-description.md 5.3
+verification-method: test
+verification-criteria: The lifetime score value after each clear event is strictly greater
+  than its value before that event.
+priority: must
+
+---
+
+## 6.1 â€” Personal rewards
+
+### GB-FUN-034 â€” Player creates personal rewards
+statement: Goal Bingo shall enable the player to create, name, and price personal rewards
+  using reward balance.
+type: functional
+rationale: The game holds the ledger; the player defines the rewards. 6.1.
+trace-to-source: design-description.md 6.1
+verification-method: test
+verification-criteria: The player can create a personal reward with a name and price, and
+  the reward persists across restarts.
+priority: must
+
+### GB-FUN-034b â€” Player removes personal rewards
+statement: Goal Bingo shall enable the player to delete each personal reward they have
+  created.
+type: functional
+trace-to-source: design-description.md 6.1
+verification-method: test
+verification-criteria: Deleting a reward removes it from the reward list.
+priority: must
+
+### GB-FUN-035 â€” Personal reward purchase deducts reward balance only
+statement: When the player purchases a personal reward, Goal Bingo shall deduct the
+  reward's price from the reward balance.
+type: functional
+rationale: Reward balance and board balance are separate budgets. D-2026-09-19-6.
+  GB-CON-005 enforces that board balance is not offered as an alternative.
+trace-to-source: design-description.md 6.1 design-description.md 5.3
+verification-method: test
+verification-criteria: After a reward purchase, the reward balance decreases by the
+  reward's price; board balance and lifetime score are unchanged.
+priority: must
+
+---
+
+## 6.2 â€” Power-ups
+
+### GB-FUN-036 â€” Grid expansion power-up
+statement: Goal Bingo shall provide a grid expansion power-up that permanently increases
+  the grid size when purchased with board balance.
+type: functional
+rationale: Grid expansion is the main long-arc progression. 3.1, 6.2.
+trace-to-source: design-description.md 6.2
+verification-method: test
+verification-criteria: Purchasing the expansion deducts board balance and results in a
+  permanently larger grid.
+priority: must
+notes: Price is TBD (owner: k, blocks: Q10).
+
+### GB-FUN-037 â€” Recycle-allowance upgrade power-up
+statement: Goal Bingo shall provide a power-up that permanently increases the number of
+  free recycles available per 24-hour period.
+type: functional
+rationale: Turns the release valve into a progression axis. D-2026-09-19-7.
+trace-to-source: design-description.md 6.2
+verification-method: test
+verification-criteria: After purchasing the upgrade, the free recycle allowance per 24
+  hours is higher than before the purchase, and the increase persists across restarts.
+priority: must
+notes: Upper limit on upgrades and per-step prices are TBD (owner: k, blocks: Q17).
+
+### GB-FUN-038 â€” Swap power-up exchanges adjacent tiles
+statement: Goal Bingo shall provide a swap power-up that exchanges the positions of two
+  adjacent tiles when purchased with board balance.
+type: functional
+rationale: The swap mechanic's purpose is consolidation â€” grouping blockers into fewer
+  lines. Adjacent-only is the base mechanic. D-2026-09-19-22.
+trace-to-source: design-description.md 6.2
+verification-method: test
+verification-criteria: Activating the swap and selecting two adjacent tiles moves each
+  goal into the other's cell; non-adjacent tiles cannot be swapped in the base game.
+priority: must
+notes: Wider-range swap is an upgrade area, not a base-game feature.
+
+### GB-FUN-039 â€” Recycle power-up replaces unmarked tile
+statement: When the player activates a recycle on an unmarked tile, Goal Bingo shall remove
+  that tile from the cell and draw a replacement goal from the pool into the same cell.
+type: functional
+rationale: The recycle is the primary way out of a blocked line. D-2026-09-19-10.
+trace-to-source: design-description.md 6.2
+verification-method: test
+verification-criteria: After a recycle, the selected cell contains a different goal; the
+  prior goal is no longer visible in that cell.
+priority: must
+
+### GB-FUN-040 â€” Recycle unavailable on marked tiles
+statement: If the player selects a marked tile for recycle, Goal Bingo shall reject the
+  action.
+type: functional
+rationale: A mark is never destroyed before its line clears. D-2026-09-19-10,
+  D-2026-09-19-2. This requirement is the positive obligation; GB-CON-008 is the
+  constraint twin.
+trace-to-source: design-description.md 6.2
+verification-method: test
+verification-criteria: Selecting a marked tile in the recycle flow produces no state change.
+priority: must
+
+### GB-FUN-041 â€” One free recycle per 24 hours
+statement: Goal Bingo shall grant the player one free recycle action per 24-hour period,
+  available unconditionally regardless of board balance.
+type: functional
+rationale: The free recycle is the action of last resort at zero balance. D-2026-09-19-7.
+trace-to-source: design-description.md 6.2
+verification-method: test
+verification-criteria: With board balance at zero and within a 24-hour period that has not
+  used the free allowance, the player can activate one recycle at no cost.
+priority: must
+
+### GB-FUN-042 â€” Free recycle taken before balance-spending recycles
+statement: Goal Bingo shall spend the free recycle allowance before deducting board balance
+  for any recycle within the same 24-hour period.
+type: functional
+rationale: The free tier must be consumed first to prevent it being wasted. D-2026-09-19-7.
+trace-to-source: design-description.md 6.2
+verification-method: test
+verification-criteria: The first recycle within a 24-hour period does not reduce board
+  balance; subsequent recycles in the same period deduct board balance.
+priority: must
+
+---
+
+## 7 â€” Advanced tiles
+
+### GB-FUN-043 â€” Advanced tiles acquired through category progression
+statement: Goal Bingo shall make advanced tiles for a category available when the player
+  has reached the mark threshold for that category.
+type: functional
+rationale: Per-category progression is the primary acquisition path. D-2026-09-19-23.
+trace-to-source: design-description.md 7
+verification-method: test
+verification-criteria: After reaching the mark threshold for a category, the player gains
+  access to advanced tiles for goals in that category.
+priority: must
+notes: Specific thresholds are a link 4 decision.
+
+### GB-FUN-044 â€” Secondary advanced tile unlock via board balance
+statement: Goal Bingo shall provide a secondary path to unlock advanced tiles using board
+  balance, as an alternative to per-category progression.
+type: functional
+rationale: Economy provides a secondary unlock path. D-2026-09-19-23.
+trace-to-source: design-description.md 7
+verification-method: test
+verification-criteria: With sufficient board balance and without meeting the progression
+  threshold, the player can purchase access to an advanced tile slot.
+priority: must
+notes: Prices are a link 4 decision.
+
+---
+
+## 7.1 â€” Multi-completion tiles
+
+### GB-FUN-045 â€” Multi-completion tile requires multiple completions
+statement: Goal Bingo shall count a multi-completion tile as marked only after the player
+  has recorded the required number of completions for that tile.
+type: functional
+rationale: The multi-completion tile makes a long-term goal into a structured, visible
+  commitment. 7.1.
+trace-to-source: design-description.md 7.1
+verification-method: test
+verification-criteria: A multi-completion tile configured for N completions counts as
+  marked only after the player has tapped it N times.
+priority: must
+notes: The configured number of completions is set at tile creation (link 4 decision).
+
+### GB-FUN-046 â€” Multi-completion tile displays progress
+statement: Goal Bingo shall display the current completion count on a multi-completion tile.
+type: functional
+rationale: The tile shows its progress so a long-term goal is not an opaque block. 7.1.
+trace-to-source: design-description.md 7.1
+verification-method: inspection
+verification-criteria: A multi-completion tile at k-of-N completions visually shows k and N.
+priority: must
+
+---
+
+## 7.2 â€” Mini-grid tiles
+
+### GB-FUN-047 â€” Mini-grid tile cleared when internal line completes
+statement: When a line completes inside a mini-grid tile's internal grid, Goal Bingo shall
+  mark the parent cell on the main board as cleared.
+type: functional
+rationale: D-2026-09-19-20.
+trace-to-source: design-description.md 7.2
+verification-method: test
+verification-criteria: Completing a row, column, or diagonal inside the mini-grid marks the
+  parent cell on the main board as cleared.
+priority: must
+
+### GB-FUN-048 â€” Mini-grid draws from main pool by default
+statement: By default, Goal Bingo shall populate mini-grid cells by drawing from the
+  player's main goal pool.
+type: functional
+rationale: Using the main pool requires no additional player setup. D-2026-09-19-24.
+trace-to-source: design-description.md 7.2
+verification-method: test
+verification-criteria: When a mini-grid tile is placed and no upgrade is active, its cells
+  are filled with goals drawn from the same pool as the main board.
+priority: must
+
+### GB-FUN-049 â€” Mini-grid clear scores as a normal clear
+statement: When a line completes inside a mini-grid tile, Goal Bingo shall score the clear
+  using the same formula as a line clear on the main board.
+type: functional
+rationale: D-2026-09-19-24.
+trace-to-source: design-description.md 7.2
+verification-method: test
+verification-criteria: Completing a line inside a mini-grid awards score and reward balance
+  equal to what the same line would award on the main board.
+priority: must
+
+### GB-FUN-050 â€” Full-board bonus when mini-grid tile is last to clear
+statement: When the mini-grid tile is the last tile to clear on the main board, Goal Bingo
+  shall award an additional full-board bonus.
+type: functional
+rationale: D-2026-09-19-24.
+trace-to-source: design-description.md 7.2
+verification-method: test
+verification-criteria: When the internal mini-grid line completes and that cell was the
+  only remaining unmarked cell on the main board, the score award includes an additional
+  bonus on top of the normal clear value.
+priority: must
+notes: Bonus amount is TBD (owner: k, blocks: Q7).
+
+---
+
+## 8.1 â€” Statistics
+
+### GB-FUN-051 â€” Lifetime score display
+statement: Goal Bingo shall display the player's current lifetime score.
+type: functional
+rationale: Statistics show the player their own pattern. 8.1.
+trace-to-source: design-description.md 8.1
+verification-method: inspection
+verification-criteria: The player can view the lifetime score from the statistics screen.
+priority: must
+
+### GB-FUN-052 â€” Clears by category display
+statement: Goal Bingo shall track and display the number of line clears broken down by the
+  category of goals in each cleared line.
+type: functional
+rationale: Category breakdowns show which life areas the player is engaging. 8.1.
+trace-to-source: design-description.md 8.1
+verification-method: test
+verification-criteria: The statistics screen shows a per-category clear count that
+  increments when lines containing goals of that category are cleared.
+priority: must
+
+### GB-FUN-053 â€” Clears over time display
+statement: Goal Bingo shall track and display the player's clear history over time.
+type: functional
+rationale: Trend data shows whether the habit is holding. 8.1.
+trace-to-source: design-description.md 8.1
+verification-method: inspection
+verification-criteria: The statistics screen shows a time-series view of clears.
+priority: must
+
+### GB-FUN-054 â€” Average clears per day display
+statement: Goal Bingo shall calculate and display the player's average number of line
+  clears per day.
+type: functional
+rationale: Average clears per day is the primary habit-strength indicator. 8.1.
+trace-to-source: design-description.md 8.1
+verification-method: test
+verification-criteria: The displayed average matches the total clears divided by the number
+  of days since first play.
+priority: must
+
+---
+
+## 8.2 â€” Challenge modes
+
+### GB-FUN-055 â€” Universal challenge always active
+statement: Goal Bingo shall maintain an active universal challenge at each point during
+  a play session.
+type: functional
+rationale: The universal challenge is the coverage guarantee â€” each mark qualifies toward
+  it. D-2026-09-19-17.
+trace-to-source: design-description.md 8.2
+verification-method: test
+verification-criteria: Querying active challenges at any point returns at least one
+  universal challenge.
+priority: must
+
+### GB-FUN-056 â€” Each mark qualifies for the universal challenge
+statement: Goal Bingo shall increment the active universal challenge progress counter when
+  the player makes each mark.
+type: functional
+rationale: The universal challenge has no category or cadence restriction. D-2026-09-19-17.
+trace-to-source: design-description.md 8.2
+verification-method: test
+verification-criteria: After each mark, the universal challenge progress counter increments.
+priority: must
+
+### GB-FUN-057 â€” Category challenge, one per active category
+statement: Goal Bingo shall maintain one active category challenge per unlocked category.
+type: functional
+rationale: D-2026-09-19-17. Category challenges unlock with the category itself.
+  D-2026-09-19-16.
+trace-to-source: design-description.md 8.2
+verification-method: test
+verification-criteria: For each category that is unlocked, exactly one category challenge
+  is active.
+priority: must
+
+### GB-FUN-058 â€” Category challenge unlocks with its category
+statement: When the player unlocks a new category, Goal Bingo shall create an active
+  category challenge for that category.
+type: functional
+rationale: D-2026-09-19-16.
+trace-to-source: design-description.md 8.2
+verification-method: test
+verification-criteria: Immediately after unlocking a category, a challenge counting marks
+  in that category is active.
+priority: must
+
+### GB-FUN-059 â€” Cadence challenge, one per cadence tier
+statement: Goal Bingo shall maintain one active cadence challenge per cadence tier.
+type: functional
+rationale: D-2026-09-19-17. Every goal has a cadence, so every player always qualifies.
+trace-to-source: design-description.md 8.2
+verification-method: test
+verification-criteria: At all times, active challenges exist for hourly, daily, weekly, and
+  long-term cadences.
+priority: must
+
+### GB-FUN-060 â€” A mark counts toward each qualifying challenge simultaneously
+statement: When the player makes a mark, Goal Bingo shall increment the progress counter
+  of each active challenge the mark qualifies for.
+type: functional
+rationale: Focused play earns more than scattered play without penalising either.
+  D-2026-09-19-17.
+trace-to-source: design-description.md 8.2
+verification-method: test
+verification-criteria: A mark on a daily health goal increments the universal challenge
+  counter, the health category challenge counter, and the daily cadence challenge counter
+  in one mark event.
+priority: must
+
+### GB-FUN-061 â€” Challenge pays board balance per qualifying mark
+statement: Goal Bingo shall award board balance to the player at the moment each qualifying
+  mark is made toward a challenge.
+type: functional
+rationale: Pay per mark, not per completion. This keeps income flowing on a jammed board.
+  D-2026-09-19-8.
+trace-to-source: design-description.md 8.2
+verification-method: test
+verification-criteria: Board balance increases immediately after a qualifying mark; the
+  increment is positive and repeatable for each qualifying mark.
+priority: must
+notes: Per-mark rate is TBD (owner: k, blocks: Q18 rates).
+
+### GB-FUN-062 â€” Challenge pays completion bonus on reaching target
+statement: When a challenge progress counter reaches the challenge target, Goal Bingo shall
+  award a completion bonus in board balance.
+type: functional
+rationale: Completing a challenge earns a bonus on top of per-mark payments. D-2026-09-19-8.
+trace-to-source: design-description.md 8.2
+verification-method: test
+verification-criteria: When the challenge progress counter reaches the target, an
+  additional board balance award is made beyond the per-mark payments already issued.
+priority: must
+notes: Completion bonus amount is TBD (owner: k).
+
+---
+
+## 8.3 â€” Achievements
+
+### GB-FUN-063 â€” Achievements awarded for player-unset milestones
+statement: Goal Bingo shall award achievements to the player when predefined milestones are
+  reached.
+type: functional
+rationale: Achievements are discoveries the game hands back. 8.3.
+trace-to-source: design-description.md 8.3
+verification-method: test
+verification-criteria: Reaching a defined milestone (e.g. first clear, long run) triggers
+  an achievement award and displays it to the player.
+priority: must
+
+### GB-FUN-064 â€” Minimum achievement set
+statement: Goal Bingo shall include achievements for at minimum: first clear, reaching a
+  large grid size, a sustained run of daily clears, and a rare category combination.
+type: functional
+rationale: Named milestones ensure the achievement system covers the key game moments.
+  8.3.
+trace-to-source: design-description.md 8.3
+verification-method: inspection
+verification-criteria: The shipped achievement list contains entries for each of the four
+  named milestone types.
+priority: must
+notes: "Large grid", "sustained run", and "rare combination" thresholds are TBD.
