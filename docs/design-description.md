@@ -647,3 +647,4 @@ measured and closed.
   | `D-2026-09-20-4` | Free recycle allowance uses a rolling 24-hour window from first use |
   | `D-2026-09-20-5` | Long-term draw-share verification tolerance is ±5 percentage points |
   | `D-2026-09-20-6` | Product app is Vite + TypeScript PWA under app/ |
+  | `D-2026-09-20-7` | Provisional custom-category unlock: lifetime score ≥ 10 |

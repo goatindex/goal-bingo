@@ -113,6 +113,85 @@ body {
   background: #57534e;
 }
 
+.thumb-btn--active {
+  outline: 2px solid var(--accent);
+}
+
+.shell__banner--warn {
+  background: #7c2d12;
+}
+
+.shell__placeholder {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pool__heading {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.pool__list {
+  list-style: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pool-item {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  background: #292524;
+  border-radius: 0.75rem;
+}
+
+.pool-item input,
+.pool-item select,
+.pool__form input,
+.pool__form select {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid #57534e;
+  border-radius: 0.5rem;
+  background: #1c1917;
+  color: var(--fg);
+  font: inherit;
+  padding: 0.35rem 0.5rem;
+}
+
+.pool-item button,
+.pool__form button {
+  min-height: 2.5rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: #57534e;
+  color: var(--fg);
+  font: inherit;
+  font-weight: 600;
+}
+
+.pool__form {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem;
+  background: #292524;
+  border-radius: 0.75rem;
+}
+
+.pool__form h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.pool__error {
+  color: #fecaca;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
 @media (min-width: 480px) {
   .shell {
     max-width: 28rem;

@@ -3,6 +3,25 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-20-7 — Provisional custom-category unlock: lifetime score ≥ 10
+
+- **Status:** open
+- **Context:** GB-FUN-020 requires additional categories to unlock through progression.
+  The unlock gate itself was deferred to link 4 (`D-2026-09-19-16`). WP-02 needs a
+  falsifiable provisional gate to implement the requirement without inventing economy
+  prices.
+- **Options considered:** unlock immediately (available from start) — collapses into
+  defaults and removes progression (rejected) · unlock via board-balance spend — needs
+  WP-07 economy (deferred) · **lifetime score ≥ 10 unlocks one custom category slot
+  (chosen, provisional)**
+- **Why:** Uses an existing counter, is trivial to test, and can be replaced when
+  progression thresholds are tuned without changing the requirement ID.
+- **Expected outcome:** Players below score 10 cannot add a custom category; at 10+ they
+  can name one additional category and assign goals to it.
+- **Revisit:** At first playtest or when category-unlock progression is designed properly
+  for WP-08/09. If score 10 is trivial or unreachable, replace the threshold — do not
+  remove the unlock mechanic.
+
 ## D-2026-09-20-6 — Product app is Vite + TypeScript PWA under app/
 
 - **Status:** open
