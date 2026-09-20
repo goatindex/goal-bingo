@@ -9,15 +9,18 @@ _Convention: update at end of each working session. The weekly portfolio review 
 broken into four sub-issues: [#63](https://github.com/goatindex/goal-bingo/issues/63) board
 model (closed, PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) marking
 (closed, PR #69), [#65](https://github.com/goatindex/goal-bingo/issues/65) single-line
-clear (closed, this PR), [#66](https://github.com/goatindex/goal-bingo/issues/66)
-multi-line clear (next).
+clear (closed, PR #71), [#66](https://github.com/goatindex/goal-bingo/issues/66)
+multi-line clear (closed, this PR).
 
 ## Next up
 
-- **Pick up #66 (multi-line clear)** — `resolveLineClears` (`app/src/lines.ts`) already
-  clears every completing line correctly when more than one completes at once (it checks
-  all lines through the marked cell); #66 adds the multi-clear bonus (`D-2026-09-20-9`),
-  the intersection cell's visual marker, and perpendicular-progress loss on top.
+- **WP-03's business logic is done; its UI is not — a real gap, found while wrapping up
+  #66.** `app/src/shell.ts`'s `renderHome()` still shows the WP-01/WP-02-era "Tap to mark
+  (placeholder)" / "Draw a goal (placeholder)" buttons wired to no-op handlers
+  (`onMarkPlaceholder`/`onDrawPlaceholder`). WP-01 (PR for #29-31) and WP-02 (PR #35) both
+  shipped real UI alongside their logic; none of #63-66 did, because none of them were
+  scoped to. File a 5th WP-03 item — render the grid, wire taps to
+  `markCellAndResolve` (`app/src/lines.ts`), display score — before closing #20 as done.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -40,6 +43,16 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **#66 (multi-line clear) built** (this PR), completing WP-03's business logic:
+  `resolveLineClears` (`app/src/lines.ts`) already cleared every simultaneously-
+  completing line correctly (checked all lines through the marked cell); this issue adds
+  the multi-clear bonus (50% of summed base score, `D-2026-09-20-9`, only when more than
+  one line clears), `intersectionCells` reporting which cell(s) are shared by 2+
+  completing lines for the UI to render distinctly (GB-FUN-014), and a `countMarked`
+  helper making a line's progress observable — confirming that refilling a clearing
+  line's cells already discards perpendicular progress by construction (GB-FUN-015; no
+  new mechanism needed, just a test proving it). 7 new tests, 47/47 passing.
+  **Found while wrapping up: WP-03's UI was never scoped** — see Next up.
 - **#65 (single-line clear) built** (this PR): `app/src/lines.ts` — `allLines`/
   `linesThroughIndex` enumerate rows, columns, and both main diagonals (GB-FUN-010; a
   5x5 grid has 12 lines, matching the count already cited in
