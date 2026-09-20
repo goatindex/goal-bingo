@@ -1,4 +1,4 @@
-﻿# Functional requirements â€” Goal Bingo
+﻿# Functional requirements — Goal Bingo
 
 Mined from `docs/design-description.md`. Every statement cites the source section(s).
 Shortcut path: requirements trace to design-description.md section numbers; needs are not
@@ -6,9 +6,9 @@ captured separately. The set is verifiable but not independently validatable.
 
 ---
 
-## 2 â€” The core loop
+## 2 — The core loop
 
-### GB-FUN-001 â€” No end state
+### GB-FUN-001 — No end state
 statement: Goal Bingo shall run continuously without an end state, a level boundary, or a
   session boundary.
 type: functional
@@ -20,7 +20,7 @@ verification-criteria: After any number of line clears the game remains playable
   "game over" or "level complete" screen is presented.
 priority: must
 
-### GB-FUN-002 â€” Mark persists until line clears
+### GB-FUN-002 — Mark persists until line clears
 statement: When the player marks a cell, Goal Bingo shall preserve that mark until the
   cell's line clears.
 type: functional
@@ -32,7 +32,7 @@ verification-criteria: A marked cell remains visually marked across app restarts
   session boundaries until its line clears.
 priority: must
 
-### GB-FUN-003 â€” Clearing awards reward balance
+### GB-FUN-003 — Clearing awards reward balance
 statement: When a line clears, Goal Bingo shall increase the player's reward balance by the
   value of the clear.
 type: functional
@@ -43,7 +43,7 @@ verification-criteria: After a line clears, the reward balance counter is greate
   positive amount equal to the computed clear value.
 priority: must
 
-### GB-FUN-004 â€” Marking toward a challenge awards board balance
+### GB-FUN-004 — Marking toward a challenge awards board balance
 statement: When the player marks a cell and that mark qualifies toward at least one active
   challenge, Goal Bingo shall increase the player's board balance at the moment the mark is
   made.
@@ -58,9 +58,9 @@ priority: must
 
 ---
 
-## 3.1 â€” Size and shape
+## 3.1 — Size and shape
 
-### GB-FUN-005 â€” Grid is square and variable-size
+### GB-FUN-005 — Grid is square and variable-size
 statement: Goal Bingo shall maintain a square grid whose size can be increased by spending
   board balance.
 type: functional
@@ -74,7 +74,7 @@ verification-criteria: Starting from the smallest grid size, the player can spen
 priority: must
 notes: Starting size and expansion sizes are TBD (owner: k, blocks: Q1).
 
-### GB-FUN-006 â€” Grid expansion is permanent
+### GB-FUN-006 — Grid expansion is permanent
 statement: When the player purchases a grid expansion, Goal Bingo shall increase the grid
   size permanently.
 type: functional
@@ -87,9 +87,9 @@ priority: must
 
 ---
 
-## 3.2 â€” Cells and tiles
+## 3.2 — Cells and tiles
 
-### GB-FUN-007 â€” One tile per cell
+### GB-FUN-007 — One tile per cell
 statement: Goal Bingo shall hold exactly one tile in each cell at all times during active
   play.
 type: functional
@@ -100,7 +100,7 @@ verification-criteria: At no point during active play does any cell render witho
   or with more than one tile.
 priority: must
 
-### GB-FUN-008 â€” Board is never presented with empty cells
+### GB-FUN-008 — Board is never presented with empty cells
 statement: When a line clears and cells empty, Goal Bingo shall complete the refill before
   presenting the board to the player as playable.
 type: functional
@@ -114,9 +114,9 @@ priority: must
 
 ---
 
-## 3.3 â€” Marking
+## 3.3 — Marking
 
-### GB-FUN-009 â€” Marking requires only player input
+### GB-FUN-009 — Marking requires only player input
 statement: Goal Bingo shall accept a mark on a cell when the player taps it, requiring no
   external verification.
 type: functional
@@ -130,9 +130,9 @@ priority: must
 
 ---
 
-## 3.4 â€” Lines and clearing
+## 3.4 — Lines and clearing
 
-### GB-FUN-010 â€” Lines include diagonals
+### GB-FUN-010 — Lines include diagonals
 statement: Goal Bingo shall treat each complete row, each complete column, and each main
   diagonal as a line.
 type: functional
@@ -143,7 +143,7 @@ verification-criteria: Marking the final cell of a diagonal triggers a clear; th
   applies to rows and columns.
 priority: must
 
-### GB-FUN-011 â€” Line clears when every cell is marked
+### GB-FUN-011 — Line clears when every cell is marked
 statement: When every cell in a line is marked, Goal Bingo shall clear the line: award
   score, empty the cells, and draw new goals into them from the pool.
 type: functional
@@ -154,7 +154,7 @@ verification-criteria: Marking the final cell of a line triggers the clear seque
   is incremented, cells empty, and are refilled before the board is playable again.
 priority: must
 
-### GB-FUN-012 â€” All completing lines resolve on a simultaneous mark
+### GB-FUN-012 — All completing lines resolve on a simultaneous mark
 statement: When a single mark simultaneously completes more than one line, Goal Bingo shall
   clear every completing line.
 type: functional
@@ -165,7 +165,7 @@ verification-criteria: A mark that completes two lines triggers two separate cle
   and refills all cells from both lines.
 priority: must
 
-### GB-FUN-013 â€” Multi-clear bonus for simultaneous completion
+### GB-FUN-013 — Multi-clear bonus for simultaneous completion
 statement: When a single mark clears more than one line simultaneously, Goal Bingo shall
   award bonus points for the multi-clear in addition to each line's base score.
 type: functional
@@ -177,7 +177,7 @@ verification-criteria: A double-clear produces a higher total score than two seq
 priority: must
 notes: Bonus formula is TBD (owner: k, blocks: Q7).
 
-### GB-FUN-014 â€” Intersection cell has distinct visual treatment
+### GB-FUN-014 — Intersection cell has distinct visual treatment
 statement: When two lines clear simultaneously, Goal Bingo shall render the cell at their
   intersection with a visual treatment distinct from cells that belong to only one clearing
   line.
@@ -190,7 +190,7 @@ verification-criteria: In a double-clear, the shared cell is visually distinguis
 priority: must
 notes: Exact animation is a design decision deferred to implementation.
 
-### GB-FUN-015 â€” Perpendicular progress is lost on a clear
+### GB-FUN-015 — Perpendicular progress is lost on a clear
 statement: When a line clears, Goal Bingo shall discard the marks of cells that were
   contributing progress toward perpendicular lines.
 type: functional
@@ -204,9 +204,9 @@ priority: must
 
 ---
 
-## 4.1 â€” The goal pool
+## 4.1 — The goal pool
 
-### GB-FUN-016 â€” Goal stays in pool after being drawn
+### GB-FUN-016 — Goal stays in pool after being drawn
 statement: Goal Bingo shall return each goal to the pool after it is drawn into a cell,
   leaving it available for future draws.
 type: functional
@@ -217,7 +217,7 @@ verification-criteria: A goal that is currently on the board can also be drawn i
   cell on the same or a subsequent refill.
 priority: must
 
-### GB-FUN-017 â€” Starter goal set
+### GB-FUN-017 — Starter goal set
 statement: Goal Bingo shall provide a non-empty starting set of goals that the player can
   edit.
 type: functional
@@ -230,9 +230,9 @@ priority: must
 
 ---
 
-## 4.2 â€” Categories
+## 4.2 — Categories
 
-### GB-FUN-018 â€” Every goal carries exactly one category
+### GB-FUN-018 — Every goal carries exactly one category
 statement: Goal Bingo shall assign exactly one category to each goal in the pool.
 type: functional
 rationale: Category drives combos, statistics, and challenges. D-2026-09-19-11.
@@ -242,7 +242,7 @@ verification-criteria: Every goal record has a non-null, non-empty category valu
   has more than one category.
 priority: must
 
-### GB-FUN-019 â€” Seven default categories ship
+### GB-FUN-019 — Seven default categories ship
 statement: Goal Bingo shall provide the following seven categories on first install: health,
   study, creative, volunteering, relationship, home, work.
 type: functional
@@ -253,7 +253,7 @@ verification-criteria: On first launch, the category list contains exactly these
   entries and the starter goals are distributed across them.
 priority: must
 
-### GB-FUN-020 â€” New categories unlock through progression
+### GB-FUN-020 — New categories unlock through progression
 statement: Goal Bingo shall allow the player to unlock additional categories beyond the
   seven defaults through in-game progression.
 type: functional
@@ -269,9 +269,9 @@ notes: Provisional unlock gate is lifetime score ≥ 10 unlocking one custom cat
 
 ---
 
-## 4.3 â€” Cadence
+## 4.3 — Cadence
 
-### GB-FUN-021 â€” Every goal has exactly one cadence
+### GB-FUN-021 — Every goal has exactly one cadence
 statement: Goal Bingo shall assign exactly one cadence to each goal: hourly, daily, weekly,
   or long-term.
 type: functional
@@ -284,9 +284,9 @@ priority: must
 
 ---
 
-## 4.4 â€” Draw rates and refill
+## 4.4 — Draw rates and refill
 
-### GB-FUN-022 â€” Draw is weighted by cadence
+### GB-FUN-022 — Draw is weighted by cadence
 statement: Goal Bingo shall weight each goal's draw probability according to its cadence,
   with long-term goals drawn at a lower rate than short-term goals.
 type: functional
@@ -299,7 +299,7 @@ priority: must
 notes: Exact weighting formula is TBD (owner: k, blocks: Q6). Long-term share approximately
   5% (D-2026-09-19-12).
 
-### GB-FUN-023 â€” No two long-term goals in the same row or column (binding)
+### GB-FUN-023 — No two long-term goals in the same row or column (binding)
 statement: Goal Bingo shall not draw a long-term goal into a cell whose row or column
   already contains a long-term goal.
 type: functional
@@ -314,7 +314,7 @@ verification-criteria: After any draw, no row and no column contains more than o
   long-term goal.
 priority: must
 
-### GB-FUN-024 â€” No single category dominates the board (binding)
+### GB-FUN-024 — No single category dominates the board (binding)
 statement: Goal Bingo shall not draw a goal of any one category into a cell if doing so
   would cause that category to exceed the domination threshold on the board.
 type: functional
@@ -342,7 +342,7 @@ priority: deleted
 notes: Intent preserved as rationale on GB-FUN-023 and GB-FUN-024. ID retained for
   trace honesty.
 
-### GB-FUN-026 â€” Recycle draw obeys binding placement rules
+### GB-FUN-026 — Recycle draw obeys binding placement rules
 statement: When the player recycles a tile, Goal Bingo shall apply placement rules 1 and 2
   from 4.4 to the replacement draw.
 type: functional
@@ -371,9 +371,9 @@ notes: Tolerance of ±5 pp (0–10% band) is D-2026-09-20-5. Exact formula is de
 
 ---
 
-## 5.1 â€” What a clear is worth
+## 5.1 — What a clear is worth
 
-### GB-FUN-028 â€” Clear base value scales with cadence
+### GB-FUN-028 — Clear base value scales with cadence
 statement: Goal Bingo shall compute the base value of a clear as a function of the cadences
   of the goals in the cleared line, with higher-cadence goals contributing more value.
 type: functional
@@ -387,9 +387,9 @@ notes: Point values are TBD (owner: k, blocks: Q7).
 
 ---
 
-## 5.2 â€” Combos and adjacency
+## 5.2 — Combos and adjacency
 
-### GB-FUN-029 â€” Matching category combo bonus
+### GB-FUN-029 — Matching category combo bonus
 statement: When every tile in a cleared line belongs to the same category, Goal Bingo shall
   apply a matching combo bonus multiplier to the clear value.
 type: functional
@@ -401,7 +401,7 @@ verification-criteria: A cleared line where all goals share one category scores 
 priority: must
 notes: Multiplier value is TBD (owner: k, blocks: Q7).
 
-### GB-FUN-030 â€” Variety category combo bonus
+### GB-FUN-030 — Variety category combo bonus
 statement: When every tile in a cleared line belongs to a different category, Goal Bingo
   shall apply a variety combo bonus multiplier to the clear value.
 type: functional
@@ -432,9 +432,9 @@ notes: Specific adjacency combinations and their values are deferred to Q7 (owne
 
 ---
 
-## 5.3 â€” Score and the balance it is spent from
+## 5.3 — Score and the balance it is spent from
 
-### GB-FUN-032 â€” Three counters maintained
+### GB-FUN-032 — Three counters maintained
 statement: Goal Bingo shall maintain three independent counters for each player: lifetime
   score, reward balance, and board balance.
 type: functional
@@ -446,7 +446,7 @@ verification-criteria: The player can view all three counter values distinctly; 
   changes independently.
 priority: must
 
-### GB-FUN-033 â€” Lifetime score only ever increases
+### GB-FUN-033 — Lifetime score only ever increases
 statement: Goal Bingo shall increase the lifetime score when each line clears.
 type: functional
 rationale: Lifetime score is a record of achievement, not a currency. D-2026-09-19-6.
@@ -459,9 +459,9 @@ priority: must
 
 ---
 
-## 6.1 â€” Personal rewards
+## 6.1 — Personal rewards
 
-### GB-FUN-034 â€” Player creates personal rewards
+### GB-FUN-034 — Player creates personal rewards
 statement: Goal Bingo shall enable the player to create, name, and price personal rewards
   using reward balance.
 type: functional
@@ -472,7 +472,7 @@ verification-criteria: The player can create a personal reward with a name and p
   the reward persists across restarts.
 priority: must
 
-### GB-FUN-034b â€” Player removes personal rewards
+### GB-FUN-034b — Player removes personal rewards
 statement: Goal Bingo shall enable the player to delete each personal reward they have
   created.
 type: functional
@@ -481,7 +481,7 @@ verification-method: test
 verification-criteria: Deleting a reward removes it from the reward list.
 priority: must
 
-### GB-FUN-035 â€” Personal reward purchase deducts reward balance only
+### GB-FUN-035 — Personal reward purchase deducts reward balance only
 statement: When the player purchases a personal reward, Goal Bingo shall deduct the
   reward's price from the reward balance.
 type: functional
@@ -495,9 +495,9 @@ priority: must
 
 ---
 
-## 6.2 â€” Power-ups
+## 6.2 — Power-ups
 
-### GB-FUN-036 â€” Grid expansion power-up
+### GB-FUN-036 — Grid expansion power-up
 statement: Goal Bingo shall provide a grid expansion power-up that permanently increases
   the grid size when purchased with board balance.
 type: functional
@@ -509,7 +509,7 @@ verification-criteria: Purchasing the expansion deducts board balance and result
 priority: must
 notes: Price is TBD (owner: k, blocks: Q10).
 
-### GB-FUN-037 â€” Recycle-allowance upgrade power-up
+### GB-FUN-037 — Recycle-allowance upgrade power-up
 statement: Goal Bingo shall provide a power-up that permanently increases the number of
   free recycles available per 24-hour period.
 type: functional
@@ -521,11 +521,11 @@ verification-criteria: After purchasing the upgrade, the free recycle allowance 
 priority: must
 notes: Upper limit on upgrades and per-step prices are TBD (owner: k, blocks: Q17).
 
-### GB-FUN-038 â€” Swap power-up exchanges adjacent tiles
+### GB-FUN-038 — Swap power-up exchanges adjacent tiles
 statement: Goal Bingo shall provide a swap power-up that exchanges the positions of two
   adjacent tiles when purchased with board balance.
 type: functional
-rationale: The swap mechanic's purpose is consolidation â€” grouping blockers into fewer
+rationale: The swap mechanic's purpose is consolidation — grouping blockers into fewer
   lines. Adjacent-only is the base mechanic. D-2026-09-19-22.
 trace-to-source: design-description.md 6.2
 verification-method: test
@@ -534,7 +534,7 @@ verification-criteria: Activating the swap and selecting two adjacent tiles move
 priority: must
 notes: Wider-range swap is an upgrade area, not a base-game feature.
 
-### GB-FUN-039 â€” Recycle power-up replaces unmarked tile
+### GB-FUN-039 — Recycle power-up replaces unmarked tile
 statement: When the player activates a recycle on an unmarked tile, Goal Bingo shall remove
   that tile from the cell and draw a replacement goal from the pool into the same cell.
 type: functional
@@ -590,9 +590,9 @@ priority: must
 
 ---
 
-## 7 â€” Advanced tiles
+## 7 — Advanced tiles
 
-### GB-FUN-043 â€” Advanced tiles acquired through category progression
+### GB-FUN-043 — Advanced tiles acquired through category progression
 statement: Goal Bingo shall make advanced tiles for a category available when the player
   has reached the mark threshold for that category.
 type: functional
@@ -604,7 +604,7 @@ verification-criteria: After reaching the mark threshold for a category, the pla
 priority: must
 notes: Specific thresholds are a link 4 decision.
 
-### GB-FUN-044 â€” Secondary advanced tile unlock via board balance
+### GB-FUN-044 — Secondary advanced tile unlock via board balance
 statement: Goal Bingo shall provide a secondary path to unlock advanced tiles using board
   balance, as an alternative to per-category progression.
 type: functional
@@ -618,9 +618,9 @@ notes: Prices are a link 4 decision.
 
 ---
 
-## 7.1 â€” Multi-completion tiles
+## 7.1 — Multi-completion tiles
 
-### GB-FUN-045 â€” Multi-completion tile requires multiple completions
+### GB-FUN-045 — Multi-completion tile requires multiple completions
 statement: Goal Bingo shall count a multi-completion tile as marked only after the player
   has recorded the required number of completions for that tile.
 type: functional
@@ -633,7 +633,7 @@ verification-criteria: A multi-completion tile configured for N completions coun
 priority: must
 notes: The configured number of completions is set at tile creation (link 4 decision).
 
-### GB-FUN-046 â€” Multi-completion tile displays progress
+### GB-FUN-046 — Multi-completion tile displays progress
 statement: Goal Bingo shall display the current completion count on a multi-completion tile.
 type: functional
 rationale: The tile shows its progress so a long-term goal is not an opaque block. 7.1.
@@ -644,9 +644,9 @@ priority: must
 
 ---
 
-## 7.2 â€” Mini-grid tiles
+## 7.2 — Mini-grid tiles
 
-### GB-FUN-047 â€” Mini-grid tile cleared when internal line completes
+### GB-FUN-047 — Mini-grid tile cleared when internal line completes
 statement: When a line completes inside a mini-grid tile's internal grid, Goal Bingo shall
   mark the parent cell on the main board as cleared.
 type: functional
@@ -657,7 +657,7 @@ verification-criteria: Completing a row, column, or diagonal inside the mini-gri
   parent cell on the main board as cleared.
 priority: must
 
-### GB-FUN-048 â€” Mini-grid draws from main pool by default
+### GB-FUN-048 — Mini-grid draws from main pool by default
 statement: By default, Goal Bingo shall populate mini-grid cells by drawing from the
   player's main goal pool.
 type: functional
@@ -668,7 +668,7 @@ verification-criteria: When a mini-grid tile is placed and no upgrade is active,
   are filled with goals drawn from the same pool as the main board.
 priority: must
 
-### GB-FUN-049 â€” Mini-grid clear scores as a normal clear
+### GB-FUN-049 — Mini-grid clear scores as a normal clear
 statement: When a line completes inside a mini-grid tile, Goal Bingo shall score the clear
   using the same formula as a line clear on the main board.
 type: functional
@@ -679,7 +679,7 @@ verification-criteria: Completing a line inside a mini-grid awards score and rew
   equal to what the same line would award on the main board.
 priority: must
 
-### GB-FUN-050 â€” Full-board bonus when mini-grid tile is last to clear
+### GB-FUN-050 — Full-board bonus when mini-grid tile is last to clear
 statement: When the mini-grid tile is the last tile to clear on the main board, Goal Bingo
   shall award an additional full-board bonus.
 type: functional
@@ -694,9 +694,9 @@ notes: Bonus amount is TBD (owner: k, blocks: Q7).
 
 ---
 
-## 8.1 â€” Statistics
+## 8.1 — Statistics
 
-### GB-FUN-051 â€” Lifetime score display
+### GB-FUN-051 — Lifetime score display
 statement: Goal Bingo shall display the player's current lifetime score.
 type: functional
 rationale: Statistics show the player their own pattern. 8.1.
@@ -705,7 +705,7 @@ verification-method: inspection
 verification-criteria: The player can view the lifetime score from the statistics screen.
 priority: must
 
-### GB-FUN-052 â€” Clears by category display
+### GB-FUN-052 — Clears by category display
 statement: Goal Bingo shall track and display the number of line clears broken down by the
   category of goals in each cleared line.
 type: functional
@@ -716,7 +716,7 @@ verification-criteria: The statistics screen shows a per-category clear count th
   increments when lines containing goals of that category are cleared.
 priority: must
 
-### GB-FUN-053 â€” Clears over time display
+### GB-FUN-053 — Clears over time display
 statement: Goal Bingo shall track and display the player's clear history over time.
 type: functional
 rationale: Trend data shows whether the habit is holding. 8.1.
@@ -725,7 +725,7 @@ verification-method: inspection
 verification-criteria: The statistics screen shows a time-series view of clears.
 priority: must
 
-### GB-FUN-054 â€” Average clears per day display
+### GB-FUN-054 — Average clears per day display
 statement: Goal Bingo shall calculate and display the player's average number of line
   clears per day.
 type: functional
@@ -738,13 +738,13 @@ priority: must
 
 ---
 
-## 8.2 â€” Challenge modes
+## 8.2 — Challenge modes
 
-### GB-FUN-055 â€” Universal challenge always active
+### GB-FUN-055 — Universal challenge always active
 statement: Goal Bingo shall maintain an active universal challenge at each point during
   a play session.
 type: functional
-rationale: The universal challenge is the coverage guarantee â€” each mark qualifies toward
+rationale: The universal challenge is the coverage guarantee — each mark qualifies toward
   it. D-2026-09-19-17.
 trace-to-source: design-description.md 8.2
 verification-method: test
@@ -752,7 +752,7 @@ verification-criteria: Querying active challenges at any point returns at least 
   universal challenge.
 priority: must
 
-### GB-FUN-056 â€” Each mark qualifies for the universal challenge
+### GB-FUN-056 — Each mark qualifies for the universal challenge
 statement: Goal Bingo shall increment the active universal challenge progress counter when
   the player makes each mark.
 type: functional
@@ -762,7 +762,7 @@ verification-method: test
 verification-criteria: After each mark, the universal challenge progress counter increments.
 priority: must
 
-### GB-FUN-057 â€” Category challenge, one per active category
+### GB-FUN-057 — Category challenge, one per active category
 statement: Goal Bingo shall maintain one active category challenge per unlocked category.
 type: functional
 rationale: D-2026-09-19-17. Category challenges unlock with the category itself.
@@ -773,7 +773,7 @@ verification-criteria: For each category that is unlocked, exactly one category 
   is active.
 priority: must
 
-### GB-FUN-058 â€” Category challenge unlocks with its category
+### GB-FUN-058 — Category challenge unlocks with its category
 statement: When the player unlocks a new category, Goal Bingo shall create an active
   category challenge for that category.
 type: functional
@@ -784,7 +784,7 @@ verification-criteria: Immediately after unlocking a category, a challenge count
   in that category is active.
 priority: must
 
-### GB-FUN-059 â€” Cadence challenge, one per cadence tier
+### GB-FUN-059 — Cadence challenge, one per cadence tier
 statement: Goal Bingo shall maintain one active cadence challenge per cadence tier.
 type: functional
 rationale: D-2026-09-19-17. Every goal has a cadence, so every player always qualifies.
@@ -794,7 +794,7 @@ verification-criteria: At all times, active challenges exist for hourly, daily, 
   long-term cadences.
 priority: must
 
-### GB-FUN-060 â€” A mark counts toward each qualifying challenge simultaneously
+### GB-FUN-060 — A mark counts toward each qualifying challenge simultaneously
 statement: When the player makes a mark, Goal Bingo shall increment the progress counter
   of each active challenge the mark qualifies for.
 type: functional
@@ -807,7 +807,7 @@ verification-criteria: A mark on a daily health goal increments the universal ch
   in one mark event.
 priority: must
 
-### GB-FUN-061 â€” Challenge pays board balance per qualifying mark
+### GB-FUN-061 — Challenge pays board balance per qualifying mark
 statement: Goal Bingo shall award board balance to the player at the moment each qualifying
   mark is made toward a challenge.
 type: functional
@@ -820,7 +820,7 @@ verification-criteria: Board balance increases immediately after a qualifying ma
 priority: must
 notes: Per-mark rate is TBD (owner: k, blocks: Q18 rates).
 
-### GB-FUN-062 â€” Challenge pays completion bonus on reaching target
+### GB-FUN-062 — Challenge pays completion bonus on reaching target
 statement: When a challenge progress counter reaches the challenge target, Goal Bingo shall
   award a completion bonus in board balance.
 type: functional
@@ -834,9 +834,9 @@ notes: Completion bonus amount is TBD (owner: k).
 
 ---
 
-## 8.3 â€” Achievements
+## 8.3 — Achievements
 
-### GB-FUN-063 â€” Achievements awarded for player-unset milestones
+### GB-FUN-063 — Achievements awarded for player-unset milestones
 statement: Goal Bingo shall award achievements to the player when predefined milestones are
   reached.
 type: functional
@@ -847,7 +847,7 @@ verification-criteria: Reaching a defined milestone (e.g. first clear, long run)
   an achievement award and displays it to the player.
 priority: must
 
-### GB-FUN-064 â€” Minimum achievement set
+### GB-FUN-064 — Minimum achievement set
 statement: Goal Bingo shall include achievements for at minimum: first clear, reaching a
   large grid size, a sustained run of daily clears, and a rare category combination.
 type: functional
