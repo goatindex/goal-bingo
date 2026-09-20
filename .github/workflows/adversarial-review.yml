@@ -2,7 +2,7 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/workflows/adversarial-review.yml
-# Commit: 232ecc2
+# Commit: f3020be
 # Copied: 2026-09-20
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
@@ -100,9 +100,26 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -e
+          CHECK_NOTE="skipped (no copies.txt / refresh_copies.py)"
           if [ -f copies.txt ] && [ -f scripts/refresh_copies.py ]; then
             echo "Running refresh_copies.py --check"
-            python3 scripts/refresh_copies.py --check
+            set +e
+            out=$(python3 scripts/refresh_copies.py --check 2>&1)
+            code=$?
+            set -e
+            echo "$out"
+            if [ "$code" -eq 0 ]; then
+              CHECK_NOTE="passed"
+            elif echo "$out" | grep -q "master not found"; then
+              # Consumer CI runners have no local goatindex/claude-workflow checkout.
+              # Drift is enforced on the author machine / session hook; do not fail the
+              # mechanical review solely because the master path is absent here.
+              echo "No master checkout on this runner; skipping drift check"
+              CHECK_NOTE="skipped (no master on runner)"
+            else
+              echo "Copies drift check failed"
+              exit "$code"
+            fi
           else
             echo "No copies.txt / refresh_copies.py; skipping drift check"
           fi
@@ -112,7 +129,7 @@ jobs:
             echo "Package B mechanical tier: every changed path is \`adversarial-review.yml\`"
             echo "and/or a destination listed in \`copies.txt\`. No Claude agent run."
             echo
-            echo "- copies drift check: ran when \`scripts/refresh_copies.py\` was present"
+            echo "- copies drift check: ${CHECK_NOTE}"
             echo "- human still merges; this comment satisfies the this-run review gate"
             echo
             echo "**Verdict:** 0 blocking findings from the mechanical path. I would merge"
