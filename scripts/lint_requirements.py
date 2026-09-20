@@ -2,7 +2,7 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/incose-requirements/scripts/lint_requirements.py
-# Commit: d66bfb0
+# Commit: f2f0cba
 # Copied: 2026-09-20
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
@@ -280,7 +280,13 @@ def parse_meta(directory, findings):
     for lineno, raw in enumerate(read_text(path).splitlines(), 1):
         line = raw.rstrip()
         if line.startswith("#"):
-            in_defaults = "default" in line.lower()
+            # Match the heading itself ("## defaults", any level, trailing
+            # whitespace), not any comment line that happens to mention the
+            # word - review caught this: a prose comment explaining the
+            # deprecation ("no '## defaults' section...") would otherwise
+            # itself toggle in_defaults, silently swallowing any real field
+            # written after it into the now-unread defaults dict.
+            in_defaults = bool(re.match(r"^#+\s*defaults\s*$", line.strip(), re.I))
             continue
         field = FIELD_RE.match(line)
         if not field:
@@ -297,6 +303,13 @@ def parse_meta(directory, findings):
                                 "unknown profile '%s' (expected full or agent)"
                                 % meta["profile"], "", path, 0))
         meta["profile"] = "agent"
+    if meta["defaults"]:
+        findings.append(Finding("warn", "R42",
+                                "'## defaults' in _meta.md is deprecated and no longer "
+                                "read - every field must be written explicitly on every "
+                                "record (D-2026-09-20-1, project-tracking/DECISIONS.md). "
+                                "Copy these values onto each record, then delete this "
+                                "section.", "", path, 0))
     return meta
 
 
@@ -507,9 +520,8 @@ def check_statement(rec, meta, glossary, findings):
 
 def check_attributes(rec, meta, findings):
     required = PROFILE_FIELDS[meta["profile"]]
-    defaults = meta["defaults"]
     for field in required:
-        if rec.get(field) or field in defaults:
+        if rec.get(field):
             continue
         if rec.is_need() and field.startswith("verification"):
             continue
@@ -526,18 +538,18 @@ def check_attributes(rec, meta, findings):
         emit(findings, rec, "warn", "R29",
              "type '%s' is not in the declared taxonomy" % rec_type)
 
-    method = (rec.get("verification-method") or defaults.get("verification-method", "")).lower()
+    method = rec.get("verification-method", "").lower()
     if method and method not in VERIFICATION_METHODS:
         emit(findings, rec, "warn", "A8",
              "verification-method '%s' is not one of %s"
              % (method, "/".join(sorted(VERIFICATION_METHODS))))
 
-    status = (rec.get("verification-status") or defaults.get("verification-status", "")).lower()
+    status = rec.get("verification-status", "").lower()
     if status and status not in VERIFICATION_STATUSES:
         emit(findings, rec, "warn", "A28",
              "verification-status '%s' is not recognised" % status)
 
-    validation = (rec.get("validation-status") or defaults.get("validation-status", "")).lower()
+    validation = rec.get("validation-status", "").lower()
     if validation and validation not in VALIDATION_STATUSES:
         emit(findings, rec, "warn", "A29",
              "validation-status '%s' is not recognised" % validation)
@@ -709,11 +721,10 @@ def walk_files(root_path):
 
 def coverage_report(by_id, meta, hits, orphans):
     covered, uncovered, manual = [], [], []
-    default_method = meta["defaults"].get("verification-method", "")
     for rec_id, rec in sorted(by_id.items()):
         if rec.is_need():
             continue
-        method = (rec.get("verification-method") or default_method).lower()
+        method = rec.get("verification-method", "").lower()
         if hits.get(rec_id):
             covered.append(rec_id)
         elif method in ("inspection", "analysis"):
@@ -764,10 +775,8 @@ def export_records(by_id, hits, meta, with_tests):
 
 
 def render_matrix(by_id, hits, meta):
-    defaults = meta["defaults"]
-
     def value(rec, key):
-        return rec.get(key) or defaults.get(key, "") or "-"
+        return rec.get(key) or "-"
 
     lines = ["# Trace matrix",
              "",

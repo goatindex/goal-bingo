@@ -2,7 +2,7 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/workflows/adversarial-review.yml
-# Commit: 811a2c1
+# Commit: f2f0cba
 # Copied: 2026-09-20
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
@@ -40,6 +40,12 @@ jobs:
     name: adversarial review
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    # A synchronize while a review is still running cancels the predecessor. Cost
+    # compounds with round count, not diff size (goal-bingo#40); finishing a stale
+    # review of a superseded HEAD wastes the turn budget and confuses the gate.
+    concurrency:
+      group: adversarial-review-${{ github.repository }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,6 +62,11 @@ jobs:
             echo "failure mode this review exists to catch."
             exit 1
           fi
+
+      # Recorded before the agent so the verification step can require a comment
+      # posted during *this* run, not a stale one from an earlier round.
+      - name: Record run start
+        run: echo "RUN_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
 
       - uses: anthropics/claude-code-action@v1
         with:
@@ -86,11 +97,16 @@ jobs:
           # hit 63 turns on its third round and failed outright - a real
           # finding lost, not just a wasted run, since the action's own error
           # discards whatever it already found rather than posting a partial
-          # result.
+          # result. Package A adds concurrency cancel, delta re-review, and
+          # Reviewed-Commit trailers so later rounds stay incremental.
+          #
+          # Bash(python3:*) is for verifying claims against the worktree
+          # (counts, regex/round-trip checks). Without it, static misreads of
+          # invisible characters burn a full review round (goal-bingo#40 round 4).
           claude_args: |
             --model sonnet
             --max-turns 75
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh issue view:*),Bash(git log:*),Bash(git diff:*)"
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh issue view:*),Bash(git log:*),Bash(git diff:*),Bash(python3:*)"
           prompt: |
             You are the adversarial reviewer for ${{ github.repository }}. Review
             PR #${{ github.event.pull_request.number }}.
@@ -107,9 +123,29 @@ jobs:
               still post the summary.
             - Only report findings that survive scrutiny. A short review of real findings
               beats a long review of maybes.
+            - Use `python3` only to verify claims against the worktree (counts, regex or
+              round-trip checks). Never write or modify files with it.
 
             Read the diff with `gh pr diff ${{ github.event.pull_request.number }}` and
-            `gh pr view`. Post inline findings with
+            `gh pr view`. Also read prior top-level review summaries on the PR (comments
+            whose body starts with `## Adversarial review` or `## Review summary`).
+
+            ### Incremental re-review (Package A)
+
+            If a prior summary contains a `Reviewed-Commit: <sha>` trailer, this is a
+            re-review of a synchronize, not a first pass:
+            - Scope the diff to commits/files since that SHA (`git diff <sha>...HEAD` /
+              the files those commits touch). If the trailer is missing or the SHA is
+              not an ancestor, fall back to a full review.
+            - Re-check only: (a) files changed since that SHA, (b) previously **blocking**
+              findings that are still open, (c) new prose claims in the new commits.
+            - Do **not** re-derive estate-wide counts, byte audits, or already-closed
+              findings unless those files changed.
+
+            If there is no prior `Reviewed-Commit:` trailer, do a full review (including
+            the documentation-only Part 1 skip below).
+
+            Post inline findings with
             mcp__github_inline_comment__create_inline_comment.
 
             Post the summary as a top-level PR comment with `gh pr comment`, using a
@@ -188,9 +224,12 @@ jobs:
 
             ## Part 3 - the verdict
 
-            End the summary with one line: the count of blocking findings, and whether you
-            would merge. You do not merge and you do not approve; the line is for the human
-            who does.
+            End the summary with two lines:
+            1. The count of blocking findings, and whether you would merge. You do not
+               merge and you do not approve; the line is for the human who does.
+            2. A machine-readable trailer naming HEAD at review time, exactly:
+               `Reviewed-Commit: <full sha>`
+               (from `git rev-parse HEAD`). The next synchronize uses this for delta scope.
 
       # Two ways this can legitimately produce nothing, and only one is a defect.
       #
@@ -217,19 +256,30 @@ jobs:
       # tool from the prompt and allowedTools entirely rather than working around its
       # failure. A reviewer that cannot say anything has not reviewed, and a job going
       # green on that is failure mode 2 in its own prompt.
+      #
+      # Package A: require a non-author comment created at or after RUN_STARTED_AT so
+      # a failed re-run cannot go green on stale comments from an earlier round. Skip
+      # this step when the job was cancelled by concurrency (superseded push).
       - name: A review was actually posted
-        if: always()
+        if: always() && !cancelled()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
+          RUN_STARTED_AT: ${{ env.RUN_STARTED_AT }}
         run: |
           set -e
           author=$(gh pr view "$PR" --json author -q .author.login)
+          # Comments and reviews with createdAt >= RUN_STARTED_AT by someone other
+          # than the PR author. jq --arg keeps the timestamp out of the filter string.
           others=$(gh pr view "$PR" --json reviews,comments -q \
-            "[.reviews[].author.login, .comments[].author.login] | map(select(. != \"$author\")) | length")
-          echo "reviews or comments by someone other than $author: $others"
+            --arg since "$RUN_STARTED_AT" --arg author "$author" \
+            '[
+              (.reviews[]? | select(.author.login != $author and .submittedAt >= $since)),
+              (.comments[]? | select(.author.login != $author and .createdAt >= $since))
+            ] | length')
+          echo "reviews or comments by someone other than $author since $RUN_STARTED_AT: $others"
           if [ "$others" -eq 0 ]; then
-            echo "The reviewer produced nothing."
+            echo "The reviewer produced nothing in this run."
             echo "Check that this workflow has issues: write and pull-requests: write -"
             echo "a denied tool call does not fail the action on its own."
             exit 1
