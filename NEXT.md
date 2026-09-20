@@ -11,6 +11,10 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 - **File work items for WP-03** and pick up the board loop build.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
+- **Package C (review process)** — after Package D merges: master `fix_mojibake` into CI,
+  cited-path claim check, flip `decision_lint` to blocking once its 5 field gaps are filled;
+  defer the 85 `verification-status` / `standing_check` flip as separate authoring work.
+  Plan: session `package_c_determinize` (claude-workflow).
 - **Fix all 85 requirements carrying no `verification-status`** — the set-level default
   in `requirements/_meta.md` means none has ever been individually assessed. Requirements-
   authoring work, not a script fix; blocking `standing_check`'s flip from non-blocking to
@@ -26,6 +30,26 @@ continues with WP-04.
 ## Done (2026-09-20 session)
 
 - **Package A smoke finished** (PR #50, credits restored): concurrency/this-run verification/HEAD merge-gate all exercised. First review green with trailer; second push denied by gate while IN_PROGRESS then green after delta re-review. Known follow-up: first-round `Reviewed-Commit` sometimes names a SHA that is not HEAD (second round fell back correctly).
+
+- **Package A synced** (claude-workflow#31 / goal-bingo#47): cancel superseded runs, delta
+  re-review via `Reviewed-Commit:`, this-run comment verify, merge gate on HEAD check
+  SUCCESS. Follow-ups: jq pipe fix (#32 / sync), SHA injection from `pull_request.head.sha`
+  (claude-workflow#33 / goal-bingo#52–#53) so the trailer cannot be a phantom.
+
+- **Package B landed** (claude-workflow#34 + #36; goal-bingo sync then #56): path tiers
+  mechanical / lite / standard / deep. Smokes: lite #54; mechanical #56 (~13s, no Claude,
+  no `GUARD_ALLOW_UNREVIEWED`); deep #57 closed without merging. Mechanical skips
+  `refresh_copies --check` when CI has no master checkout.
+
+- **Package D open** ([claude-workflow#37](https://github.com/goatindex/claude-workflow/pull/37)):
+  `pr_preflight` / `pr_preflight_gate` refuse `gh pr create` when NEXT.md is untouched or
+  path-triggered local scripts would fail. Session settings wired; junctioned hooks live.
+  Checks green; merge pending. Review noted `default_base()` `"HEAD"` fallback can no-op
+  the check — fix before relying on preflight extensions.
+
+- **Package C planned** (not built): determinize mojibake CI + cited-path claims +
+  `decision_lint` blocking flip; leave 85-status / `standing_check` for the authoring item
+  above. Plan locked in session `package_c_determinize`.
 
 - **Link 3 complete.** Requirements mined and gap-closed: PRs #16, #17. Glossary pins board
   balance / reward balance. Soft floor + expansion + failure modes (D-2026-09-20-1…5).
@@ -236,17 +260,3 @@ continues with WP-04.
 ## Last updated
 
 2026-09-20
-
-- **Package A synced** (claude-workflow#31 / goal-bingo#47): adversarial review cancels superseded runs, re-reviews incrementally via `Reviewed-Commit:`, requires a this-run comment, and the merge gate keys off HEAD check SUCCESS. Smoke stamp: 2026-09-20 19:57.
-
-- Second smoke push (Package A concurrency): should cancel the in-flight review of the prior commit.
-
-- Third smoke push after jq verification fix (claude-workflow#32): expect green check and a delta re-review citing the prior Reviewed-Commit trailer.
-
-- **Reviewed-Commit SHA injection smoke** (21:02): first push — trailer must equal this commit's SHA.
-
-- **Reviewed-Commit SHA injection smoke (pass 2):** delta re-review; trailer must equal this second commit's SHA.
-
-- **Package B lite smoke:** NEXT.md-only should classify lite (max-turns 30).
-
-- **Package B landed** (claude-workflow#34 + #36; goal-bingo sync via direct main push then #56): path tiers mechanical/lite/standard/deep. Smokes: lite #54 green; mechanical #56 green in ~13s without Claude / without GUARD_ALLOW_UNREVIEWED; deep #57 green (closed without merging the app comment).
