@@ -1,3 +1,4 @@
+import type { Board } from './board'
 import type { GameState } from './storage'
 import {
   CADENCES,
@@ -5,7 +6,6 @@ import {
   canUnlockCustomCategory,
   listCustomCategories,
 } from './categories'
-import type { DrawResult } from './pool'
 
 export type ShellView = 'home' | 'pool'
 
@@ -20,9 +20,10 @@ export type ShellHandlers = {
   softReset: boolean
   view: ShellView
   emptyPoolPrompt: boolean
-  lastDraw: DrawResult | null
-  onMarkPlaceholder: () => void
-  onDrawPlaceholder: () => void
+  /** Cells reported as the intersection of the lines cleared by the most recent mark
+   *  (GB-FUN-014) - empty when the last mark cleared zero or one line. */
+  lastIntersectionCells: number[]
+  onMarkCell: (index: number) => void
   onNavigate: (view: ShellView) => void
   onAddGoal: (input: { title: string; category: string; cadence: string }) => string | null
   onUpdateGoal: (
@@ -69,7 +70,7 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
         }
         ${
           h.view === 'home'
-            ? renderHome(state, h.lastDraw)
+            ? renderHome(state, h.lastIntersectionCells)
             : renderPool(state, unlockReady, customCategories)
         }
       </main>
@@ -89,28 +90,39 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
   bindNav(root, h)
 }
 
-function renderHome(state: GameState, lastDraw: DrawResult | null): string {
-  const drawLine =
-    lastDraw === null
-      ? ''
-      : lastDraw.ok
-        ? `<p data-testid="last-draw">Drew: ${escapeHtml(lastDraw.goal.title)} (still in pool)</p>`
-        : `<p data-testid="last-draw">Draw refused — empty pool</p>`
-
+function renderHome(state: GameState, lastIntersectionCells: number[]): string {
   return `
     <section class="shell__status" aria-label="Local status">
       <p>Pool: <strong data-testid="pool-count">${state.pool.length}</strong> goals</p>
       <p>Lifetime: <strong data-testid="lifetime">${state.score.lifetime}</strong></p>
       <p class="shell__hint">No account. Works offline. Data stays on this device.</p>
-      ${drawLine}
     </section>
-    <section class="shell__placeholder" aria-label="Board placeholder">
-      <button type="button" class="cell-placeholder" data-testid="mark-cell">
-        Tap to mark (placeholder)
-      </button>
-      <button type="button" class="cell-placeholder" data-testid="draw-cell">
-        Draw a goal (placeholder)
-      </button>
+    ${renderBoard(state.board, lastIntersectionCells)}
+  `
+}
+
+function renderBoard(board: Board, lastIntersectionCells: number[]): string {
+  const intersection = new Set(lastIntersectionCells)
+  const cells = board.cells
+    .map((cell, i) => {
+      const classes = ['board-cell']
+      if (cell.marked) classes.push('board-cell--marked')
+      if (intersection.has(i)) classes.push('board-cell--intersection')
+      return `<button
+        type="button"
+        class="${classes.join(' ')}"
+        data-testid="board-cell-${i}"
+        data-index="${i}"
+        aria-pressed="${cell.marked}"
+      >${escapeHtml(cell.goal.title)}</button>`
+    })
+    .join('')
+
+  return `
+    <section class="board" aria-label="Board" data-testid="board">
+      <div class="board__grid" style="grid-template-columns: repeat(${board.size}, 1fr)">
+        ${cells}
+      </div>
     </section>
   `
 }
@@ -193,19 +205,16 @@ function renderPool(
 function bindNav(root: HTMLElement, h: ShellHandlers): void {
   root.querySelector('[data-action="board"]')?.addEventListener('click', () => h.onNavigate('home'))
   root.querySelector('[data-action="pool"]')?.addEventListener('click', () => h.onNavigate('pool'))
-  root.querySelector('[data-action="mark"]')?.addEventListener('click', () => {
-    h.onNavigate('home')
-    h.onMarkPlaceholder()
-  })
+  root.querySelector('[data-action="mark"]')?.addEventListener('click', () => h.onNavigate('home'))
   // Recycle stays unwired until WP-07 — do not overload the label with a draw stub.
 }
 
 function bindHome(root: HTMLElement, h: ShellHandlers): void {
-  root.querySelector('[data-testid="mark-cell"]')?.addEventListener('click', () => {
-    h.onMarkPlaceholder()
-  })
-  root.querySelector('[data-testid="draw-cell"]')?.addEventListener('click', () => {
-    h.onDrawPlaceholder()
+  root.querySelectorAll<HTMLButtonElement>('.board-cell').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const index = Number(btn.dataset.index)
+      h.onMarkCell(index)
+    })
   })
   root.querySelector('[data-testid="dismiss-empty-prompt"]')?.addEventListener('click', () => {
     h.onDismissEmptyPrompt()

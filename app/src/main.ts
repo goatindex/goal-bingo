@@ -1,7 +1,8 @@
 import './style.css'
 import { loadState, saveState } from './storage'
 import { renderShell, type ShellView } from './shell'
-import { addGoal, drawGoal, removeGoal, updateGoal, type DrawResult } from './pool'
+import { markCellAndResolve } from './lines'
+import { addGoal, removeGoal, updateGoal } from './pool'
 import {
   tryUnlockCustomCategory,
 } from './categories'
@@ -16,29 +17,31 @@ const state = loaded.state
 let softReset = loaded.softReset
 let view: ShellView = 'home'
 let emptyPoolPrompt = false
-let lastDraw: DrawResult | null = null
+let lastIntersectionCells: number[] = []
 
 function paint(): void {
   renderShell(app!, state, {
     softReset,
     view,
     emptyPoolPrompt,
-    lastDraw,
-    onMarkPlaceholder: () => {
-      // Mark / line-clear scoring lands in WP-03 / WP-05 — do not invent lifetime here.
+    lastIntersectionCells,
+    onMarkCell: (index) => {
       softReset = false
-      paint()
-    },
-    onDrawPlaceholder: () => {
-      const onBoardIds = new Set<string>() // board placement lands in WP-03
-      const result = drawGoal(state.pool, Math.random, onBoardIds)
-      lastDraw = result
+      const result = markCellAndResolve(state.board, index, state.pool)
       if (!result.ok) {
-        emptyPoolPrompt = true
-        view = 'pool'
-      } else {
-        emptyPoolPrompt = false
+        // 'invalid-cell' cannot happen from a tap on a rendered cell; 'empty-pool'
+        // means the refill couldn't draw - surface the same prompt the pool view uses.
+        if (result.reason === 'empty-pool') {
+          emptyPoolPrompt = true
+          view = 'pool'
+        }
+        paint()
+        return
       }
+      state.board = result.outcome.board
+      state.score.lifetime += result.outcome.scoreDelta
+      lastIntersectionCells = result.outcome.intersectionCells
+      emptyPoolPrompt = false
       saveState(state)
       paint()
     },

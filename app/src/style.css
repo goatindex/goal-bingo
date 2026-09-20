@@ -73,19 +73,38 @@ body {
   font-size: 0.85rem;
 }
 
-.shell__placeholder {
+.board {
   margin-top: 1.5rem;
 }
 
-.cell-placeholder {
-  width: 100%;
-  min-height: 5.5rem;
-  border: 1px dashed var(--muted);
-  border-radius: 0.75rem;
+.board__grid {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.board-cell {
+  aspect-ratio: 1;
+  padding: 0.25rem;
+  border: 1px solid #44403c;
+  border-radius: 0.5rem;
   background: transparent;
   color: var(--fg);
   font: inherit;
+  font-size: 0.7rem;
+  line-height: 1.15;
   cursor: pointer;
+  overflow: hidden;
+}
+
+.board-cell--marked {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.board-cell--intersection {
+  outline: 2px solid #fbbf24;
+  outline-offset: -2px;
 }
 
 .shell__thumb {
@@ -119,11 +138,6 @@ body {
 
 .shell__banner--warn {
   background: #7c2d12;
-}
-
-.shell__placeholder {
-  display: grid;
-  gap: 0.75rem;
 }
 
 .pool__heading {
