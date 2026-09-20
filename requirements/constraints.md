@@ -15,6 +15,8 @@ trace-to-source: design-description.md 9.1
 verification-method: inspection
 verification-criteria: The app passes the installability criteria for the target browsers
   and can be added to the home screen on iOS and Android.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-CON-002 — One-handed phone usability
@@ -27,6 +29,8 @@ trace-to-source: design-description.md 9.1
 verification-method: inspection
 verification-criteria: Each of mark, board view, balance view, and recycle is accessible
   without repositioning the hand on a 5–7 inch phone.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-CON-003 — All mechanics function without notification permission
@@ -38,6 +42,8 @@ trace-to-source: design-description.md 9.1
 verification-method: test
 verification-criteria: With notification permission denied, each game mechanic — marking,
   clearing, power-ups, challenges, statistics — is fully accessible.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -54,6 +60,8 @@ trace-to-source: design-description.md 9.2
 verification-method: test
 verification-criteria: Each data item is readable and writable with the network interface
   fully disabled.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-DAT-002 — No account required
@@ -65,6 +73,8 @@ trace-to-source: design-description.md 9.2
 verification-method: test
 verification-criteria: A fresh install can be played through the full game loop without a
   sign-up prompt, account creation, or credential entry.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-DAT-003 — Offline operation
@@ -76,6 +86,8 @@ trace-to-source: design-description.md 9.2
 verification-method: test
 verification-criteria: With the device in aeroplane mode, each game action completes
   without error or degraded state.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -92,6 +104,8 @@ trace-to-source: design-description.md 3.3
 verification-method: test
 verification-criteria: Marking a cell succeeds with the network disabled and with no
   permissions other than touch enabled.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -107,6 +121,8 @@ trace-to-source: design-description.md 5.3
 verification-method: test
 verification-criteria: The personal reward purchase flow shows only the reward balance
   counter; board balance is not visible as a payment option.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-CON-006 — Reward balance purchase flow excludes board actions
@@ -118,6 +134,8 @@ trace-to-source: design-description.md 5.3
 verification-method: test
 verification-criteria: The board action purchase flow (power-ups, recycles, grid expansion)
   shows only the board balance counter; reward balance is not visible as a payment option.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Board actions covered: power-ups, recycles, grid expansion.
 
@@ -129,6 +147,8 @@ rationale: Lifetime score is a record, not a currency. D-2026-09-19-6.
 trace-to-source: design-description.md 5.3
 verification-method: test
 verification-criteria: No user action decreases the lifetime score.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -144,6 +164,8 @@ rationale: A mark is never destroyed before its line clears. D-2026-09-19-10,
 trace-to-source: design-description.md 6.2
 verification-method: test
 verification-criteria: Selecting a marked tile in the recycle flow produces no state change.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -159,6 +181,8 @@ trace-to-source: design-description.md 10.2
 verification-method: inspection
 verification-criteria: No feature transmits or displays game state belonging to another
   player.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-CON-010 — No goal-verification integration
@@ -169,6 +193,8 @@ rationale: 10.2, 3.3.
 trace-to-source: design-description.md 10.2 design-description.md 3.3
 verification-method: inspection
 verification-criteria: No goal-verification integration exists in the codebase.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-CON-011 — No real-money balance purchase
@@ -179,6 +205,8 @@ rationale: Both balances are earned through play only. 10.2.
 trace-to-source: design-description.md 10.2
 verification-method: inspection
 verification-criteria: No in-app purchase flow exists for either balance.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -195,6 +223,8 @@ trace-to-source: design-description.md 8.2 design-description.md 10.3
 verification-method: test
 verification-criteria: With the board in a maximal jam, making a mark on each non-long-term
   tile increases board balance.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -215,6 +245,8 @@ verification-method: analysis
 verification-criteria: Running sim/jam_sim.py at the shipped long-term draw share reports
   median time-to-unjam of same-day and p99 of at most 2 days, with zero trials still jammed
   after 180 simulated days.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Soft / analysis-only constraint. A link-5 work package owns when and how the
   simulation is re-run after draw, recycle, allowance, or challenge-income changes.
@@ -232,6 +264,8 @@ verification-method: analysis
 verification-criteria: For each supported grid size, sim/jam_sim.py run at that static
   size meets the GB-CON-013 verification criteria. The sim does not model mid-game expansion
   transitions; static-size runs are the accepted proxy until an expansion-aware model exists.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Soft / analysis-only constraint. Exact prices and unlock thresholds are deferred to
   Q10 / link 4. sim/results.md records that grid expansion is not modelled; revisit when

@@ -18,6 +18,8 @@ trace-to-source: design-description.md 2
 verification-method: test
 verification-criteria: After any number of line clears the game remains playable; no
   "game over" or "level complete" screen is presented.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-002 — Mark persists until line clears
@@ -30,6 +32,8 @@ trace-to-source: design-description.md 2 design-description.md 3.4
 verification-method: test
 verification-criteria: A marked cell remains visually marked across app restarts and
   session boundaries until its line clears.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-003 — Clearing awards reward balance
@@ -41,6 +45,8 @@ trace-to-source: design-description.md 2 design-description.md 5.3
 verification-method: test
 verification-criteria: After a line clears, the reward balance counter is greater by a
   positive amount equal to the computed clear value.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-004 — Marking toward a challenge awards board balance
@@ -54,6 +60,8 @@ trace-to-source: design-description.md 2 design-description.md 5.3 design-descri
 verification-method: test
 verification-criteria: Board balance increases immediately after a qualifying mark, without
   waiting for a line to clear.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -71,6 +79,8 @@ verification-method: test
 verification-criteria: Starting from the smallest grid size, the player can spend board
   balance to reach each successive grid size, and the board dimensions are equal on both
   axes at every size.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Starting size and expansion sizes are TBD (owner: k, blocks: Q1).
 
@@ -83,6 +93,8 @@ trace-to-source: design-description.md 3.1
 verification-method: test
 verification-criteria: After purchasing an expansion, the grid size is retained across app
   restarts.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -98,6 +110,8 @@ trace-to-source: design-description.md 3.2
 verification-method: test
 verification-criteria: At no point during active play does any cell render without a tile
   or with more than one tile.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-008 — Board is never presented with empty cells
@@ -110,6 +124,8 @@ trace-to-source: design-description.md 3.2
 verification-method: test
 verification-criteria: Between the moment a line clears and the moment the board is next
   interactive, all cells that emptied are filled.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -126,6 +142,8 @@ trace-to-source: design-description.md 3.3
 verification-method: test
 verification-criteria: Tapping an unmarked cell marks it without any network request, API
   call, or additional confirmation step.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -141,6 +159,8 @@ trace-to-source: design-description.md 3.4
 verification-method: test
 verification-criteria: Marking the final cell of a diagonal triggers a clear; the same
   applies to rows and columns.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-011 — Line clears when every cell is marked
@@ -152,6 +172,8 @@ trace-to-source: design-description.md 3.4
 verification-method: test
 verification-criteria: Marking the final cell of a line triggers the clear sequence: score
   is incremented, cells empty, and are refilled before the board is playable again.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-012 — All completing lines resolve on a simultaneous mark
@@ -163,6 +185,8 @@ trace-to-source: design-description.md 3.4
 verification-method: test
 verification-criteria: A mark that completes two lines triggers two separate clear awards
   and refills all cells from both lines.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-013 — Multi-clear bonus for simultaneous completion
@@ -174,6 +198,8 @@ trace-to-source: design-description.md 3.4
 verification-method: test
 verification-criteria: A double-clear produces a higher total score than two sequential
   single clears of the same lines; the increment is attributable to the multi-clear bonus.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Bonus formula is TBD (owner: k, blocks: Q7).
 
@@ -187,6 +213,8 @@ trace-to-source: design-description.md 3.4
 verification-method: inspection
 verification-criteria: In a double-clear, the shared cell is visually distinguishable from
   the other cells in both lines during the clear animation.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Exact animation is a design decision deferred to implementation.
 
@@ -200,6 +228,8 @@ trace-to-source: design-description.md 3.4
 verification-method: test
 verification-criteria: After a row clears, cells that were marked and also belonged to
   in-progress columns have their marks removed; the column progress count reflects the loss.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -215,6 +245,8 @@ trace-to-source: design-description.md 4.1
 verification-method: test
 verification-criteria: A goal that is currently on the board can also be drawn into another
   cell on the same or a subsequent refill.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-017 — Starter goal set
@@ -226,6 +258,8 @@ trace-to-source: design-description.md 4.1
 verification-method: inspection
 verification-criteria: On first launch, the pool contains at least one goal in each default
   category; the player can add, edit, and remove goals from the pool.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -240,6 +274,8 @@ trace-to-source: design-description.md 4.2
 verification-method: test
 verification-criteria: Every goal record has a non-null, non-empty category value; no goal
   has more than one category.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-019 — Seven default categories ship
@@ -251,6 +287,8 @@ trace-to-source: design-description.md 4.2
 verification-method: inspection
 verification-criteria: On first launch, the category list contains exactly these seven
   entries and the starter goals are distributed across them.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-020 — New categories unlock through progression
@@ -263,6 +301,8 @@ trace-to-source: design-description.md 4.2
 verification-method: test
 verification-criteria: After satisfying the unlock condition, a new category slot is
   available for the player to name and use.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Provisional unlock gate is lifetime score ≥ 10 unlocking one custom category slot
   (D-2026-09-20-7). Replaceable when progression is tuned; do not remove the gate.
@@ -280,6 +320,8 @@ trace-to-source: design-description.md 4.3
 verification-method: test
 verification-criteria: Every goal record has a cadence field with one of the four
   permitted values; no goal has zero or multiple cadence values.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -295,6 +337,8 @@ trace-to-source: design-description.md 4.4
 verification-method: test
 verification-criteria: In a large sample of draws from a mixed pool, long-term goals are
   drawn at a lower frequency than daily goals.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Exact weighting formula is TBD (owner: k, blocks: Q6). Long-term share approximately
   5% (D-2026-09-19-12).
@@ -312,6 +356,8 @@ trace-to-source: design-description.md 4.4
 verification-method: test
 verification-criteria: After any draw, no row and no column contains more than one
   long-term goal.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-024 — No single category dominates the board (binding)
@@ -325,6 +371,8 @@ trace-to-source: design-description.md 4.4
 verification-method: test
 verification-criteria: After any draw, no single category occupies more than the domination
   threshold proportion of cells on the board.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Domination threshold is TBD (owner: k, blocks: Q21).
 
@@ -338,6 +386,8 @@ rationale: Retired. Placement preference is advisory, not an obligation.
 trace-to-source: design-description.md 4.4
 verification-method: n-a
 verification-criteria: n-a
+verification-status: not-verified
+owner: k
 priority: deleted
 notes: Intent preserved as rationale on GB-FUN-023 and GB-FUN-024. ID retained for
   trace honesty.
@@ -352,6 +402,8 @@ trace-to-source: design-description.md 4.4 design-description.md 6.2
 verification-method: test
 verification-criteria: After a recycle, no row or column contains two long-term goals, and
   no category exceeds the domination threshold.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-027 — Long-term draw share approximately 5%
@@ -366,6 +418,8 @@ verification-method: test
 verification-criteria: In a large sample of draws from a pool of mixed cadences, long-term
   goals are drawn in a share between 0% and 10% of cases (target 5%, tolerance ±5
   percentage points).
+verification-status: not-verified
+owner: k
 priority: must
 notes: Tolerance of ±5 pp (0–10% band) is D-2026-09-20-5. Exact formula is deferred to Q6 (owner: k).
 
@@ -382,6 +436,8 @@ trace-to-source: design-description.md 5.1
 verification-method: test
 verification-criteria: A cleared line of long-term goals produces a higher base clear value
   than a cleared line of daily goals of equal length.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Point values are TBD (owner: k, blocks: Q7).
 
@@ -398,6 +454,8 @@ trace-to-source: design-description.md 5.2
 verification-method: test
 verification-criteria: A cleared line where all goals share one category scores higher than
   a cleared line of the same cadences with mixed categories.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Multiplier value is TBD (owner: k, blocks: Q7).
 
@@ -410,6 +468,8 @@ trace-to-source: design-description.md 5.2
 verification-method: test
 verification-criteria: A cleared line where all goals have distinct categories scores higher
   than a cleared line of the same cadences with repeated categories.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Multiplier value is TBD (owner: k, blocks: Q7).
 
@@ -426,6 +486,8 @@ verification-criteria: Clearing the same line in two different board configurati
   produces different total clear scores; the delta is attributable to the adjacency
   component. A line clear with no qualifying adjacency condition produces an adjacency
   bonus of zero.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Specific adjacency combinations and their values are deferred to Q7 (owner: k).
   See GB-FUN-068 for the configurability obligation.
@@ -444,6 +506,8 @@ trace-to-source: design-description.md 5.3
 verification-method: test
 verification-criteria: The player can view all three counter values distinctly; each
   changes independently.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-033 — Lifetime score only ever increases
@@ -455,6 +519,8 @@ trace-to-source: design-description.md 5.3
 verification-method: test
 verification-criteria: The lifetime score value after each clear event is strictly greater
   than its value before that event.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -470,6 +536,8 @@ trace-to-source: design-description.md 6.1
 verification-method: test
 verification-criteria: The player can create a personal reward with a name and price, and
   the reward persists across restarts.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-034b — Player removes personal rewards
@@ -479,6 +547,8 @@ type: functional
 trace-to-source: design-description.md 6.1
 verification-method: test
 verification-criteria: Deleting a reward removes it from the reward list.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-035 — Personal reward purchase deducts reward balance only
@@ -491,6 +561,8 @@ trace-to-source: design-description.md 6.1 design-description.md 5.3
 verification-method: test
 verification-criteria: After a reward purchase, the reward balance decreases by the
   reward's price; board balance and lifetime score are unchanged.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -506,6 +578,8 @@ trace-to-source: design-description.md 6.2
 verification-method: test
 verification-criteria: Purchasing the expansion deducts board balance and results in a
   permanently larger grid.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Price is TBD (owner: k, blocks: Q10).
 
@@ -518,6 +592,8 @@ trace-to-source: design-description.md 6.2
 verification-method: test
 verification-criteria: After purchasing the upgrade, the free recycle allowance per 24
   hours is higher than before the purchase, and the increase persists across restarts.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Upper limit on upgrades and per-step prices are TBD (owner: k, blocks: Q17).
 
@@ -531,6 +607,8 @@ trace-to-source: design-description.md 6.2
 verification-method: test
 verification-criteria: Activating the swap and selecting two adjacent tiles moves each
   goal into the other's cell; non-adjacent tiles cannot be swapped in the base game.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Wider-range swap is an upgrade area, not a base-game feature.
 
@@ -543,6 +621,8 @@ trace-to-source: design-description.md 6.2
 verification-method: test
 verification-criteria: After a recycle, the selected cell contains a different goal; the
   prior goal is no longer visible in that cell.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-040 — Recycle unavailable on marked tiles
@@ -554,6 +634,8 @@ rationale: Retired as duplicate of GB-CON-008.
 trace-to-source: design-description.md 6.2
 verification-method: n-a
 verification-criteria: n-a
+verification-status: not-verified
+owner: k
 priority: deleted
 notes: ID retained for trace honesty.
 
@@ -572,6 +654,8 @@ verification-criteria: With current allowance N, a player who uses the first fre
   consuming the allowance counter each time; once the counter reaches zero, further free
   recycles are unavailable until 24 h after T, at which point the full current allowance
   restores.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Default allowance is 1. The 24 h duration is fixed; epoch resets on each first use.
 
@@ -586,6 +670,8 @@ verification-method: test
 verification-criteria: Each recycle within a 24-hour window reduces the free allowance
   counter before any board balance is deducted; board balance is deducted only once the
   free allowance counter reaches zero.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -601,6 +687,8 @@ trace-to-source: design-description.md 7
 verification-method: test
 verification-criteria: After reaching the mark threshold for a category, the player gains
   access to advanced tiles for goals in that category.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Specific thresholds are a link 4 decision.
 
@@ -613,6 +701,8 @@ trace-to-source: design-description.md 7
 verification-method: test
 verification-criteria: With sufficient board balance and without meeting the progression
   threshold, the player can purchase access to an advanced tile slot.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Prices are a link 4 decision.
 
@@ -630,6 +720,8 @@ trace-to-source: design-description.md 7.1
 verification-method: test
 verification-criteria: A multi-completion tile configured for N completions counts as
   marked only after the player has tapped it N times.
+verification-status: not-verified
+owner: k
 priority: must
 notes: The configured number of completions is set at tile creation (link 4 decision).
 
@@ -640,6 +732,8 @@ rationale: The tile shows its progress so a long-term goal is not an opaque bloc
 trace-to-source: design-description.md 7.1
 verification-method: inspection
 verification-criteria: A multi-completion tile at k-of-N completions visually shows k and N.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -655,6 +749,8 @@ trace-to-source: design-description.md 7.2
 verification-method: test
 verification-criteria: Completing a row, column, or diagonal inside the mini-grid marks the
   parent cell on the main board as cleared.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-048 — Mini-grid draws from main pool by default
@@ -666,6 +762,8 @@ trace-to-source: design-description.md 7.2
 verification-method: test
 verification-criteria: When a mini-grid tile is placed and no upgrade is active, its cells
   are filled with goals drawn from the same pool as the main board.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-049 — Mini-grid clear scores as a normal clear
@@ -677,6 +775,8 @@ trace-to-source: design-description.md 7.2
 verification-method: test
 verification-criteria: Completing a line inside a mini-grid awards score and reward balance
   equal to what the same line would award on the main board.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-050 — Full-board bonus when mini-grid tile is last to clear
@@ -689,6 +789,8 @@ verification-method: test
 verification-criteria: When the internal mini-grid line completes and that cell was the
   only remaining unmarked cell on the main board, the score award includes an additional
   bonus on top of the normal clear value.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Bonus amount is TBD (owner: k, blocks: Q7).
 
@@ -703,6 +805,8 @@ rationale: Statistics show the player their own pattern. 8.1.
 trace-to-source: design-description.md 8.1
 verification-method: inspection
 verification-criteria: The player can view the lifetime score from the statistics screen.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-052 — Clears by category display
@@ -714,6 +818,8 @@ trace-to-source: design-description.md 8.1
 verification-method: test
 verification-criteria: The statistics screen shows a per-category clear count that
   increments when lines containing goals of that category are cleared.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-053 — Clears over time display
@@ -723,6 +829,8 @@ rationale: Trend data shows whether the habit is holding. 8.1.
 trace-to-source: design-description.md 8.1
 verification-method: inspection
 verification-criteria: The statistics screen shows a time-series view of clears.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-054 — Average clears per day display
@@ -734,6 +842,8 @@ trace-to-source: design-description.md 8.1
 verification-method: test
 verification-criteria: The displayed average matches the total clears divided by the number
   of days since first play.
+verification-status: not-verified
+owner: k
 priority: must
 
 ---
@@ -750,6 +860,8 @@ trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: Querying active challenges at any point returns at least one
   universal challenge.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-056 — Each mark qualifies for the universal challenge
@@ -760,6 +872,8 @@ rationale: The universal challenge has no category or cadence restriction. D-202
 trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: After each mark, the universal challenge progress counter increments.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-057 — Category challenge, one per active category
@@ -771,6 +885,8 @@ trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: For each category that is unlocked, exactly one category challenge
   is active.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-058 — Category challenge unlocks with its category
@@ -782,6 +898,8 @@ trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: Immediately after unlocking a category, a challenge counting marks
   in that category is active.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-059 — Cadence challenge, one per cadence tier
@@ -792,6 +910,8 @@ trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: At all times, active challenges exist for hourly, daily, weekly, and
   long-term cadences.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-060 — A mark counts toward each qualifying challenge simultaneously
@@ -805,6 +925,8 @@ verification-method: test
 verification-criteria: A mark on a daily health goal increments the universal challenge
   counter, the health category challenge counter, and the daily cadence challenge counter
   in one mark event.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-061 — Challenge pays board balance per qualifying mark
@@ -817,6 +939,8 @@ trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: Board balance increases immediately after a qualifying mark; the
   increment is positive and repeatable for each qualifying mark.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Per-mark rate is TBD (owner: k, blocks: Q18 rates).
 
@@ -829,6 +953,8 @@ trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: When the challenge progress counter reaches the target, an
   additional board balance award is made beyond the per-mark payments already issued.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Completion bonus amount is TBD (owner: k).
 
@@ -845,6 +971,8 @@ trace-to-source: design-description.md 8.3
 verification-method: test
 verification-criteria: Reaching a defined milestone (e.g. first clear, long run) triggers
   an achievement award and displays it to the player.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-064 — Minimum achievement set
@@ -857,6 +985,8 @@ trace-to-source: design-description.md 8.3
 verification-method: inspection
 verification-criteria: The shipped achievement list contains entries for each of the four
   named milestone types.
+verification-status: not-verified
+owner: k
 priority: must
 notes: "Large grid", "sustained run", and "rare combination" thresholds are TBD.
 
@@ -874,6 +1004,8 @@ trace-to-source: design-description.md 4.1 design-description.md 4.4
 verification-method: test
 verification-criteria: With an empty pool, a clear or recycle that would refill a cell
   does not leave an empty playable cell; a prompt to edit the pool is shown.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-066 — Soft reset on unreadable local storage
@@ -887,6 +1019,8 @@ trace-to-source: design-description.md 9.2
 verification-method: test
 verification-criteria: With corrupted local storage, the next launch presents a playable
   board with a non-empty starter pool.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-067 — Goals already on the board remain eligible for redraw
@@ -899,6 +1033,8 @@ trace-to-source: design-description.md 4.1
 verification-method: test
 verification-criteria: A goal currently on the board can appear in a subsequent draw into
   a different cell.
+verification-status: not-verified
+owner: k
 priority: must
 
 ### GB-FUN-068 — Adjacency combinations are configurable
@@ -911,5 +1047,7 @@ trace-to-source: design-description.md 5.2
 verification-method: test
 verification-criteria: Changing the adjacency configuration and restarting the app causes
   a subsequent clear to score using the new values, with no application-code change.
+verification-status: not-verified
+owner: k
 priority: must
 notes: Initial combination list and values remain deferred to Q7.

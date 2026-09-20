@@ -11,10 +11,11 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 - **File work items for WP-03** and pick up the board loop build.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
-- **Fix all 85 requirements carrying no `verification-status`** — the set-level default
-  in `requirements/_meta.md` means none has ever been individually assessed. Requirements-
-  authoring work, not a script fix; blocking `standing_check`'s flip from non-blocking to
-  blocking in `.github/workflows/record-checks.yml` (merged, PR #39).
+- **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
+  owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
+  both report 0 problems). `decision_lint` stays non-blocking: 5 decisions
+  (`D-2026-09-19-13/16/17/19/22`) still miss a required field, unrelated to today's fix and
+  still genuinely outstanding.
 - **Settle link-4 decisions when blocked:** category-unlock gate (`D-2026-09-19-16`),
   advanced-tile thresholds (`D-2026-09-19-23`).
 
@@ -250,3 +251,6 @@ continues with WP-04.
 - **Package B lite smoke:** NEXT.md-only should classify lite (max-turns 30).
 
 - **Package B landed** (claude-workflow#34 + #36; goal-bingo sync via direct main push then #56): path tiers mechanical/lite/standard/deep. Smokes: lite #54 green; mechanical #56 green in ~13s without Claude / without GUARD_ALLOW_UNREVIEWED; deep #57 green (closed without merging the app comment).
+
+- **The owner/verification-status data migration was lost and redone.** The in-progress work reported earlier today (adding explicit `verification-status`/`owner` to every requirement) was never committed — traced via `git reflog`: the branch it lived on (`requirements/materialize-verification-status`) sits at the same commit as `main` right after #39, with zero commits of its own. It existed only as uncommitted working-tree text and was lost when the shared tree moved to a different branch without a commit or stash. Confirmed unrecoverable: searched all 10,109 dangling git objects for any trace, none found — it was never even `git add`ed. Redone mechanically with a checked-in tool (`scripts/materialize_defaults.py`, additive-only, verified against the pre-change files byte-for-byte): 172 fields added across 86 records (`GB-FUN-034b`'s malformed ID meant `lint_requirements.py`'s own count read 85, not 86 — flagged separately below). `lint_requirements.py`, `record_index.py`, and `standing_check.py` now all agree: 0 errors, the original 85-problem discrepancy this thread started from is closed for real. Also removed `requirements/_meta.md`'s now-dead `## defaults` block (`author`/`verification-owner` were in it too — both optional under the `agent` profile, so dropping them creates no compliance gap; not materialized onto every record, since that would be metadata nobody's asked to track rather than closing an actual gap).
+- **Found in passing: `GB-FUN-034b`'s ID is malformed.** The linter already reports this (`warn A15`) — record IDs must be uppercase segments only (`GB-FUN-NNN`), and the trailing lowercase `b` fails that, which is also why the linter's own record count silently read 85 instead of 86. Not fixed here — renaming an ID that other records may already cite needs a moment's check first, not a mechanical pass.
