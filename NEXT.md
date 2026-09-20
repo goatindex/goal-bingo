@@ -246,3 +246,5 @@ continues with WP-04.
 - **Reviewed-Commit SHA injection smoke** (21:02): first push — trailer must equal this commit's SHA.
 
 - **Reviewed-Commit SHA injection smoke (pass 2):** delta re-review; trailer must equal this second commit's SHA.
+
+- **Package B lite smoke:** NEXT.md-only should classify lite (max-turns 30).
