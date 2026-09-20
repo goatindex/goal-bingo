@@ -2,7 +2,7 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/workflows/adversarial-review.yml
-# Commit: 86769cc
+# Commit: 3af7660
 # Copied: 2026-09-20
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
@@ -101,12 +101,14 @@ jobs:
             mcp__github_inline_comment__create_inline_comment.
 
             Post the summary as a top-level PR comment with `gh pr comment`, using a
-            bash heredoc with a **quoted** delimiter so nothing in the summary text
-            (backticks, `$variables`, quotes) is ever reinterpreted by the shell:
+            bash heredoc with a **quoted**, distinctive delimiter so nothing in the
+            summary text (backticks, `$variables`, quotes) is ever reinterpreted by the
+            shell, and a stray line that happens to read "EOF" in a generated summary
+            can't silently truncate it:
             ```
-            gh pr comment ${{ github.event.pull_request.number }} --body-file - <<'EOF'
+            gh pr comment ${{ github.event.pull_request.number }} --body-file - <<'CLAUDE_REVIEW_SUMMARY_EOF'
             <your summary here>
-            EOF
+            CLAUDE_REVIEW_SUMMARY_EOF
             ```
             Never build the body as an inline `--body "..."` string, and never use
             `echo`/`printf` to assemble it - both re-interpret exactly the characters
