@@ -34,11 +34,14 @@ function paint(): void {
       paint()
     },
     onDrawPlaceholder: () => {
-      const result = drawGoal(state.pool)
+      const onBoardIds = new Set<string>() // board placement lands in WP-03
+      const result = drawGoal(state.pool, Math.random, onBoardIds)
       lastDraw = result
       if (!result.ok) {
         emptyPoolPrompt = true
         view = 'pool'
+      } else {
+        emptyPoolPrompt = false
       }
       saveState(state)
       paint()
@@ -51,6 +54,7 @@ function paint(): void {
       const result = addGoal(state.pool, input, state.categories)
       if (!result.ok) return result.error
       state.pool = result.pool
+      emptyPoolPrompt = false
       saveState(state)
       paint()
       return null

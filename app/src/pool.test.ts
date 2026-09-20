@@ -76,15 +76,11 @@ describe('draw rules (GB-FUN-016, GB-FUN-065, GB-FUN-067)', () => {
   })
 
   it('may draw a goal that is already on the board', () => {
-    const pool = STARTER_POOL.map((g) => ({ ...g }))
+    // Sole pool member is also on the board — excluding it would empty the draw set.
+    const pool = [STARTER_POOL[0]!]
     const onBoard = new Set([pool[0]!.id])
-    const result = drawGoal(pool, () => 0)
-    expect(result.ok).toBe(true)
-    if (result.ok) {
-      expect(onBoard.has(result.goal.id) || !onBoard.has(result.goal.id)).toBe(true)
-      // First goal is selectable even if treated as on-board.
-      expect(result.goal.id).toBe(pool[0]!.id)
-    }
+    const result = drawGoal(pool, () => 0, onBoard)
+    expect(result).toEqual({ ok: true, goal: pool[0] })
   })
 
   it('refuses to draw from an empty pool', () => {

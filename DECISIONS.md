@@ -355,16 +355,18 @@ source of requirements, so the reverse walk from a failing test ends here.
   categories in a line. Seven defaults means cross-category lines are achievable from day
   one; a smaller default set risks early boards where every line is mono-category and combos
   never fire.
-- **Unlock mechanic:** the specific unlock gate — what earns a new category slot — is not
-  decided here. It belongs to link 4 when work packages for the progression system are cut.
-  The decision here is that the gate exists and that it is earned through play, not
-  purchased.
+- **Unlock mechanic:** the specific unlock gate — what earns a new category slot — was
+  deferred to link 4. **Amended 2026-09-20:** a provisional gate ships in WP-02 via
+  `D-2026-09-20-7` (lifetime score ≥ 10 unlocks one custom category slot). The principle
+  here still stands: the gate exists and is earned through play, not purchased. The
+  provisional threshold may be replaced when progression is tuned; do not remove the gate.
 - **Expected outcome:** Most players' day-one goals fit the seven defaults without touching
   unlocks; cross-category combo play is possible from first session; the unlock system
   provides a meaningful progression axis beyond grid expansion.
 - **Revisit:** After first prototype. If seven defaults feels overwhelming at first launch,
   move the least-used two to early unlocks. If players routinely create categories that
-  overlap the defaults, the defaults need splitting or renaming.
+  overlap the defaults, the defaults need splitting or renaming. See also
+  `D-2026-09-20-7` revisit for the provisional threshold.
 
 ## D-2026-09-19-23 — Advanced tile acquisition: per-category progression and economy; global unlocks can follow
 

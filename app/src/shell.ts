@@ -198,10 +198,7 @@ function bindNav(root: HTMLElement, h: ShellHandlers): void {
     h.onNavigate('home')
     h.onMarkPlaceholder()
   })
-  root.querySelector('[data-action="recycle"]')?.addEventListener('click', () => {
-    h.onNavigate('home')
-    h.onDrawPlaceholder()
-  })
+  // Recycle stays unwired until WP-07 — do not overload the label with a draw stub.
 }
 
 function bindHome(root: HTMLElement, h: ShellHandlers): void {

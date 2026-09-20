@@ -74,14 +74,18 @@ export function removeGoal(pool: Goal[], id: string): Goal[] {
 
 /**
  * Draw a goal from the pool without removing it (GB-FUN-016).
- * Goals already on the board remain eligible (GB-FUN-067).
+ * Goals already on the board remain eligible (GB-FUN-067) — `onBoardIds` is
+ * accepted so callers can pass board state, and is deliberately not used to
+ * filter the pool.
  * Empty pool refuses (GB-FUN-065).
  */
 export function drawGoal(
   pool: Goal[],
   rng: () => number = Math.random,
+  _onBoardIds: ReadonlySet<string> = new Set(),
 ): DrawResult {
   if (pool.length === 0) return { ok: false, reason: 'empty-pool' }
+  // GB-FUN-067: do not exclude on-board goals from the draw set.
   const index = Math.floor(rng() * pool.length)
   return { ok: true, goal: pool[index]! }
 }

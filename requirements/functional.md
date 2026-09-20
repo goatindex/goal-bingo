@@ -258,12 +258,14 @@ statement: Goal Bingo shall allow the player to unlock additional categories bey
   seven defaults through in-game progression.
 type: functional
 rationale: Player-defined categories are earned through play. D-2026-09-19-16.
+  Provisional unlock gate: D-2026-09-20-7.
 trace-to-source: design-description.md 4.2
 verification-method: test
 verification-criteria: After satisfying the unlock condition, a new category slot is
   available for the player to name and use.
 priority: must
-notes: Unlock gate (what earns a new category slot) is a link 4 decision.
+notes: Provisional unlock gate is lifetime score ≥ 10 unlocking one custom category slot
+  (D-2026-09-20-7). Replaceable when progression is tuned; do not remove the gate.
 
 ---
 
