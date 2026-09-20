@@ -86,3 +86,5 @@ function paint(): void {
 paint()
 
 // Never request notification permission — shell must work without it (GB-CON-003).
+
+// Package B deep smoke: tiny comment to force deep-tier review.
