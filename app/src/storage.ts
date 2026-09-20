@@ -43,7 +43,6 @@ function isGameState(value: unknown): value is GameState {
   return (
     v.version === 1 &&
     Array.isArray(v.pool) &&
-    v.pool.length > 0 &&
     v.score !== null &&
     typeof v.score === 'object' &&
     Array.isArray(v.rewards)

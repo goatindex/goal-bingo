@@ -19,7 +19,11 @@ def main() -> None:
     if not ROOT.is_dir():
         print(f"ERROR: missing {ROOT}")
         sys.exit(2)
-    text = "\n".join(p.read_text(encoding="utf-8") for p in ROOT.rglob("*.ts"))
+    files = list(ROOT.rglob("*.ts"))
+    if not files:
+        print(f"ERROR: no .ts files under {ROOT} — gate cannot run")
+        sys.exit(2)
+    text = "\n".join(p.read_text(encoding="utf-8") for p in files)
     failures = []
     for pattern, label in FORBIDDEN:
         if re.search(pattern, text, re.I):
@@ -29,7 +33,7 @@ def main() -> None:
         for f in failures:
             print(f"  FAIL  {f}")
         sys.exit(1)
-    print("scope exclusions: clean")
+    print(f"scope exclusions: clean ({len(files)} files)")
     sys.exit(0)
 
 

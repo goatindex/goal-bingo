@@ -14,7 +14,6 @@ function paint(resetFlag: boolean): void {
     softReset: resetFlag,
     onMarkPlaceholder: () => {
       // Local-only mark stub — no network, no permissions (GB-CON-004).
-      state.score.lifetime += 0
       saveState(state)
       const cell = app!.querySelector('[data-testid="mark-cell"]')
       if (cell) cell.textContent = 'Marked (placeholder)'

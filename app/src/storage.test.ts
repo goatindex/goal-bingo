@@ -62,4 +62,14 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(softReset).toBe(true)
     expect(state.pool.length).toBeGreaterThan(0)
   })
+
+  it('treats an empty pool as valid saved state, not corruption', () => {
+    const storage = new MemoryStorage()
+    const state = freshState()
+    state.pool = []
+    saveState(state, storage)
+    const loaded = loadState(storage)
+    expect(loaded.softReset).toBe(false)
+    expect(loaded.state.pool).toEqual([])
+  })
 })
