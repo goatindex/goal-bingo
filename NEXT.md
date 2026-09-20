@@ -238,3 +238,5 @@ continues with WP-04.
 - **Package A synced** (claude-workflow#31 / goal-bingo#47): adversarial review cancels superseded runs, re-reviews incrementally via `Reviewed-Commit:`, requires a this-run comment, and the merge gate keys off HEAD check SUCCESS. Smoke stamp: 2026-09-20 19:57.
 
 - Second smoke push (Package A concurrency): should cancel the in-flight review of the prior commit.
+
+- Third smoke push after jq verification fix (claude-workflow#32): expect green check and a delta re-review citing the prior Reviewed-Commit trailer.
