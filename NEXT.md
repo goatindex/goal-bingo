@@ -244,3 +244,5 @@ continues with WP-04.
 - Third smoke push after jq verification fix (claude-workflow#32): expect green check and a delta re-review citing the prior Reviewed-Commit trailer.
 
 - **Reviewed-Commit SHA injection smoke** (21:02): first push — trailer must equal this commit's SHA.
+
+- **Reviewed-Commit SHA injection smoke (pass 2):** delta re-review; trailer must equal this second commit's SHA.
