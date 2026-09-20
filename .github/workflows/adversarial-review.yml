@@ -2,7 +2,7 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/workflows/adversarial-review.yml
-# Commit: f2f0cba
+# Commit: 4be3a4b
 # Copied: 2026-09-20
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
@@ -269,9 +269,10 @@ jobs:
         run: |
           set -e
           author=$(gh pr view "$PR" --json author -q .author.login)
-          # Comments and reviews with createdAt >= RUN_STARTED_AT by someone other
-          # than the PR author. jq --arg keeps the timestamp out of the filter string.
-          others=$(gh pr view "$PR" --json reviews,comments -q \
+          # gh -q does not accept jq --arg flags (they are parsed as gh flags).
+          # Pipe JSON to jq so --arg works. Require a comment/review at or after
+          # RUN_STARTED_AT by someone other than the PR author.
+          others=$(gh pr view "$PR" --json reviews,comments | jq \
             --arg since "$RUN_STARTED_AT" --arg author "$author" \
             '[
               (.reviews[]? | select(.author.login != $author and .submittedAt >= $since)),
