@@ -25,6 +25,8 @@ continues with WP-04.
 
 ## Done (2026-09-20 session)
 
+- **Package A smoke finished** (PR #50, credits restored): concurrency/this-run verification/HEAD merge-gate all exercised. First review green with trailer; second push denied by gate while IN_PROGRESS then green after delta re-review. Known follow-up: first-round `Reviewed-Commit` sometimes names a SHA that is not HEAD (second round fell back correctly).
+
 - **Link 3 complete.** Requirements mined and gap-closed: PRs #16, #17. Glossary pins board
   balance / reward balance. Soft floor + expansion + failure modes (D-2026-09-20-1…5).
 - **Requirement set baselined** as v1.0 (2026-09-20) in `requirements/_meta.md`.
