@@ -2,7 +2,7 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/workflows/adversarial-review.yml
-# Commit: 4be3a4b
+# Commit: 972fe39
 # Copied: 2026-09-20
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
@@ -227,9 +227,12 @@ jobs:
             End the summary with two lines:
             1. The count of blocking findings, and whether you would merge. You do not
                merge and you do not approve; the line is for the human who does.
-            2. A machine-readable trailer naming HEAD at review time, exactly:
-               `Reviewed-Commit: <full sha>`
-               (from `git rev-parse HEAD`). The next synchronize uses this for delta scope.
+            2. A machine-readable trailer naming this PR's HEAD, copied **exactly** from
+               the value below (do not run `git rev-parse`, do not shorten, do not invent
+               a SHA — goal-bingo#50 showed the agent can emit a trailer that is not
+               HEAD when left to discover it):
+               `Reviewed-Commit: ${{ github.event.pull_request.head.sha }}`
+               The next synchronize uses this for delta scope.
 
       # Two ways this can legitimately produce nothing, and only one is a defect.
       #
