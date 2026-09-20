@@ -5,17 +5,21 @@ _Convention: update at end of each working session. The weekly portfolio review 
 ## Current focus
 
 **Link 5 — build WP-03 (board loop).** WP-01 (platform shell, #18) and WP-02 (goal pool,
-#19) are both closed. WP-03 is [#20](https://github.com/goatindex/goal-bingo/issues/20).
+#19) are both closed. WP-03 is [#20](https://github.com/goatindex/goal-bingo/issues/20),
+broken into four sub-issues: [#63](https://github.com/goatindex/goal-bingo/issues/63) board
+model (closed, PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) marking
+(next), [#65](https://github.com/goatindex/goal-bingo/issues/65) single-line clear,
+[#66](https://github.com/goatindex/goal-bingo/issues/66) multi-line clear.
 
 ## Next up
 
-- **File work items for WP-03** and pick up the board loop build.
+- **Pick up #64 (marking)** — `app/src/board.ts`'s `Cell.marked` field already exists;
+  this issue wires the tap-to-mark action and its persistence/no-network guarantees.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
-  both report 0 problems). `decision_lint` stays non-blocking: 5 decisions
-  (`D-2026-09-19-13/16/17/19/22`) still miss a required field, unrelated to today's fix and
-  still genuinely outstanding.
+  both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
+  fixed 2026-09-20/21) — both checks are ready to flip; nothing is blocking it anymore.
 - **Settle link-4 decisions when blocked:** category-unlock gate (`D-2026-09-19-16`),
   advanced-tile thresholds (`D-2026-09-19-23`).
 - **Scope the `record-contract` `standing` default fix (chain-wide, not goal-bingo-only).**
@@ -30,6 +34,34 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 WP-03 is done when its acceptance criteria pass and the board loop is on `main`. Link 5
 continues with WP-04.
+
+## Done (2026-09-21 session)
+
+- **Resolved WP-03's two blocking TBDs** (PR #62): `GB-FUN-005` starting grid 5x5,
+  expansion verified through 7x7 (`D-2026-09-20-8`, grounded in `sim/jam_sim.py`'s own A4
+  sensitivity run rather than an invented number); `GB-FUN-013` multi-clear bonus is 50% of
+  the summed base score of the clearing lines (`D-2026-09-20-9`), decoupled from Q7's
+  still-open base point values.
+- **Fixed 5 pre-existing `decision_lint` gaps** (`D-2026-09-19-13/16/17/19/22`), found while
+  landing the above rather than reached past with the preflight-skip override. 3 were pure
+  field-name mismatches against the linter's accepted-variant regex (`Options considered
+  for Q2` → `Options considered (Q2)`, `Why — purpose` → `Why (purpose)`, etc., no content
+  change); 2 genuinely had no `Why` field and got one synthesized from reasoning already
+  present elsewhere in the same entry. `decision_lint`: 34/34 entries conform.
+- **Filed WP-03's four sub-issues** (#63–#66) via `ba-issue`, DoR-checked and clean: board
+  model, marking, single-line clear, multi-line clear (bonus/visual/perpendicular-loss
+  split out separately since it only applies once multi-clear exists).
+- **#63 built and merged** (PR #67): `app/src/board.ts` — `Board`/`Cell` types (row-major
+  flat array), `createBoard` (fills every cell from the pool, refuses on empty pool),
+  `resizeBoard` (keeps existing cells and marks in the top-left of the new grid on growth;
+  rejects an unsupported size at runtime, not just via the type system). Wired
+  `GameState.board` in `app/src/storage.ts` from `unknown | null` to a real, non-nullable
+  `Board` — `freshState()` now builds a live board, `isGameState` actually validates it
+  (previously unvalidated), and the WP-01/WP-02 legacy-migration path builds a fresh board
+  instead of carrying forward a value that could never satisfy GB-FUN-007. 10 new tests,
+  24/24 passing, clean typecheck. Flagged for review, not decided silently: on grid growth,
+  existing tiles stay in the top-left sub-grid rather than being centered — not specified
+  by any requirement, a reasonable default.
 
 ## Done (2026-09-20 session)
 
