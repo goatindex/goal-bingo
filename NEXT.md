@@ -13,8 +13,8 @@ _Convention: update at end of each working session. The weekly portfolio review 
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
 - **Fix all 85 requirements carrying no `verification-status`** — the set-level default
   in `requirements/_meta.md` means none has ever been individually assessed. Requirements-
-  authoring work, not a script fix; blocking `standing_check`'s flip from non-blocking to
-  blocking in `.github/workflows/record-checks.yml`.
+  authoring work, not a script fix; blocking `standing_check`'s eventual flip from
+  non-blocking to blocking once `record-checks.yml` merges (PR #39, open).
 - **Settle link-4 decisions when blocked:** category-unlock gate (`D-2026-09-19-16`),
   advanced-tile thresholds (`D-2026-09-19-23`).
 
@@ -62,11 +62,12 @@ continues with WP-04.
   (#18–#27) — `` `\nGB-CON-001, ...\n` `` (a multi-line code span, not a real fence) became
   a proper ```` ```text ```` fenced block. Harder to corrupt, directly machine-parseable.
   Repo-wide corruption rescan clean afterward.
-- **Wired `decision-log` and `record-contract` into CI** (PR #39): `disposal_check`,
-  `provenance_check`, `record_index` pass clean and are blocking; `decision_lint` and
-  `standing_check` found real pre-existing gaps (5 decisions missing a required field, and
-  — see below — every requirement lacking `verification-status`) so they run non-blocking
-  until that data is fixed.
+- **`decision-log` and `record-contract` CI wiring drafted, open as PR #39** (not yet
+  merged — `.github/workflows/record-checks.yml` doesn't exist on `main` until it lands):
+  `disposal_check`, `provenance_check`, `record_index` pass clean and would be blocking;
+  `decision_lint` and `standing_check` found real pre-existing gaps (5 decisions missing a
+  required field, and — see below — every requirement lacking `verification-status`) so
+  they're wired non-blocking until that data is fixed.
 - **Repaired 108 mojibake em-dash/en-dash sequences** in `requirements/constraints.md` and
   `functional.md` (PR #40): double-encoded (UTF-8 written, read as cp1252, re-encoded) so
   the files literally held three characters where one dash belonged. Broke

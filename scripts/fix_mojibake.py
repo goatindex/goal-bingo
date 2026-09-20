@@ -17,7 +17,9 @@ round-trip cleanly is left alone and reported, never guessed at.
     python fix_mojibake.py <paths...> --json
 
 Exit codes: 0 nothing found (or repair applied cleanly), 1 mojibake present in check
-mode, 2 the tool could not run.
+mode, 2 the tool could not run -- an unreadable file, a given path that does not exist,
+or zero .md files found under the given path(s). A path that isn't there is never
+reported as clean.
 """
 import argparse
 import io
@@ -59,16 +61,21 @@ def repair_text(text):
 
 
 def iter_files(paths):
+    """Yields (path, existed) so a missing argument is never silently indistinguishable
+    from a clean scan -- the exact failure this tool exists to catch in other checkers.
+    """
     for p in paths:
         if os.path.isfile(p):
-            yield p
+            yield p, True
         elif os.path.isdir(p):
             for root, _dirs, files in os.walk(p):
                 if ".git" in root.replace("\\", "/").split("/"):
                     continue
                 for f in sorted(files):
                     if f.endswith(".md"):
-                        yield os.path.join(root, f)
+                        yield os.path.join(root, f), True
+        else:
+            yield p, False
 
 
 def main():
@@ -80,7 +87,13 @@ def main():
 
     report = []
     total = 0
-    for path in iter_files(args.paths):
+    scanned = 0
+    missing = []
+    for path, existed in iter_files(args.paths):
+        if not existed:
+            missing.append(path)
+            continue
+        scanned += 1
         try:
             text = io.open(path, encoding="utf-8").read()
         except (OSError, UnicodeDecodeError) as exc:
@@ -101,8 +114,17 @@ def main():
             # newline="" so the file's existing line endings survive the rewrite
             io.open(path, "w", encoding="utf-8", newline="").write(repair_text(text))
 
+    if missing:
+        print(f"path(s) do not exist, not scanned: {missing}", file=sys.stderr)
+        return 2
+    if scanned == 0:
+        print("no .md files found under the given path(s) -- nothing was scanned",
+              file=sys.stderr)
+        return 2
+
     if args.as_json:
-        print(json.dumps({"files": report, "total_repairable": total,
+        print(json.dumps({"files": report, "files_scanned": scanned,
+                          "total_repairable": total,
                           "applied": bool(args.apply)}, indent=2, ensure_ascii=False))
     else:
         for r in report:
@@ -113,9 +135,10 @@ def main():
             for s in r["left_alone"]:
                 print(f"    LEFT ALONE (does not round-trip): {s!r}")
         if not report:
-            print("no mojibake found")
+            print(f"no mojibake found ({scanned} file(s) scanned)")
         else:
-            print(f"\n{total} repairable sequence(s) across {len(report)} file(s)"
+            print(f"\n{total} repairable sequence(s) across {len(report)} file(s), "
+                  f"{scanned} scanned in total"
                   + (" -- applied" if args.apply else " -- check only, nothing written"))
 
     if total and not args.apply:
