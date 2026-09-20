@@ -1,4 +1,5 @@
-/** Board state: grid sizing, cells, permanent expansion (GB-FUN-001, 005, 006, 007, 008). */
+/** Board state: grid sizing, cells, marking, permanent expansion
+ *  (GB-FUN-001, 002, 005, 006, 007, 008, 009). */
 
 import type { Goal } from './pool'
 import { drawGoal } from './pool'
@@ -80,4 +81,21 @@ export function everyCellHasOneTile(board: Board): boolean {
     board.cells.length === board.size * board.size &&
     board.cells.every((c) => c != null && c.goal != null)
   )
+}
+
+export type MarkResult = { ok: true; board: Board } | { ok: false; reason: 'invalid-cell' }
+
+/**
+ * Mark a cell by its flat index (GB-FUN-002, GB-FUN-009). Pure and synchronous: no
+ * network call, no permission check, nothing beyond the index identifying which cell
+ * was tapped. Marking an already-marked cell is a no-op — the same board reference is
+ * returned rather than a new object, so callers can skip a re-render on no-op taps.
+ */
+export function markCell(board: Board, index: number): MarkResult {
+  const cell = board.cells[index]
+  if (!cell) return { ok: false, reason: 'invalid-cell' }
+  if (cell.marked) return { ok: true, board }
+  const cells = board.cells.slice()
+  cells[index] = { ...cell, marked: true }
+  return { ok: true, board: { ...board, cells } }
 }

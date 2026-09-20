@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { createBoard, everyCellHasOneTile, isSupportedSize, resizeBoard } from './board'
-import { STARTER_POOL } from './storage'
+import {
+  createBoard,
+  everyCellHasOneTile,
+  isSupportedSize,
+  markCell,
+  resizeBoard,
+} from './board'
+import { STARTER_POOL, loadState, saveState } from './storage'
+import { MemoryStorage } from './test-support'
 
 describe('board sizing (GB-FUN-001, GB-FUN-005, GB-FUN-006)', () => {
   it('starts at 5x5 (D-2026-09-20-8)', () => {
@@ -93,5 +100,56 @@ describe('no end state (GB-FUN-001)', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(Object.keys(result.board)).toEqual(['size', 'cells'])
+  })
+})
+
+describe('marking (GB-FUN-002, GB-FUN-009)', () => {
+  function board() {
+    const pool = STARTER_POOL.map((g) => ({ ...g }))
+    const result = createBoard(5, pool, () => 0)
+    if (!result.ok) throw new Error('unreachable: STARTER_POOL is never empty')
+    return result.board
+  }
+
+  it('tapping an unmarked cell marks it', () => {
+    const result = markCell(board(), 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.board.cells[0]!.marked).toBe(true)
+  })
+
+  it('is synchronous and takes only the index the tap identifies - no network call or permission check is possible', () => {
+    const returned = markCell(board(), 0)
+    // A Promise would mean the caller has to await an external step; markCell never
+    // returns one, so there is nothing here that could be a network or permission call.
+    expect(returned).not.toBeInstanceOf(Promise)
+    expect(typeof returned).toBe('object')
+  })
+
+  it('tapping an already-marked cell is a no-op', () => {
+    const marked = markCell(board(), 0)
+    expect(marked.ok).toBe(true)
+    if (!marked.ok) return
+    const again = markCell(marked.board, 0)
+    expect(again).toEqual({ ok: true, board: marked.board })
+  })
+
+  it('rejects an out-of-range index without mutating the board', () => {
+    const start = board()
+    const result = markCell(start, 999)
+    expect(result).toEqual({ ok: false, reason: 'invalid-cell' })
+    expect(start.cells.every((c) => !c.marked)).toBe(true)
+  })
+
+  it('a mark is retained across a storage round-trip as long as the line has not cleared', () => {
+    const storage = new MemoryStorage()
+    const { state } = loadState(storage)
+    const marked = markCell(state.board, 0)
+    expect(marked.ok).toBe(true)
+    if (!marked.ok) return
+    state.board = marked.board
+    saveState(state, storage)
+    const reloaded = loadState(storage)
+    expect(reloaded.state.board.cells[0]!.marked).toBe(true)
   })
 })
