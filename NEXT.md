@@ -29,6 +29,26 @@ on `main`. Link 5 continues with WP-02.
   requirements in exactly 10 packages; issues #18–#27 with blocked-by order (PR #28).
 - **Link 5 started on WP-01.** Work items #29 (PWA scaffold), #30 (local store + soft
   reset), #31 (thumb chrome + scope guards). Stack: Vite + TypeScript (`D-2026-09-20-6`).
+- **Found and fixed a backslash-escape corruption bug in `ba-issue`.** 13 filed issues
+  (#18–#27, #29–#31) had silently mangled bodies — a bare backslash used as a path
+  delimiter (`\requirements\constraints.md\`) got eaten by whatever step wrote the draft
+  (any shell/language step that reinterprets `\a \b \f \n \r \t \v`), dropping the letter
+  after it with no error. Caught only because a rendered issue was read by eye. Root cause
+  fixed and all 13 bodies repaired.
+- **`ba-issue` hardened to v0.5** in `goatindex/claude-workflow` (PRs #23, #24, both
+  merged): `references/check_draft.py` gates every draft for this corruption class before
+  filing; `references/dor_check.py` mechanically checks half the Definition of Ready
+  (sections present/ordered, criteria tagged, no banned words including inflected forms,
+  context-pointer paths and cited decision IDs verified against the actual checkout, size
+  carries the escape hatch) so the remaining judgment lines are the only ones an agent
+  still reads by eye. Vendored into this repo (PR #36): `.github/workflows/
+  issue-corruption-check.yml` now scans every opened/edited issue regardless of what
+  filed it.
+- **Audited whether the other requirement lints run anywhere, not just on demand.**
+  `backmap_check.py`, `lint_requirements.py` (INCOSE GtWR, never before run against this
+  requirement set — 0 errors but 160 warnings, mostly R1 pattern mismatches worth a look),
+  `partition_check.py`, and `check_scope_exclusions.py` all currently pass clean but none
+  were wired into CI. Wiring them in as `requirement-checks.yml` — in progress.
 
 ## Parked
 

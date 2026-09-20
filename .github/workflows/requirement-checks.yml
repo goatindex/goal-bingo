@@ -1,0 +1,47 @@
+# Deterministic requirement-quality gates for this repo.
+#
+# Each of these scripts already existed and already passed clean, but none ran anywhere
+# except when someone remembered to invoke them by hand - the same shape of gap that let
+# a backslash-escape corruption bug ship into 13 filed issues before it was noticed by
+# eye (see NEXT.md, 2026-09-20). Audited and wired in the same day rather than left as
+# another capable-but-unenforced check.
+#
+# - backmap_check.py / lint_requirements.py are generic, vendored from
+#   goatindex/claude-workflow's incose-requirements skill (see copies.txt).
+# - partition_check.py / check_scope_exclusions.py are this repo's own, hand-written
+#   against its specific work-package and scope-exclusion shape.
+name: requirement-checks
+
+on:
+  pull_request:
+    paths:
+      - "requirements/**"
+      - "docs/design-description.md"
+      - "work-packages/**"
+      - "app/src/**"
+      - "scripts/partition_check.py"
+      - "scripts/check_scope_exclusions.py"
+      - "scripts/backmap_check.py"
+      - "scripts/lint_requirements.py"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: requirement + partition + scope-exclusion checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Back-map (every design-description.md section mines to a requirement, or says why not)
+        run: python3 scripts/backmap_check.py --source docs/design-description.md --requirements requirements
+
+      - name: Requirement lint (INCOSE GtWR conformance; fails only on error-level findings)
+        run: python3 scripts/lint_requirements.py requirements/
+
+      - name: Partition check (every live requirement sits in exactly one work package)
+        run: python3 scripts/partition_check.py
+
+      - name: Scope exclusions (WP-01 forbidden integrations absent from app/src)
+        run: python3 scripts/check_scope_exclusions.py

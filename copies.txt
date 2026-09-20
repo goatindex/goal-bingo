@@ -4,3 +4,5 @@ skills/master-and-copy/scripts/refresh_copies.py              scripts/refresh_co
 skills/adversarial-review/workflows/adversarial-review.yml    .github/workflows/adversarial-review.yml
 skills/ba-issue/references/check_draft.py                     scripts/check_draft.py
 skills/ba-issue/workflows/issue-corruption-check.yml           .github/workflows/issue-corruption-check.yml
+skills/incose-requirements/scripts/backmap_check.py            scripts/backmap_check.py
+skills/incose-requirements/scripts/lint_requirements.py        scripts/lint_requirements.py
