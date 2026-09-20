@@ -4,36 +4,31 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 4 — decomposition (cut complete; first package ready).** Requirements baselined at
-v1.0. Ten work packages filed as issues #18–#27 with partition-proven requirement sets and
-native blocked-by build order. Next is link 5 on [WP-01](https://github.com/goatindex/goal-bingo/issues/18).
+**Link 5 — build WP-01.** Work items #29–#31 filed under [WP-01](https://github.com/goatindex/goal-bingo/issues/18).
+Scaffolding the Vite PWA shell (`app/`) with local persistence and thumb-zone chrome.
 
 ## Next up
 
-- **File WP-01…WP-10 as issues** mirroring `work-packages/cut.md`; link blocked-by /
-  blocking for build order. → **done** (#18–#27, dependencies wired).
-- **Settle the two named link-4 decisions** when they block a package: category-unlock gate
-  (`D-2026-09-19-16`) and advanced-tile thresholds (`D-2026-09-19-23`).
-- **First shippable slice:** WP-01 → WP-05 (#18–#22) — playable bingo with scoring, no economy.
-- **Link 5 — work items** starting at [WP-01 Platform shell](https://github.com/goatindex/goal-bingo/issues/18).
-- **Playtest against §10.4's felt-friction judgement** once a prototype exists — jam
-  frequency is measured; the prototype tests whether ~5% draw share *feels* like "regular
-  presence".
+- **Merge the WP-01 shell PR** once review passes.
+- **Close #29–#31** against that PR; then move to [WP-02 Goal pool](https://github.com/goatindex/goal-bingo/issues/19).
+- **First shippable slice:** WP-01 → WP-05 (#18–#22).
+- **Settle link-4 decisions when blocked:** category-unlock gate (`D-2026-09-19-16`),
+  advanced-tile thresholds (`D-2026-09-19-23`).
 
 ## Done means
 
-Link 4 is done when every live requirement is in exactly one work-package issue, the
-partition check stays green, and build order is expressed as issue dependencies. First
-package (WP-01) is ready for link 5.
+WP-01 is done when #29–#31 acceptance criteria pass and the installable offline shell is
+on `main`. Link 5 continues with WP-02.
 
 ## Done (2026-09-20 session)
 
 - **Link 3 complete.** Requirements mined and gap-closed: PRs #16, #17. Glossary pins board
   balance / reward balance. Soft floor + expansion + failure modes (D-2026-09-20-1…5).
 - **Requirement set baselined** as v1.0 (2026-09-20) in `requirements/_meta.md`.
-- **Link 4 cut started.** `work-packages/cut.md` + `scripts/partition_check.py` — 84 live
-  requirements in exactly 10 packages; first shippable slice WP-01→WP-05.
-- **Work-package issues filed** #18–#27 with blocked-by build order (C4-1, C4-2).
+- **Link 4 cut complete.** `work-packages/cut.md` + `scripts/partition_check.py` — 84 live
+  requirements in exactly 10 packages; issues #18–#27 with blocked-by order (PR #28).
+- **Link 5 started on WP-01.** Work items #29 (PWA scaffold), #30 (local store + soft
+  reset), #31 (thumb chrome + scope guards). Stack: Vite + TypeScript (`D-2026-09-20-6`).
 
 ## Parked
 

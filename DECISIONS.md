@@ -3,6 +3,22 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-20-6 — Product app is Vite + TypeScript PWA under app/
+
+- **Status:** open
+- **Context:** WP-01 needs a runnable shell. No stack was settled at framing. The Phaser
+  prototype is superseded (`D-2026-09-19-5`) and must not be evolved.
+- **Options considered:** revive Phaser prototype — fights the restart decision (rejected) ·
+  React/Next — heavier than the first package needs (deferred) · **Vite + TypeScript +
+  vite-plugin-pwa in `app/` (chosen)**
+- **Why:** Matches mobile-first PWA (`D-2026-09-19-1`), offline installability out of the
+  box, small surface for link-5 agents, and leaves UI framework choice open for later
+  packages.
+- **Expected outcome:** `npm run build` in `app/` produces an installable offline shell;
+  later packages land under `app/src` without a framework migration in WP-01.
+- **Revisit:** Before WP-03 board UI if DOM/canvas needs prove awkward, or if a shared
+  design system elsewhere in the portfolio should be adopted.
+
 ## D-2026-09-20-5 — Long-term draw-share verification tolerance is ±5 percentage points
 
 - **Status:** open
