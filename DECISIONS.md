@@ -3,6 +3,58 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-2 — Category domination threshold is 40% of board cells
+
+- **Status:** open
+- **Context:** Q21 asks what share of the board counts as one category dominating it
+  (GB-FUN-024, binding placement rule 2). Unlike the grid-size and cadence-split
+  questions, no existing simulation models categories at all — `sim/jam_sim.py`
+  explicitly says so in its own header comment — so there is no precedent to ground this
+  in, only the requirement's own purpose and the matching-combo mechanic it has to
+  coexist with.
+- **Options considered:** a tight cap near even distribution (~20%, close to 1/7 across
+  the seven default categories) — rejected, would make the matching combo
+  (`D-2026-09-19-19`, a full line of one category) very hard to legally build, fighting
+  a mechanic the game wants to reward · a loose cap (~70%) — rejected, gives GB-FUN-024
+  almost no teeth against the crowding-out problem it exists to prevent · **40% of board
+  cells (chosen)** — on a 5x5 board (`D-2026-09-20-8`) that is 10 of 25 cells, comfortably
+  above the 5-7 cells a single matching line needs; on 7x7 it is roughly 19 of 49. Either
+  way, at least 60% of the board is guaranteed to serve other categories.
+- **Why:** Balances the matching-combo mechanic's need for an achievable single-category
+  line against GB-FUN-024's actual purpose (preventing one life area from crowding out
+  the others) — a threshold has to leave both possible at once, and 40% is the point
+  where a full line is easy but a monotone board is not.
+- **Expected outcome:** A refill or recycle draw that would push a category's on-board
+  share above 40% is rejected for that cell; the draw falls through to a different
+  category rather than leaving the cell unfilled.
+- **Revisit:** After first playtest — particularly if matching combos still feel too easy
+  or too hard to set up, or if boards at 40% still read as visibly monotone to a player.
+
+## D-2026-09-21-1 — Short-term cadence split is 40% hourly / 40% daily / 20% weekly
+
+- **Status:** open
+- **Context:** `D-2026-09-19-12` set the long-term draw share at ~5%; Q22 asks how the
+  *remaining* 95% splits across the three short-term cadences (hourly/daily/weekly).
+  This was already answered once, just not recorded as a decision: `sim/jam_sim.py`'s
+  `SHORT_MIX = {hourly: 0.4, daily: 0.4, weekly: 0.2}` produced the recovery-floor
+  numbers (`sim/results.md`) that `D-2026-09-20-8` relied on to pick the starting and
+  verified grid sizes.
+- **Options considered:** invent a different split now that the game is actually being
+  built — rejected, it would silently invalidate the recovery-floor simulation results
+  already cited as evidence for a *different*, already-made decision, without re-running
+  anything · **adopt the split the simulation already used (chosen)** — it was already a
+  reasonable one (most goals are hourly/daily rather than weekly, matching ordinary
+  goal-tracking use), and it keeps every decision that traces back to `sim/results.md`
+  internally consistent.
+- **Why:** Consistency with a simulation result already spent on another decision matters
+  more than optimizing this specific split in isolation — the two are coupled, and
+  changing one without the other would make `D-2026-09-20-8`'s own justification stale.
+- **Expected outcome:** GB-FUN-022's short-term-cadence weighting is `SHORT_CADENCE_MIX =
+  {hourly: 0.4, daily: 0.4, weekly: 0.2}`, ported directly from the simulation rather than
+  reimplemented from scratch. Q22 resolved.
+- **Revisit:** If real playtest data shows a different natural frequency across
+  hourly/daily/weekly goals than the simulation assumed.
+
 ## D-2026-09-20-9 — Multi-clear bonus is 50% of the summed base score of the clearing lines
 
 - **Status:** open
