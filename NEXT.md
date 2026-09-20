@@ -48,7 +48,17 @@ on `main`. Link 5 continues with WP-02.
   `backmap_check.py`, `lint_requirements.py` (INCOSE GtWR, never before run against this
   requirement set — 0 errors but 160 warnings, mostly R1 pattern mismatches worth a look),
   `partition_check.py`, and `check_scope_exclusions.py` all currently pass clean but none
-  were wired into CI. Wiring them in as `requirement-checks.yml` — in progress.
+  were wired into CI. Wired in as `.github/workflows/requirement-checks.yml` (PR #37,
+  merged) — runs all four on every PR touching `requirements/`,
+  `docs/design-description.md`, `work-packages/`, or `app/src/`.
+- **`ba-issue` hardened to v0.6** (`goatindex/claude-workflow` PR #25): `check_draft.py`
+  and `dor_check.py` both gained a `--json` flag matching `lint_requirements.py`'s
+  `{file, findings, counts}` convention, so a CI workflow or another agent can consume
+  results precisely instead of scraping prose.
+- **Fixed the fragile single-backtick-wrapped requirement-ID list** in all 10 WP issues
+  (#18–#27) — `` `\nGB-CON-001, ...\n` `` (a multi-line code span, not a real fence) became
+  a proper ```` ```text ```` fenced block. Harder to corrupt, directly machine-parseable.
+  Repo-wide corruption rescan clean afterward.
 
 ## Parked
 
