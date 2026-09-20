@@ -4,21 +4,24 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — build WP-01.** Work items #29–#31 filed under [WP-01](https://github.com/goatindex/goal-bingo/issues/18).
-Scaffolding the Vite PWA shell (`app/`) with local persistence and thumb-zone chrome.
+**Link 5 — build WP-03 (board loop).** WP-01 (platform shell, #18) and WP-02 (goal pool,
+#19) are both closed. WP-03 is [#20](https://github.com/goatindex/goal-bingo/issues/20).
 
 ## Next up
 
-- **Merge the WP-01 shell PR** once review passes.
-- **Close #29–#31** against that PR; then move to [WP-02 Goal pool](https://github.com/goatindex/goal-bingo/issues/19).
-- **First shippable slice:** WP-01 → WP-05 (#18–#22).
+- **File work items for WP-03** and pick up the board loop build.
+- **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
+- **Fix all 85 requirements carrying no `verification-status`** — the set-level default
+  in `requirements/_meta.md` means none has ever been individually assessed. Requirements-
+  authoring work, not a script fix; blocking `standing_check`'s flip from non-blocking to
+  blocking in `.github/workflows/record-checks.yml`.
 - **Settle link-4 decisions when blocked:** category-unlock gate (`D-2026-09-19-16`),
   advanced-tile thresholds (`D-2026-09-19-23`).
 
 ## Done means
 
-WP-01 is done when #29–#31 acceptance criteria pass and the installable offline shell is
-on `main`. Link 5 continues with WP-02.
+WP-03 is done when its acceptance criteria pass and the board loop is on `main`. Link 5
+continues with WP-04.
 
 ## Done (2026-09-20 session)
 
@@ -59,6 +62,25 @@ on `main`. Link 5 continues with WP-02.
   (#18–#27) — `` `\nGB-CON-001, ...\n` `` (a multi-line code span, not a real fence) became
   a proper ```` ```text ```` fenced block. Harder to corrupt, directly machine-parseable.
   Repo-wide corruption rescan clean afterward.
+- **Wired `decision-log` and `record-contract` into CI** (PR #39): `disposal_check`,
+  `provenance_check`, `record_index` pass clean and are blocking; `decision_lint` and
+  `standing_check` found real pre-existing gaps (5 decisions missing a required field, and
+  — see below — every requirement lacking `verification-status`) so they run non-blocking
+  until that data is fixed.
+- **Repaired 108 mojibake em-dash/en-dash sequences** in `requirements/constraints.md` and
+  `functional.md` (PR #40): double-encoded (UTF-8 written, read as cp1252, re-encoded) so
+  the files literally held three characters where one dash belonged. Broke
+  `record_index.py`'s heading match, which enumerated 12 of 85 requirements —
+  `standing_check` was silently checking 14% of the set. Repaired deterministically (exact
+  inverse re-encode, verified byte-for-byte); both checkers now agree on 85.
+- **Found and fixed the reviewer's broken summary tool** (`goatindex/claude-workflow#28`):
+  `use_sticky_comment: true` was a silent no-op because this workflow always runs in
+  "agent mode" (an explicit `prompt:` triggers it), and agent mode has no tracking comment
+  by design — the summary tool could never succeed, not intermittently, on every run. Cost
+  four failed review attempts and ~$3.50 on PR #40 alone before being root-caused by
+  isolating the PR's own content in a throwaway duplicate. Fixed upstream, verified on a
+  real PR here (2 denials down from 9–17, real findings posted), synced into this repo.
+  Resolves the "sticky summary" item parked below.
 
 ## Parked
 
@@ -66,11 +88,6 @@ on `main`. Link 5 continues with WP-02.
   labels and forms. Worth adding before the first build work, not before the requirements
   exist. (Branch protection is unavailable on a private repo under the current plan — F-36;
   the session hook is what enforces branch-and-PR here.)
-- Whether the reviewer's **sticky summary** is worth chasing. Its prompt says to always post
-  one; on the first real run it posted an inline finding and left the review body empty. The
-  workflow's verification step passes on the *existence* of a review, not its content, so a
-  summary-less review reads as green. Fixing it means changing the master in
-  `goatindex/claude-workflow`, which affects every consumer — not a goal-bingo decision.
 - **Mine the prototype before building.** `v1-phaser-prototype` has working Phaser scene
   management, a layout manager, a UI container and an audio system. Its *game* is not this
   game (`D-2026-09-19-5`), but that scaffolding is real and reading it is cheaper than
