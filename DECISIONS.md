@@ -280,11 +280,11 @@ source of requirements, so the reverse walk from a failing test ends here.
   what happens when one mark completes a row and a column — or any two lines — at once (Q3).
   They are decided together because the answer to Q3 determines whether adding diagonals
   creates an exotic edge case or a natural play pattern.
-- **Options considered for Q2:** diagonals excluded — reduces the strategic surface; on a
+- **Options considered (Q2):** diagonals excluded — reduces the strategic surface; on a
   5×5 grid drops from 12 lines to 10; the two diagonal lines are the ones most likely to
   intersect multiple rows and columns, so excluding them removes the most interesting
   multi-clear setups (rejected) · **diagonals count as lines (chosen)**
-- **Options considered for Q3:** only one line resolves per mark, player chooses — punishes
+- **Options considered (Q3):** only one line resolves per mark, player chooses — punishes
   a positive outcome and introduces arbitrary choice at the moment of completion (rejected)
   · both lines resolve but only one refills — partial resolution is bookkeeping complexity
   for no gameplay benefit (rejected) · **every completing line resolves: each clears,
@@ -351,6 +351,11 @@ source of requirements, so the reverse walk from a failing test ends here.
   | **Category** | "Mark N [category] goals this [period]" | One per player category; unlocks with the category (`D-2026-09-19-16`) |
   | **Cadence** | "Mark N [cadence] goals this [period]" | One per cadence tier; every goal has a cadence, so coverage is guaranteed |
 
+- **Why:** No single-type option closes the `D-2026-09-19-8` coverage gap (every mark must
+  count toward something) without also removing any reason to focus play — a universal-only
+  layer treats every mark identically, and a category- or cadence-only layer reopens the gap
+  for marks outside the active challenge. Running all three in parallel and additively is
+  the only option that gives both properties at once.
 - **Parallel means additive.** A mark counts toward every challenge it qualifies for
   simultaneously. A health-daily goal earns toward the universal, the health category
   challenge, and the daily cadence challenge at once. Focused play earns more than
@@ -390,7 +395,7 @@ source of requirements, so the reverse walk from a failing test ends here.
   **defaults ship; player-defined categories unlock through progression (chosen)**
 - **Default set (seven):**
   `health` · `study` · `creative` · `volunteering` · `relationship` · `home` · `work`
-- **Why these seven:** They cover the goal areas most players hold without needing a custom
+- **Why (these seven):** They cover the goal areas most players hold without needing a custom
   category on day one — physical and mental health, learning, creative and recreational
   work, relationships and community, domestic and administrative life, and career. *Creative*
   replaces the original *hobby* placeholder because it covers both artistic work and
@@ -460,13 +465,13 @@ source of requirements, so the reverse walk from a failing test ends here.
   (rejected — too powerful as a base mechanic; removes strategic friction before the player
   has felt it) · **swap-for-consolidation as the stated purpose; adjacent-only in the base
   game; wider swap capabilities as upgrades or power-ups (chosen)**
-- **Why — purpose:** Consolidation is the right framing. A swap that moves an achievable
+- **Why (purpose):** Consolidation is the right framing. A swap that moves an achievable
   goal *into* a line the player is building, or that clusters two blockers into the same
   line to free the rest of the board, is strategically meaningful and consistent with the
   game's core loop. Naming the purpose sets the design constraint: a swap upgrade that
   bypasses consolidation is out of scope; one that makes consolidation easier or faster
   is in scope.
-- **Why — adjacent-only:** Adjacent-only is a natural constraint that makes the swap cost
+- **Why (adjacent-only):** Adjacent-only is a natural constraint that makes the swap cost
   something in planning. Moving a blocker two cells over requires two swaps or an upgrade;
   that is friction worth keeping. It is also the minimum implementation surface for a base
   mechanic.
@@ -547,6 +552,12 @@ source of requirements, so the reverse walk from a failing test ends here.
   a goal app) · matching and variety as named, paying bonus (chosen) · richer taxonomy
   with partial combos (e.g., 3-of-5 same category) — deferred to a later release; the
   base game needs the simplest combo surface that rewards both playstyles.
+- **Why:** Matching and variety are opposite play patterns, and a goal app should reward
+  both — a player who commits to one category and a player who deliberately spreads across
+  several are each doing something meaningful, not one of them slacking. Shipping only one
+  combo type leaves the other pattern earning nothing for a real strategic choice; shipping
+  both, at the simplest all-same/all-different granularity, covers the base game without
+  the added complexity of a partial-combo taxonomy that a prototype hasn't justified yet.
 - **Numbers** (multipliers, thresholds) are tuning questions waiting for a prototype.
 - **Expected outcome:** Players can recognise and aim for both combo types; a matching
   clear and a variety clear both feel like achievements worth building toward.
