@@ -2,7 +2,7 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/workflows/adversarial-review.yml
-# Commit: 3af7660
+# Commit: 811a2c1
 # Copied: 2026-09-20
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
@@ -75,9 +75,21 @@ jobs:
           # needs. A run on 2026-09-08 took 48 turns and $1.11, was denied 11
           # times, posted nothing, and the action still reported success.
           # Naming the tools in the prompt does not grant them.
+          #
+          # --max-turns 75, not 50 (TB-45, project-tracking/mpd/NEXT.md). 50 was
+          # calibrated against that same broken run - healthy runs complete in
+          # 15-25 turns, so 50 looked like generous headroom over a broken
+          # baseline. It wasn't: a doc-only PR that goes through multiple review
+          # rounds re-verifies its claims from scratch each time (byte counts,
+          # estate-wide greps, every prior finding) rather than incrementally,
+          # and cost compounds with round count, not diff size. goal-bingo#40
+          # hit 63 turns on its third round and failed outright - a real
+          # finding lost, not just a wasted run, since the action's own error
+          # discards whatever it already found rather than posting a partial
+          # result.
           claude_args: |
             --model sonnet
-            --max-turns 50
+            --max-turns 75
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh issue view:*),Bash(git log:*),Bash(git diff:*)"
           prompt: |
             You are the adversarial reviewer for ${{ github.repository }}. Review
