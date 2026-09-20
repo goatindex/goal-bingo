@@ -8,13 +8,15 @@ _Convention: update at end of each working session. The weekly portfolio review 
 #19) are both closed. WP-03 is [#20](https://github.com/goatindex/goal-bingo/issues/20),
 broken into four sub-issues: [#63](https://github.com/goatindex/goal-bingo/issues/63) board
 model (closed, PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) marking
-(next), [#65](https://github.com/goatindex/goal-bingo/issues/65) single-line clear,
-[#66](https://github.com/goatindex/goal-bingo/issues/66) multi-line clear.
+(closed, PR #69), [#65](https://github.com/goatindex/goal-bingo/issues/65) single-line
+clear (next), [#66](https://github.com/goatindex/goal-bingo/issues/66) multi-line clear.
 
 ## Next up
 
-- **Pick up #64 (marking)** — `app/src/board.ts`'s `Cell.marked` field already exists;
-  this issue wires the tap-to-mark action and its persistence/no-network guarantees.
+- **Pick up #65 (single-line clear)** — `markCell` (`app/src/board.ts`) and `drawGoal`
+  (`app/src/pool.ts`) both already exist; this issue detects a completed row/column/
+  diagonal and calls the pool's existing draw to refill, surfacing the empty-pool prompt
+  path (`app/src/shell.ts`'s `emptyPoolPrompt`) rather than leaving a cell unfilled.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -37,6 +39,12 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **#64 (marking) built and merged** (PR #69): `markCell(board, index)` in
+  `app/src/board.ts` — pure, synchronous, takes only the flat index a tap identifies, so
+  nothing is possible to gate behind a network call or permission check; marking an
+  already-marked cell returns the same board reference (no-op). Extracted `MemoryStorage`
+  from `storage.test.ts` into a shared `app/src/test-support.ts` for the second test file
+  that needed the same in-memory `Storage` fake. 5 new tests, 29/29 passing.
 - **Resolved WP-03's two blocking TBDs** (PR #62): `GB-FUN-005` starting grid 5x5,
   expansion verified through 7x7 (`D-2026-09-20-8`, grounded in `sim/jam_sim.py`'s own A4
   sensitivity run rather than an invented number); `GB-FUN-013` multi-clear bonus is 50% of
