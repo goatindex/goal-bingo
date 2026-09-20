@@ -6,22 +6,18 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 **Link 5 — build WP-03 (board loop).** WP-01 (platform shell, #18) and WP-02 (goal pool,
 #19) are both closed. WP-03 is [#20](https://github.com/goatindex/goal-bingo/issues/20),
-broken into four sub-issues: [#63](https://github.com/goatindex/goal-bingo/issues/63) board
-model (closed, PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) marking
-(closed, PR #69), [#65](https://github.com/goatindex/goal-bingo/issues/65) single-line
-clear (closed, PR #71), [#66](https://github.com/goatindex/goal-bingo/issues/66)
-multi-line clear (closed, this PR).
+broken into five sub-issues, all closed: [#63](https://github.com/goatindex/goal-bingo/issues/63)
+board model (PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) marking
+(PR #69), [#65](https://github.com/goatindex/goal-bingo/issues/65) single-line clear
+(PR #71), [#66](https://github.com/goatindex/goal-bingo/issues/66) multi-line clear
+(PR #72), [#73](https://github.com/goatindex/goal-bingo/issues/73) board UI (this PR).
+WP-03 (#20) is ready to close.
 
 ## Next up
 
-- **WP-03's business logic is done; its UI is not — a real gap, found while wrapping up
-  #66.** `app/src/shell.ts`'s `renderHome()` still shows the WP-01/WP-02-era "Tap to mark
-  (placeholder)" / "Draw a goal (placeholder)" buttons wired to no-op handlers
-  (`onMarkPlaceholder`/`onDrawPlaceholder`). WP-01 (PR for #29-31) and WP-02 (PR #35) both
-  shipped real UI alongside their logic; none of #63-66 did, because none of them were
-  scoped to. File a 5th WP-03 item — render the grid, wire taps to
-  `markCellAndResolve` (`app/src/lines.ts`), display score — before closing #20 as done.
-- **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
+- **Close #20 (WP-03)** now that all five sub-issues are merged, and move link 5 on to
+  WP-04 ([#21](https://github.com/goatindex/goal-bingo/issues/21), draw engine).
+- **First shippable slice:** WP-01 → WP-05 (#18–#22); three of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -43,6 +39,19 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **#73 (board UI) built** (this PR), the last of WP-03's five sub-issues:
+  `shell.ts`'s `renderHome()` now
+  renders the real board (`state.board.cells`, one tappable button per cell, distinct
+  styling for marked cells and for `intersectionCells` on a multi-clear) in place of the
+  WP-01/WP-02-era placeholder mark/draw buttons. `main.ts`'s `onMarkCell` wires a tap to
+  `markCellAndResolve`, applies the score delta and updated board, persists via
+  `saveState`, and surfaces the existing empty-pool prompt on an `empty-pool` refusal.
+  Removed the now-redundant manual "draw a goal" test button and its `lastDraw`/
+  `onDrawPlaceholder` plumbing — the real board already shows drawn goals directly.
+  No DOM test harness exists in this codebase (no jsdom/happy-dom configured), so
+  verified manually via the dev server: marked a cell (visual change), completed a row
+  (score incremented, cells refilled with fresh goals, marks cleared), reloaded (state
+  persisted correctly) — no console errors at any step.
 - **#66 (multi-line clear) built** (this PR), completing WP-03's business logic:
   `resolveLineClears` (`app/src/lines.ts`) already cleared every simultaneously-
   completing line correctly (checked all lines through the marked cell); this issue adds
