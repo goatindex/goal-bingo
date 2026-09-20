@@ -1,0 +1,85 @@
+# GENERATED COPY - DO NOT EDIT
+#
+# Master: goatindex/claude-workflow
+#         skills/ba-issue/workflows/issue-corruption-check.yml
+# Commit: 6b70a0b
+# Copied: 2026-09-20
+#
+# Edit the master and re-run scripts/refresh_copies.py. A change made here is
+# lost at the next refresh, and drift is reported by --check.
+# --- end generated header ---
+# Scan every issue body for backslash-escape corruption when it is opened or edited.
+#
+# GENERATED COPY in consuming repositories - master is
+# goatindex/claude-workflow, skills/ba-issue/workflows/issue-corruption-check.yml
+#
+# Root-caused 2026-09-20 in goatindex/goal-bingo: a shell/language step that
+# reinterprets backslash escapes (echo -e, printf with the body embedded in the format
+# string, a non-raw Python/YAML string) silently eats \a \b \f \n \r \t \v and the
+# letter after them wherever an issue body used a bare backslash as a path delimiter -
+# `\requirements\constraints.md\` renders as `equirements/constraints.md`. There is no
+# error, no warning, and no visible sign until someone reads the rendered issue. 13
+# issues shipped this way before one was noticed by eye.
+#
+# ba-issue v0.4 fixed the drafting side (references/check_draft.py, run before every
+# `gh issue create`/`edit --body-file`). This workflow is the independent net: it
+# catches the same corruption regardless of what produced the issue - a human typing
+# directly, a different skill, or a future regression in ba-issue itself.
+name: issue-corruption-check
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: scan issue body for escape corruption
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The issue body is untrusted, attacker-influenced text. It goes into an
+      # environment variable and is written out with printf '%s', never interpolated
+      # into the script text itself - that is what keeps this step safe regardless of
+      # what the body contains.
+      - name: Write issue body to a file
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: printf '%s' "$ISSUE_BODY" > issue_body.md
+
+      - name: Check for escape corruption
+        id: check
+        run: |
+          set +e
+          python3 scripts/check_draft.py issue_body.md > result.txt 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          cat result.txt
+
+      - name: Comment if corrupted
+        if: steps.check.outputs.exit_code != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo "This issue body may be corrupted by a known bug class: a backslash-escape"
+            echo "sequence was silently swallowed before this text reached GitHub, dropping"
+            echo "the letter after it (e.g. a path meant to read \`requirements/constraints.md\`"
+            echo "renders as \`equirements/constraints.md\`), or a bare backslash survived where"
+            echo "a forward slash in a backtick code span was intended."
+            echo
+            echo '```'
+            cat result.txt
+            echo '```'
+            echo
+            echo "This is a mechanical corruption, not a content problem. Re-edit the body using"
+            echo "forward slashes in backtick code spans instead of bare backslashes, and write"
+            echo "the draft byte-for-byte before filing (Write tool or a quoted heredoc, never"
+            echo "\`echo -e\`/\`printf\` with the body embedded in the format string) - see the"
+            echo "ba-issue skill's Gotchas section."
+          } > comment.md
+          gh issue comment "$ISSUE" -R "$GITHUB_REPOSITORY" --body-file comment.md
