@@ -234,3 +234,5 @@ continues with WP-04.
 ## Last updated
 
 2026-09-20
+
+- **Package A synced** (claude-workflow#31 / goal-bingo#47): adversarial review cancels superseded runs, re-reviews incrementally via `Reviewed-Commit:`, requires a this-run comment, and the merge gate keys off HEAD check SUCCESS. Smoke stamp: 2026-09-20 19:57.
