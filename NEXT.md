@@ -248,3 +248,5 @@ continues with WP-04.
 - **Reviewed-Commit SHA injection smoke (pass 2):** delta re-review; trailer must equal this second commit's SHA.
 
 - **Package B lite smoke:** NEXT.md-only should classify lite (max-turns 30).
+
+- **Package B landed** (claude-workflow#34 + #36; goal-bingo sync via direct main push then #56): path tiers mechanical/lite/standard/deep. Smokes: lite #54 green; mechanical #56 green in ~13s without Claude / without GUARD_ALLOW_UNREVIEWED; deep #57 green (closed without merging the app comment).
