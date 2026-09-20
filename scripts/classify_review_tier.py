@@ -2,7 +2,7 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/scripts/classify_review_tier.py
-# Commit: 232ecc2
+# Commit: f3020be
 # Copied: 2026-09-20
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
@@ -13,6 +13,8 @@
 
 Package B: mechanical / lite / standard / deep from changed paths only (TB-20:
 no repository names). Pure heuristics so one master serves every consumer.
+
+Package B smoke stamp: docstring-only sync exercises the mechanical tier.
 
 ASCII only (PS 5.1 decodes non-ASCII as ANSI).
 """
