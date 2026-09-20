@@ -576,13 +576,16 @@ invented here reads as fact once it is a requirement.
 
 | # | Question | Blocks |
 |---|---|---|
-| Q1 | Starting grid size, and the sizes expansion steps through | §3.1 |
+  | ~~Q1~~ | ~~Starting grid size, and the sizes expansion steps through~~ — **resolved** by `D-2026-09-20-8`: start 5x5, expansion verified through 7x7; further sizes gated on re-running `sim/jam_sim.py` at that size (GB-CON-014) | §3.1 |
   | ~~Q2~~ | ~~Do diagonals count as lines?~~ — **resolved** by `D-2026-09-19-13`: diagonals count | §3.4 |
   | ~~Q3~~ | ~~Resolution when one mark completes a row and a column at once~~ — **resolved** by `D-2026-09-19-13`: every completing line resolves; bonus points for the multi-clear | §3.4 |
   | ~~Q4~~ | ~~What happens to a cell shared by two clearing lines~~ — **resolved** by `D-2026-09-19-14`: distinct visual treatment; anchor for the multi-clear bonus | §3.4 |
   | ~~Q5~~ | ~~The starting category list~~ — **resolved** by `D-2026-09-19-16`: health, study, creative, volunteering, relationship, home, work; player-defined unlocks beyond that | §4.2 |
 | Q6 | The draw-weighting formula, and its grid-awareness rules | §4.4 |
 | Q7 | Base point values | §5.1 |
+  <!-- The multi-clear bonus this question was blocking (GB-FUN-013) is resolved by
+  `D-2026-09-20-9` as a formula relative to the base score, so it no longer needs Q7
+  answered first. Q7 itself — the base values — remains open. -->
   | ~~Q8~~ | ~~Which combos exist and what each multiplies by~~ — **resolved** by `D-2026-09-19-19`: matching (all same category) and variety (all different); multipliers are tuning | §5.2 |
 | ~~Q9~~ | ~~Settle the two-counter model~~ — **resolved** by `D-2026-09-19-6`: three counters, two of them spendable | §5.3 |
 | Q10 | Power-up prices — constrained by the recovery floor, not free to tune | §6.2, §10.3 |

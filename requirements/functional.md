@@ -82,7 +82,9 @@ verification-criteria: Starting from the smallest grid size, the player can spen
 verification-status: not-verified
 owner: k
 priority: must
-notes: Starting size and expansion sizes are TBD (owner: k, blocks: Q1).
+notes: Starting size is 5x5; expansion verified through 7x7 (`D-2026-09-20-8`). A further
+  step to 9x9 or beyond is future work, gated on running `sim/jam_sim.py` at that size
+  first (GB-CON-014). Q1 resolved.
 
 ### GB-FUN-006 — Grid expansion is permanent
 statement: When the player purchases a grid expansion, Goal Bingo shall increase the grid
@@ -201,7 +203,8 @@ verification-criteria: A double-clear produces a higher total score than two seq
 verification-status: not-verified
 owner: k
 priority: must
-notes: Bonus formula is TBD (owner: k, blocks: Q7).
+notes: Bonus is 50% of the summed base score of the clearing lines (`D-2026-09-20-9`),
+  decoupled from Q7's still-open base point values. Blocker resolved.
 
 ### GB-FUN-014 — Intersection cell has distinct visual treatment
 statement: When two lines clear simultaneously, Goal Bingo shall render the cell at their
