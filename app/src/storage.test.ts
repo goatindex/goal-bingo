@@ -74,4 +74,21 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.softReset).toBe(false)
     expect(loaded.state.pool).toEqual([])
   })
+
+  it('migrates a WP-01 save that lacks categories without soft-reset', () => {
+    const storage = new MemoryStorage()
+    const legacy = {
+      version: 1 as const,
+      pool: [{ id: 'g1', title: 'Drink water', category: 'health', cadence: 'hourly' }],
+      board: null,
+      score: { lifetime: 4, rewardBalance: 0, boardBalance: 1 },
+      rewards: [],
+    }
+    storage.setItem(STORAGE_KEY, JSON.stringify(legacy))
+    const loaded = loadState(storage)
+    expect(loaded.softReset).toBe(false)
+    expect(loaded.state.pool).toEqual(legacy.pool)
+    expect(loaded.state.categories.length).toBe(7)
+    expect(loaded.state.score.lifetime).toBe(4)
+  })
 })

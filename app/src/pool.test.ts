@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_CATEGORIES, canUnlockCustomCategory } from './categories'
+import { DEFAULT_CATEGORIES, canUnlockCustomCategory, tryUnlockCustomCategory } from './categories'
 import {
   addGoal,
   drawGoal,
@@ -60,6 +60,22 @@ describe('custom category unlock (GB-FUN-020, D-2026-09-20-7)', () => {
   it('unlocks only at lifetime score >= 10', () => {
     expect(canUnlockCustomCategory(9)).toBe(false)
     expect(canUnlockCustomCategory(10)).toBe(true)
+  })
+
+  it('adds one custom slot at the gate, then refuses a second', () => {
+    const base = [...DEFAULT_CATEGORIES]
+    const blocked = tryUnlockCustomCategory(base, 9, 'pets')
+    expect(blocked.ok).toBe(false)
+    const first = tryUnlockCustomCategory(base, 10, 'Pets')
+    expect(first.ok).toBe(true)
+    if (!first.ok) return
+    expect(first.categories).toContain('pets')
+    const second = tryUnlockCustomCategory(first.categories, 10, 'finance')
+    expect(second.ok).toBe(false)
+    const dup = tryUnlockCustomCategory(base, 10, 'health')
+    expect(dup.ok).toBe(false)
+    const empty = tryUnlockCustomCategory(base, 10, '   ')
+    expect(empty.ok).toBe(false)
   })
 })
 

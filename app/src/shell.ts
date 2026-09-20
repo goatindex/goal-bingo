@@ -184,7 +184,7 @@ function renderPool(
           }
         </p>
         <label>Name <input name="name" data-testid="category-name" ${unlockReady && customCategories.length < 1 ? '' : 'disabled'} /></label>
-        <button type="submit" data-testid="add-category" ${unlockReady && customCategories.length < 1 ? '' : 'disabled'}>Unlock category</button>
+        <button type="submit" data-testid="unlock-category-button" ${unlockReady && customCategories.length < 1 ? '' : 'disabled'}>Unlock category</button>
         <p class="pool__error" data-testid="category-error" hidden></p>
       </form>
     </section>

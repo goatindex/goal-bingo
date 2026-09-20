@@ -3,9 +3,7 @@ import { loadState, saveState } from './storage'
 import { renderShell, type ShellView } from './shell'
 import { addGoal, drawGoal, removeGoal, updateGoal, type DrawResult } from './pool'
 import {
-  CUSTOM_CATEGORY_SCORE_GATE,
-  DEFAULT_CATEGORIES,
-  canUnlockCustomCategory,
+  tryUnlockCustomCategory,
 } from './categories'
 
 const app = document.querySelector<HTMLDivElement>('#app')
@@ -73,16 +71,9 @@ function paint(): void {
       paint()
     },
     onAddCategory: (name) => {
-      const trimmed = name.trim().toLowerCase()
-      if (!canUnlockCustomCategory(state.score.lifetime)) {
-        return `Custom categories unlock at lifetime score ${CUSTOM_CATEGORY_SCORE_GATE}.`
-      }
-      const defaults = new Set<string>(DEFAULT_CATEGORIES)
-      const customCount = state.categories.filter((c) => !defaults.has(c)).length
-      if (customCount >= 1) return 'Custom category slot already used.'
-      if (!trimmed) return 'Name is required.'
-      if (state.categories.includes(trimmed)) return 'Category already exists.'
-      state.categories = [...state.categories, trimmed]
+      const result = tryUnlockCustomCategory(state.categories, state.score.lifetime, name)
+      if (!result.ok) return result.error
+      state.categories = result.categories
       saveState(state)
       paint()
       return null

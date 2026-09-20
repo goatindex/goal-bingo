@@ -22,6 +22,36 @@ export function canUnlockCustomCategory(lifetimeScore: number): boolean {
   return lifetimeScore >= CUSTOM_CATEGORY_SCORE_GATE
 }
 
+export function customCategoryCount(unlockedCategories: readonly string[]): number {
+  const defaults = new Set<string>(DEFAULT_CATEGORIES)
+  return unlockedCategories.filter((c) => !defaults.has(c)).length
+}
+
+/**
+ * Unlock one custom category slot when the provisional gate is met (D-2026-09-20-7).
+ */
+export function tryUnlockCustomCategory(
+  unlockedCategories: readonly string[],
+  lifetimeScore: number,
+  name: string,
+): { ok: true; categories: string[] } | { ok: false; error: string } {
+  if (!canUnlockCustomCategory(lifetimeScore)) {
+    return {
+      ok: false,
+      error: `Custom categories unlock at lifetime score ${CUSTOM_CATEGORY_SCORE_GATE}.`,
+    }
+  }
+  if (customCategoryCount(unlockedCategories) >= 1) {
+    return { ok: false, error: 'Custom category slot already used.' }
+  }
+  const trimmed = name.trim().toLowerCase()
+  if (!trimmed) return { ok: false, error: 'Name is required.' }
+  if (unlockedCategories.includes(trimmed)) {
+    return { ok: false, error: 'Category already exists.' }
+  }
+  return { ok: true, categories: [...unlockedCategories, trimmed] }
+}
+
 export function isCadence(value: string): value is Cadence {
   return (CADENCES as readonly string[]).includes(value)
 }
