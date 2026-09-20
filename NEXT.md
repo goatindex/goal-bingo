@@ -13,8 +13,8 @@ _Convention: update at end of each working session. The weekly portfolio review 
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
 - **Fix all 85 requirements carrying no `verification-status`** — the set-level default
   in `requirements/_meta.md` means none has ever been individually assessed. Requirements-
-  authoring work, not a script fix; blocking `standing_check`'s eventual flip from
-  non-blocking to blocking once `record-checks.yml` merges (PR #39, open).
+  authoring work, not a script fix; blocking `standing_check`'s flip from non-blocking to
+  blocking in `.github/workflows/record-checks.yml` (merged, PR #39).
 - **Settle link-4 decisions when blocked:** category-unlock gate (`D-2026-09-19-16`),
   advanced-tile thresholds (`D-2026-09-19-23`).
 
@@ -62,26 +62,48 @@ continues with WP-04.
   (#18–#27) — `` `\nGB-CON-001, ...\n` `` (a multi-line code span, not a real fence) became
   a proper ```` ```text ```` fenced block. Harder to corrupt, directly machine-parseable.
   Repo-wide corruption rescan clean afterward.
-- **`decision-log` and `record-contract` CI wiring drafted, open as PR #39** (not yet
-  merged — `.github/workflows/record-checks.yml` doesn't exist on `main` until it lands):
-  `disposal_check`, `provenance_check`, `record_index` pass clean and would be blocking;
-  `decision_lint` and `standing_check` found real pre-existing gaps (5 decisions missing a
-  required field, and — see below — every requirement lacking `verification-status`) so
-  they're wired non-blocking until that data is fixed.
+- **`decision-log` and `record-contract` CI wiring merged (PR #39).** `disposal_check`,
+  `provenance_check`, `record_index` pass clean and are blocking; `decision_lint` and
+  `standing_check` found real pre-existing gaps (5 decisions missing a required field, and
+  — see above — every requirement lacking `verification-status`) so they run non-blocking
+  until that data is fixed.
 - **Repaired 108 mojibake em-dash/en-dash sequences** in `requirements/constraints.md` and
-  `functional.md` (PR #40): double-encoded (UTF-8 written, read as cp1252, re-encoded) so
-  the files literally held three characters where one dash belonged. Broke
+  `functional.md` (PR #40, merged): double-encoded (UTF-8 written, read as cp1252,
+  re-encoded) so the files literally held three characters where one dash belonged. Broke
   `record_index.py`'s heading match, which enumerated 12 of 85 requirements —
   `standing_check` was silently checking 14% of the set. Repaired deterministically (exact
-  inverse re-encode, verified byte-for-byte); both checkers now agree on 85.
-- **Found and fixed the reviewer's broken summary tool** (`goatindex/claude-workflow#28`):
-  `use_sticky_comment: true` was a silent no-op because this workflow always runs in
-  "agent mode" (an explicit `prompt:` triggers it), and agent mode has no tracking comment
-  by design — the summary tool could never succeed, not intermittently, on every run. Cost
-  four failed review attempts and ~$3.50 on PR #40 alone before being root-caused by
-  isolating the PR's own content in a throwaway duplicate. Fixed upstream, verified on a
-  real PR here (2 denials down from 9–17, real findings posted), synced into this repo.
-  Resolves the "sticky summary" item parked below.
+  inverse re-encode, verified byte-for-byte); both checkers now agree on 85. Checked in
+  `scripts/fix_mojibake.py` as both the repair tool and a reusable detector.
+  - Took four review rounds to land — a genuine case study in the estate's own "verify,
+    don't trust" doctrine, in both directions. Rounds 1–3 each caught something real
+    (missing `NEXT.md` entry, an "em-dash" claim that ignored 3 en-dashes, and — the
+    sharpest one — `fix_mojibake.py` itself silently reporting a nonexistent path as
+    "clean," the exact absence-reads-as-success shape it exists to catch elsewhere; fixed
+    to exit 2 distinctly). Round 4 raised a *fourth*, plausible-sounding blocking finding
+    (the detection regex supposedly missing the corruption's own leading character) that
+    did not survive a byte-level check: the regex was correct, the reviewer had misread an
+    invisible C1 control character in its own source as a literal hyphen. Verified with a
+    byte dump and a live run against real corruption bytes before disputing it in place and
+    merging without the fix — the reviewer is advisory, this is what that's for.
+- **Found and fixed two real bugs in the reviewer's own workflow**, surfaced by that same
+  PR #40 saga:
+  - **The summary tool was structurally broken** (`goatindex/claude-workflow#28`):
+    `use_sticky_comment: true` was a silent no-op because this workflow always runs in
+    "agent mode" (an explicit `prompt:` triggers it), and agent mode has no tracking
+    comment by design — the summary tool could never succeed, not intermittently, on every
+    run. Cost four failed review attempts and ~$3.50 on PR #40 before being root-caused by
+    isolating the PR's own content in a throwaway duplicate. Its own fix PR then caught
+    itself carrying drift in `claude-workflow`'s own live copy of the same workflow, and a
+    non-blocking gap in the heredoc delimiter — both fixed in the same PR.
+  - **The turn ceiling was too low for a PR under active review** (`TB-45`,
+    `goatindex/claude-workflow#29`): `--max-turns 50` was calibrated as headroom over a
+    broken 2026-09-08 baseline, but cost compounds with review-*round* count, not diff
+    size — every round re-verifies its claims from scratch. PR #40's third round hit 63
+    turns and failed outright, losing a real finding rather than just wasting a run.
+    Raised to 75.
+  - Both fixes synced into every consumer repo (`goal-bingo`, `project-tracking`); all
+    three repos verified drift-clean afterward. Resolves the "sticky summary" item
+    previously parked below.
 
 ## Parked
 
