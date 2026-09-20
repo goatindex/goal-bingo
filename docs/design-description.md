@@ -143,9 +143,11 @@ health goal can be hourly (drink water) or long-term (complete a rehabilitation 
 | **Home** | domestic tasks, finances, admin, household maintenance |
 | **Work** | career, professional development, output, side projects |
 
-Players can create additional categories by unlocking them through progression. The unlock
-gate — what earns a new category slot — is a link 4 decision. The principle is that
-categories beyond the defaults are earned through play, not available from the start.
+Players can create additional categories by unlocking them through progression. A provisional
+unlock gate ships now (`D-2026-09-20-7`): lifetime score ≥ 10 unlocks one custom category
+slot. That threshold is replaceable when progression is tuned; the principle is that
+categories beyond the defaults are earned through play, not available from the start
+(`D-2026-09-19-16`).
 
 ### 4.3 Cadence — short-term and long-term goals
 
@@ -647,3 +649,4 @@ measured and closed.
   | `D-2026-09-20-4` | Free recycle allowance uses a rolling 24-hour window from first use |
   | `D-2026-09-20-5` | Long-term draw-share verification tolerance is ±5 percentage points |
   | `D-2026-09-20-6` | Product app is Vite + TypeScript PWA under app/ |
+  | `D-2026-09-20-7` | Provisional custom-category unlock: lifetime score ≥ 10 |
