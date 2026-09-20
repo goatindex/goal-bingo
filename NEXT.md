@@ -4,19 +4,19 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — build WP-03 (board loop).** WP-01 (platform shell, #18) and WP-02 (goal pool,
-#19) are both closed. WP-03 is [#20](https://github.com/goatindex/goal-bingo/issues/20),
-broken into five sub-issues, all closed: [#63](https://github.com/goatindex/goal-bingo/issues/63)
+**Link 5 — build WP-04 (draw engine).** WP-01 (platform shell, #18), WP-02 (goal pool,
+#19), and WP-03 (board loop, [#20](https://github.com/goatindex/goal-bingo/issues/20))
+are all closed. WP-03's five sub-issues: [#63](https://github.com/goatindex/goal-bingo/issues/63)
 board model (PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) marking
 (PR #69), [#65](https://github.com/goatindex/goal-bingo/issues/65) single-line clear
 (PR #71), [#66](https://github.com/goatindex/goal-bingo/issues/66) multi-line clear
-(PR #72), [#73](https://github.com/goatindex/goal-bingo/issues/73) board UI (this PR).
-WP-03 (#20) is ready to close.
+(PR #72), [#73](https://github.com/goatindex/goal-bingo/issues/73) board UI (PR #74).
+WP-04 is [#21](https://github.com/goatindex/goal-bingo/issues/21): weighted refill,
+binding placement rules, ~5% long-term draw share (GB-FUN-022, 023, 024, 026, 027).
 
 ## Next up
 
-- **Close #20 (WP-03)** now that all five sub-issues are merged, and move link 5 on to
-  WP-04 ([#21](https://github.com/goatindex/goal-bingo/issues/21), draw engine).
+- **File work items for WP-04** and pick up the draw engine build.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); three of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -39,8 +39,11 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#73 (board UI) built** (this PR), the last of WP-03's five sub-issues:
-  `shell.ts`'s `renderHome()` now
+- **WP-03 (board loop, #20) closed.** All five sub-issues merged: #63 board model
+  (PR #67), #64 marking (PR #69), #65 single-line clear (PR #71), #66 multi-line clear
+  (PR #72), #73 board UI (PR #74). Link 5 moves on to WP-04 (#21, draw engine).
+- **#73 (board UI) built** (PR #74), the last of WP-03's five sub-issues: `shell.ts`'s
+  `renderHome()` now
   renders the real board (`state.board.cells`, one tappable button per cell, distinct
   styling for marked cells and for `intersectionCells` on a multi-clear) in place of the
   WP-01/WP-02-era placeholder mark/draw buttons. `main.ts`'s `onMarkCell` wires a tap to
