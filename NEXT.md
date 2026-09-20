@@ -9,14 +9,15 @@ _Convention: update at end of each working session. The weekly portfolio review 
 broken into four sub-issues: [#63](https://github.com/goatindex/goal-bingo/issues/63) board
 model (closed, PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) marking
 (closed, PR #69), [#65](https://github.com/goatindex/goal-bingo/issues/65) single-line
-clear (next), [#66](https://github.com/goatindex/goal-bingo/issues/66) multi-line clear.
+clear (closed, this PR), [#66](https://github.com/goatindex/goal-bingo/issues/66)
+multi-line clear (next).
 
 ## Next up
 
-- **Pick up #65 (single-line clear)** — `markCell` (`app/src/board.ts`) and `drawGoal`
-  (`app/src/pool.ts`) both already exist; this issue detects a completed row/column/
-  diagonal and calls the pool's existing draw to refill, surfacing the empty-pool prompt
-  path (`app/src/shell.ts`'s `emptyPoolPrompt`) rather than leaving a cell unfilled.
+- **Pick up #66 (multi-line clear)** — `resolveLineClears` (`app/src/lines.ts`) already
+  clears every completing line correctly when more than one completes at once (it checks
+  all lines through the marked cell); #66 adds the multi-clear bonus (`D-2026-09-20-9`),
+  the intersection cell's visual marker, and perpendicular-progress loss on top.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); two of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -39,6 +40,17 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **#65 (single-line clear) built** (this PR): `app/src/lines.ts` — `allLines`/
+  `linesThroughIndex` enumerate rows, columns, and both main diagonals (GB-FUN-010; a
+  5x5 grid has 12 lines, matching the count already cited in
+  `docs/design-description.md`'s Q2 discussion). `resolveLineClears` checks every line
+  through a marked cell, clears each completing one (score, empty, refill inline so a
+  cell is never observably empty), and composes with `markCell` via
+  `markCellAndResolve`. Uses a placeholder `BASE_SCORE_PER_LINE` (1) until Q7 sets real
+  base point values. The algorithm already clears simultaneous multi-line completions
+  correctly (checks every line through the cell, not just one) but does not yet award
+  the multi-clear bonus, mark the intersection cell, or remove perpendicular progress —
+  those are #66. 11 new tests, 40/40 passing.
 - **#64 (marking) built and merged** (PR #69): `markCell(board, index)` in
   `app/src/board.ts` — pure, synchronous, takes only the flat index a tap identifies, so
   nothing is possible to gate behind a network call or permission check; marking an
