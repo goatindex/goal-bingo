@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { createBoard, everyCellHasOneTile } from './board'
 import {
   BASE_SCORE_PER_LINE,
+  MULTI_CLEAR_BONUS_RATIO,
   allLines,
+  countMarked,
   linesThroughIndex,
   markCellAndResolve,
   resolveLineClears,
@@ -112,5 +114,85 @@ describe('single-line clear (GB-FUN-011)', () => {
     if (!partial.ok) return
     expect(partial.outcome.board.cells[0]!.marked).toBe(true)
     expect(everyCellHasOneTile(partial.outcome.board)).toBe(true)
+  })
+})
+
+describe('simultaneous multi-line clear (GB-FUN-012, GB-FUN-013, GB-FUN-014)', () => {
+  function setUpDoubleClear() {
+    const { board, pool } = freshBoard()
+    // Row 2 is [10,11,12,13,14]; column 2 is [2,7,12,17,22]. They share only the
+    // centre cell, 12. Mark every cell of both lines except the shared one, then
+    // trigger by marking 12 - completing both lines on the same mark.
+    for (const i of [10, 11, 13, 14, 2, 7, 17, 22]) board.cells[i]!.marked = true
+    const result = markCellAndResolve(board, 12, pool, () => 0)
+    if (!result.ok) throw new Error('unreachable: pool is never empty in this setup')
+    return result.outcome
+  }
+
+  it('a mark completing two lines at once clears both, not just one', () => {
+    const outcome = setUpDoubleClear()
+    expect(outcome.clearedLineCount).toBe(2)
+  })
+
+  it('refills every cell from both lines', () => {
+    const outcome = setUpDoubleClear()
+    for (const i of [10, 11, 12, 13, 14, 2, 7, 17, 22]) {
+      expect(outcome.board.cells[i]!.marked).toBe(false)
+    }
+    expect(everyCellHasOneTile(outcome.board)).toBe(true)
+  })
+
+  it('awards a 50% multi-clear bonus on top of the summed base score (D-2026-09-20-9)', () => {
+    const outcome = setUpDoubleClear()
+    const summedBase = 2 * BASE_SCORE_PER_LINE
+    const expectedBonus = Math.round(summedBase * MULTI_CLEAR_BONUS_RATIO)
+    expect(outcome.scoreDelta).toBe(summedBase + expectedBonus)
+    expect(outcome.scoreDelta).toBeGreaterThan(summedBase)
+  })
+
+  it('a single-line clear earns no multi-clear bonus', () => {
+    const { board, pool } = freshBoard()
+    for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
+    const result = markCellAndResolve(board, 4, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outcome.scoreDelta).toBe(BASE_SCORE_PER_LINE)
+  })
+
+  it('reports the shared cell as the intersection of the two clearing lines', () => {
+    const outcome = setUpDoubleClear()
+    expect(outcome.intersectionCells).toEqual([12])
+  })
+
+  it('a single-line clear reports no intersection cells', () => {
+    const { board, pool } = freshBoard()
+    for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
+    const result = markCellAndResolve(board, 4, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outcome.intersectionCells).toEqual([])
+  })
+})
+
+describe('perpendicular progress loss (GB-FUN-015)', () => {
+  it('a row clear discards a contributing cell\'s mark, dropping a perpendicular column\'s progress', () => {
+    const { board, pool } = freshBoard()
+    // Row 0 is [0,1,2,3,4]. Column 0 is [0,5,10,15,20]. Mark row 0's first four cells
+    // (0-3), plus two more column-0 cells (5, 10) that are not part of row 0 otherwise -
+    // column 0 now has 3 marked cells (0, 5, 10) and is nowhere near complete.
+    for (const i of [0, 1, 2, 3, 5, 10]) board.cells[i]!.marked = true
+    const column0 = [0, 5, 10, 15, 20]
+    expect(countMarked(board, column0)).toBe(3)
+
+    const result = markCellAndResolve(board, 4, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    // Row 0 cleared, so cell 0 was refilled (unmarked) - column 0's progress drops to
+    // just the two cells (5, 10) that were never part of the clearing row.
+    expect(countMarked(result.outcome.board, column0)).toBe(2)
+    expect(result.outcome.board.cells[0]!.marked).toBe(false)
+    expect(result.outcome.board.cells[5]!.marked).toBe(true)
+    expect(result.outcome.board.cells[10]!.marked).toBe(true)
   })
 })
