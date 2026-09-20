@@ -1,12 +1,12 @@
-﻿# Constraints â€” Goal Bingo
+﻿# Constraints — Goal Bingo
 
 Platform, data, economy, and scope constraints mined from `docs/design-description.md`.
 
 ---
 
-## 9.1 â€” Form factor
+## 9.1 — Form factor
 
-### GB-CON-001 â€” Progressive web app, installable
+### GB-CON-001 — Progressive web app, installable
 statement: Goal Bingo shall run as a progressive web app that the player can install to
   the device home screen.
 type: constraint
@@ -17,7 +17,7 @@ verification-criteria: The app passes the installability criteria for the target
   and can be added to the home screen on iOS and Android.
 priority: must
 
-### GB-CON-002 â€” One-handed phone usability
+### GB-CON-002 — One-handed phone usability
 statement: Goal Bingo shall make each primary game action reachable with the thumb of one
   hand on a smartphone screen of 5 to 7 inches diagonal.
 type: constraint
@@ -26,25 +26,25 @@ rationale: That is where a habit gets marked. 9.1. Primary actions are: mark, vi
 trace-to-source: design-description.md 9.1
 verification-method: inspection
 verification-criteria: Each of mark, board view, balance view, and recycle is accessible
-  without repositioning the hand on a 5â€“7 inch phone.
+  without repositioning the hand on a 5–7 inch phone.
 priority: must
 
-### GB-CON-003 â€” All mechanics function without notification permission
+### GB-CON-003 — All mechanics function without notification permission
 statement: When the operating system denies notification permission, Goal Bingo shall
   continue to provide each game mechanic without degradation.
 type: constraint
 rationale: Notification reliability cannot be guaranteed for a PWA. 9.1.
 trace-to-source: design-description.md 9.1
 verification-method: test
-verification-criteria: With notification permission denied, each game mechanic â€” marking,
-  clearing, power-ups, challenges, statistics â€” is fully accessible.
+verification-criteria: With notification permission denied, each game mechanic — marking,
+  clearing, power-ups, challenges, statistics — is fully accessible.
 priority: must
 
 ---
 
-## 9.2 â€” Data
+## 9.2 — Data
 
-### GB-DAT-001 â€” Local-first data storage
+### GB-DAT-001 — Local-first data storage
 statement: Goal Bingo shall store each of the player's pool, board state, score, balances,
   and rewards on the local device by default.
 type: data
@@ -56,7 +56,7 @@ verification-criteria: Each data item is readable and writable with the network 
   fully disabled.
 priority: must
 
-### GB-DAT-002 â€” No account required
+### GB-DAT-002 — No account required
 statement: Goal Bingo shall provide access to each game feature without requiring the
   player to create an account or provide personal identification.
 type: data
@@ -67,7 +67,7 @@ verification-criteria: A fresh install can be played through the full game loop 
   sign-up prompt, account creation, or credential entry.
 priority: must
 
-### GB-DAT-003 â€” Offline operation
+### GB-DAT-003 — Offline operation
 statement: Goal Bingo shall complete each game action without error when the device has no
   active network connection.
 type: data
@@ -80,9 +80,9 @@ priority: must
 
 ---
 
-## 3.3 â€” No external verification
+## 3.3 — No external verification
 
-### GB-CON-004 â€” Mark requires only touch input
+### GB-CON-004 — Mark requires only touch input
 statement: Goal Bingo shall accept a mark on a cell using only the player's touch input,
   without requiring network access or device permissions beyond touch.
 type: constraint
@@ -96,9 +96,9 @@ priority: must
 
 ---
 
-## 5.3 â€” Balance separation
+## 5.3 — Balance separation
 
-### GB-CON-005 â€” Board balance purchase flow excludes personal rewards
+### GB-CON-005 — Board balance purchase flow excludes personal rewards
 statement: If the player initiates a personal reward purchase, Goal Bingo shall present
   reward balance as the sole payment source.
 type: constraint
@@ -109,7 +109,7 @@ verification-criteria: The personal reward purchase flow shows only the reward b
   counter; board balance is not visible as a payment option.
 priority: must
 
-### GB-CON-006 â€” Reward balance purchase flow excludes board actions
+### GB-CON-006 — Reward balance purchase flow excludes board actions
 statement: If the player initiates a board action purchase, Goal Bingo shall present board
   balance as the sole payment source.
 type: constraint
@@ -121,7 +121,7 @@ verification-criteria: The board action purchase flow (power-ups, recycles, grid
 priority: must
 notes: Board actions covered: power-ups, recycles, grid expansion.
 
-### GB-CON-007 â€” Lifetime score has no spend path
+### GB-CON-007 — Lifetime score has no spend path
 statement: If the player performs each available action in Goal Bingo, Goal Bingo shall
   leave the lifetime score unchanged.
 type: constraint
@@ -133,9 +133,9 @@ priority: must
 
 ---
 
-## 6.2 â€” Recycle constraints
+## 6.2 — Recycle constraints
 
-### GB-CON-008 â€” Recycle unavailable on marked tiles
+### GB-CON-008 — Recycle unavailable on marked tiles
 statement: If the player selects a marked tile for recycle, Goal Bingo shall reject the
   action.
 type: constraint
@@ -148,9 +148,9 @@ priority: must
 
 ---
 
-## 10.2 â€” Non-goals (scope exclusions)
+## 10.2 — Non-goals (scope exclusions)
 
-### GB-CON-009 â€” No inter-player data sharing
+### GB-CON-009 — No inter-player data sharing
 statement: If Goal Bingo handles each player's game state, Goal Bingo shall store and
   display only that player's own data.
 type: constraint
@@ -161,7 +161,7 @@ verification-criteria: No feature transmits or displays game state belonging to 
   player.
 priority: must
 
-### GB-CON-010 â€” No goal-verification integration
+### GB-CON-010 — No goal-verification integration
 statement: Goal Bingo shall accept each mark using only player input, without connecting to
   a health API, sensor, or external verification service.
 type: constraint
@@ -171,7 +171,7 @@ verification-method: inspection
 verification-criteria: No goal-verification integration exists in the codebase.
 priority: must
 
-### GB-CON-011 â€” No real-money balance purchase
+### GB-CON-011 — No real-money balance purchase
 statement: Goal Bingo shall provide each balance exclusively through in-game play, with no
   in-app purchase flow for reward balance or board balance.
 type: constraint
@@ -183,9 +183,9 @@ priority: must
 
 ---
 
-## 8.2 â€” Income floor constraint
+## 8.2 — Income floor constraint
 
-### GB-CON-012 â€” Board balance income survives a jam
+### GB-CON-012 — Board balance income survives a jam
 statement: While each line on the board contains an unmarked long-term goal, Goal Bingo
   shall award board balance when the player marks each non-long-term tile on the board.
 type: constraint
