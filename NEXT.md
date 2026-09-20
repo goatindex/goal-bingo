@@ -242,3 +242,5 @@ continues with WP-04.
 - Second smoke push (Package A concurrency): should cancel the in-flight review of the prior commit.
 
 - Third smoke push after jq verification fix (claude-workflow#32): expect green check and a delta re-review citing the prior Reviewed-Commit trailer.
+
+- **Reviewed-Commit SHA injection smoke** (21:02): first push — trailer must equal this commit's SHA.
