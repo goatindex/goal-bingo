@@ -119,14 +119,6 @@ continues with WP-04.
   tool, untracked and left alone), plus ignored `node_modules/`, `test-results/`,
   `playwright-report/` and `tests/`. Clear them whenever; nothing depends on them.
 - Whether this project gets a `project-tracking` hub entry alongside the other projects.
-- **Adversarial reviewer efficiency** — PR #13 (78 lines of markdown) hit the 50-turn
-  ceiling and had to be re-run. Root cause is in `goatindex/claude-workflow`, not here.
-  The turn limit (50) was calibrated against a broken run with 11 denied tool calls before
-  `allowedTools` was added; healthy runs complete in 15–25 turns and 50 is now 1 turn of
-  headroom over a broken baseline. Additionally, Part 1 of the review prompt (failure modes
-  1–3) only applies to code PRs — on a documentation-only PR the reviewer wastes 15–20
-  turns searching for tests and CI gates that do not exist. Filed as `TB-45` in the hub.
-  Fix: raise `--max-turns` to 75; add a doc-only shortcut skipping Part 1 items 1–3.
 
 ## Done (2026-09-19 session)
 
