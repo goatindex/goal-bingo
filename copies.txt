@@ -6,3 +6,8 @@ skills/ba-issue/references/check_draft.py                     scripts/check_draf
 skills/ba-issue/workflows/issue-corruption-check.yml           .github/workflows/issue-corruption-check.yml
 skills/incose-requirements/scripts/backmap_check.py            scripts/backmap_check.py
 skills/incose-requirements/scripts/lint_requirements.py        scripts/lint_requirements.py
+skills/decision-log/scripts/decision_lint.py                   scripts/decision_lint.py
+skills/record-contract/scripts/disposal_check.py               scripts/disposal_check.py
+skills/record-contract/scripts/provenance_check.py             scripts/provenance_check.py
+skills/record-contract/scripts/record_index.py                 scripts/record_index.py
+skills/record-contract/scripts/standing_check.py               scripts/standing_check.py
