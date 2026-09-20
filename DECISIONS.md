@@ -3,6 +3,53 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-20-9 — Multi-clear bonus is 50% of the summed base score of the clearing lines
+
+- **Status:** open
+- **Context:** GB-FUN-013 needs a bonus formula for a simultaneous multi-line clear. Q7
+  (base point values, §5.1) is still open and out of scope for WP-03 — a formula that
+  needs Q7 answered first would leave GB-FUN-013 blocked on an unrelated, larger question.
+- **Options considered:** a flat fixed-point bonus regardless of base score — rejected, it
+  does not scale with the base value Q7 eventually sets and decouples badly from it ·
+  a per-additional-line multiplier (double = x2, triple = x3) — considered, more dramatic
+  scaling for higher-order clears, but nothing so far justifies that curve over a simpler
+  one · **a flat 50% of the summed base score across every line clearing on that mark
+  (chosen)** — proportional, automatically scales once Q7 lands, and is simple to implement
+  and test independent of the exact base value.
+- **Why:** Resolves GB-FUN-013's blocker without requiring Q7 first, so WP-03 stays
+  buildable. A single constant is easy to re-tune later if playtesting says otherwise.
+- **Expected outcome:** GB-FUN-013's `verification-criteria` ("a double-clear produces a
+  higher total score than two sequential single clears") holds under this formula for any
+  positive base score. Q7 remains open for the base values themselves.
+- **Revisit:** once Q7 sets real base point values and there is player data, revisit
+  whether 50% is the right ratio.
+
+## D-2026-09-20-8 — Starting grid is 5x5; expansion verified through 7x7
+
+- **Status:** open
+- **Context:** Q1 blocks GB-FUN-005 (starting grid size and expansion steps). This is not
+  an unexplored question: `sim/jam_sim.py`'s A4 sensitivity run (`sim/results.md`) already
+  tested grid sizes 3, 5, and 7 while investigating the recovery floor — the simulation's
+  own default is grid 5, and all three sizes hold the floor (near-zero jam days at every
+  setting tested).
+- **Options considered:** start at 3x3, the smallest tested — rejected, too little surface
+  area for the intersecting-line mechanics (GB-FUN-012, GB-FUN-014) to read clearly, and
+  not the simulation's own baseline · start at 7x7, the largest tested — rejected, a larger
+  starting investment before any board-balance economy exists to expand with (WP-07 is not
+  built yet) · **start at 5x5, matching `sim/jam_sim.py`'s own default (chosen)**.
+  For expansion: extend through 7x7 now, since both 5 and 7 are floor-verified · a further
+  step to 9x9 was considered but not chosen yet — GB-CON-014 requires `sim/jam_sim.py` to
+  run at a size before it ships as purchasable, and 9x9 has not been run.
+- **Why:** Grounds the pick in the evidence that already exists for this exact question
+  (the sim was run investigating Q1 itself) rather than inventing a number. Keeps
+  GB-CON-014's obligation honest by not marking a size "supported" without having run the
+  sim at it.
+- **Expected outcome:** GB-FUN-005's `notes` record this decision in place of the TBD.
+  Grid sizes 5 and 7 are the WP-03 build target; 9x9 and beyond are future work, gated on
+  running `sim/jam_sim.py` at that size first.
+- **Revisit:** when a size beyond 7x7 is needed — run `sim/jam_sim.py` at that size per
+  GB-CON-014, then extend this decision rather than open a new one for the same question.
+
 ## D-2026-09-20-7 — Provisional custom-category unlock: lifetime score ≥ 10
 
 - **Status:** open
