@@ -44,14 +44,15 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     state.score.lifetime = 12
     state.score.boardBalance = 3
     state.score.rewardBalance = 5
-    state.board = { size: 3 }
+    state.board.cells[0]!.marked = true
     state.rewards = [{ name: 'Takeaway' }]
     state.categories = [...state.categories, 'pets']
     saveState(state, storage)
     const loaded = loadState(storage)
     expect(loaded.softReset).toBe(false)
     expect(loaded.state.score).toEqual(state.score)
-    expect(loaded.state.board).toEqual({ size: 3 })
+    expect(loaded.state.board).toEqual(state.board)
+    expect(loaded.state.board.cells[0]!.marked).toBe(true)
     expect(loaded.state.rewards).toEqual([{ name: 'Takeaway' }])
     expect(loaded.state.pool.length).toBe(state.pool.length)
     expect(loaded.state.categories).toEqual(state.categories)
@@ -90,6 +91,11 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.pool).toEqual(legacy.pool)
     expect(loaded.state.categories.length).toBe(7)
     expect(loaded.state.score.lifetime).toBe(4)
+    // Pre-WP-03 saves carried board: null - migration must build a real board rather
+    // than carry that forward (GB-FUN-007: every cell always holds exactly one tile).
+    expect(loaded.state.board.size).toBe(5)
+    expect(loaded.state.board.cells.length).toBe(25)
+    expect(loaded.state.board.cells.every((c) => c.goal != null)).toBe(true)
   })
 
   it('soft-resets a legacy-shaped payload with invalid goals', () => {

@@ -1,5 +1,7 @@
 /** Local-first persistence envelope (GB-DAT-001, GB-FUN-066). */
 
+import type { Board } from './board'
+import { createBoard, isSupportedSize } from './board'
 import { DEFAULT_CATEGORIES } from './categories'
 import type { Goal } from './pool'
 
@@ -10,7 +12,8 @@ export type GameState = {
   pool: Goal[]
   /** Unlocked category names, including the seven defaults. */
   categories: string[]
-  board: unknown | null
+  /** Never null once a game is playable — GB-FUN-001 has no end state to fall back to. */
+  board: Board
   score: { lifetime: number; rewardBalance: number; boardBalance: number }
   rewards: unknown[]
 }
@@ -37,11 +40,14 @@ export const STARTER_POOL: Goal[] = [
 ]
 
 export function freshState(): GameState {
+  const pool = STARTER_POOL.map((g) => ({ ...g }))
+  const board = createBoard(5, pool)
+  if (!board.ok) throw new Error('unreachable: STARTER_POOL is never empty')
   return {
     version: 1,
-    pool: STARTER_POOL.map((g) => ({ ...g })),
+    pool,
     categories: [...DEFAULT_CATEGORIES],
-    board: null,
+    board: board.board,
     score: { lifetime: 0, rewardBalance: 0, boardBalance: 0 },
     rewards: [],
   }
@@ -58,6 +64,24 @@ function isGoal(value: unknown): value is Goal {
   )
 }
 
+function isCell(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false
+  const c = value as Record<string, unknown>
+  return isGoal(c.goal) && typeof c.marked === 'boolean'
+}
+
+function isBoard(value: unknown): value is Board {
+  if (!value || typeof value !== 'object') return false
+  const b = value as Record<string, unknown>
+  return (
+    typeof b.size === 'number' &&
+    isSupportedSize(b.size) &&
+    Array.isArray(b.cells) &&
+    b.cells.length === b.size * b.size &&
+    b.cells.every(isCell)
+  )
+}
+
 function isGameState(value: unknown): value is GameState {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
@@ -67,6 +91,7 @@ function isGameState(value: unknown): value is GameState {
     v.pool.every(isGoal) &&
     Array.isArray(v.categories) &&
     v.categories.every((c) => typeof c === 'string') &&
+    isBoard(v.board) &&
     v.score !== null &&
     typeof v.score === 'object' &&
     Array.isArray(v.rewards)
@@ -100,15 +125,30 @@ export function loadState(storage: Storage = localStorage): {
       ) {
         const legacy = parsed as {
           pool: Goal[]
-          board: unknown | null
+          board: unknown
           score: GameState['score']
           rewards?: unknown[]
+        }
+        // Pre-WP-03 saves never wrote a real board (the field was unknown | null and
+        // nothing populated it) - build one from the restored pool rather than carry
+        // forward a value that could never satisfy GB-FUN-007.
+        let board: Board
+        if (isBoard(legacy.board)) {
+          board = legacy.board
+        } else {
+          const built = createBoard(5, legacy.pool)
+          if (!built.ok) {
+            const state = freshState()
+            saveState(state, storage)
+            return { state, softReset: true }
+          }
+          board = built.board
         }
         const state: GameState = {
           version: 1,
           pool: legacy.pool,
           categories: [...DEFAULT_CATEGORIES],
-          board: legacy.board ?? null,
+          board,
           score: legacy.score,
           rewards: legacy.rewards ?? [],
         }
