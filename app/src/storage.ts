@@ -92,13 +92,17 @@ export function loadState(storage: Storage = localStorage): {
         parsed &&
         typeof parsed === 'object' &&
         (parsed as { version?: unknown }).version === 1 &&
-        Array.isArray((parsed as { pool?: unknown }).pool)
+        Array.isArray((parsed as { pool?: unknown }).pool) &&
+        (parsed as { pool: unknown[] }).pool.every(isGoal) &&
+        (parsed as { score?: unknown }).score !== null &&
+        typeof (parsed as { score?: unknown }).score === 'object' &&
+        Array.isArray((parsed as { rewards?: unknown }).rewards ?? [])
       ) {
         const legacy = parsed as {
           pool: Goal[]
           board: unknown | null
           score: GameState['score']
-          rewards: unknown[]
+          rewards?: unknown[]
         }
         const state: GameState = {
           version: 1,

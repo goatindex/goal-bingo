@@ -25,9 +25,7 @@ function paint(): void {
     emptyPoolPrompt,
     lastDraw,
     onMarkPlaceholder: () => {
-      // Local-only mark stub — advances lifetime for category unlock testing.
-      state.score.lifetime += 1
-      saveState(state)
+      // Mark / line-clear scoring lands in WP-03 / WP-05 — do not invent lifetime here.
       softReset = false
       paint()
     },

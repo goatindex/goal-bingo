@@ -27,6 +27,11 @@ export function customCategoryCount(unlockedCategories: readonly string[]): numb
   return unlockedCategories.filter((c) => !defaults.has(c)).length
 }
 
+export function listCustomCategories(unlockedCategories: readonly string[]): string[] {
+  const defaults = new Set<string>(DEFAULT_CATEGORIES)
+  return unlockedCategories.filter((c) => !defaults.has(c))
+}
+
 /**
  * Unlock one custom category slot when the provisional gate is met (D-2026-09-20-7).
  */

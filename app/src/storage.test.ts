@@ -91,4 +91,21 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.categories.length).toBe(7)
     expect(loaded.state.score.lifetime).toBe(4)
   })
+
+  it('soft-resets a legacy-shaped payload with invalid goals', () => {
+    const storage = new MemoryStorage()
+    storage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        pool: [{ id: 'g1' }],
+        board: null,
+        score: { lifetime: 0, rewardBalance: 0, boardBalance: 0 },
+        rewards: [],
+      }),
+    )
+    const loaded = loadState(storage)
+    expect(loaded.softReset).toBe(true)
+    expect(loaded.state.pool.length).toBeGreaterThan(0)
+  })
 })

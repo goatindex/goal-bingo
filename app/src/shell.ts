@@ -2,8 +2,8 @@ import type { GameState } from './storage'
 import {
   CADENCES,
   CUSTOM_CATEGORY_SCORE_GATE,
-  DEFAULT_CATEGORIES,
   canUnlockCustomCategory,
+  listCustomCategories,
 } from './categories'
 import type { DrawResult } from './pool'
 
@@ -44,8 +44,7 @@ function escapeHtml(value: string): string {
 
 export function renderShell(root: HTMLElement, state: GameState, h: ShellHandlers): void {
   const unlockReady = canUnlockCustomCategory(state.score.lifetime)
-  const defaults = new Set<string>(DEFAULT_CATEGORIES)
-  const customCategories = state.categories.filter((c) => !defaults.has(c))
+  const customCategories = listCustomCategories(state.categories)
 
   root.innerHTML = `
     <div class="shell">
