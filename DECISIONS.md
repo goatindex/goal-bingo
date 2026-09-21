@@ -3,6 +3,46 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-22 — Global advanced-tile unlock: mirrored progression/economy shape, 30% bulk discount
+
+- **Status:** open
+- **Context:** `D-2026-09-19-23` deferred whether/how a global unlock layers on top of
+  the per-category foundation (`D-2026-09-21-17`: 50 marks or 150 board balance per
+  category) to a later release, scoping only the principle. No requirement mandates
+  this — design doc §7 frames it as optional future convenience, not a GB-FUN
+  obligation. Scoped now, ahead of the advanced-tiles draw/placement integration work,
+  so `advancedUnlock.ts`'s data model doesn't need a later migration.
+- **Options considered:** economy-only bulk purchase (rejected — breaks the
+  progression/economy symmetry every other unlock in this game has) · progression-only,
+  total marks across all categories (rejected — removes an economy sink from WP-07's
+  whole design, which otherwise gives every other power-up an economy path) · **mirror
+  the per-category shape exactly: a global progression threshold (total lifetime marks
+  across every category) OR a bulk economy purchase, whichever comes first (chosen)**
+- **Why:** Reuses the established primary-progression/secondary-economy shape rather
+  than inventing a new mechanic, consistent with how this game's other systems (draw,
+  placement, rewards, recycle, advanced tiles) reuse existing shapes rather than
+  growing parallel ones. A 30% discount rewards committing to the global path without
+  making the per-category path pointless — steeper than a token discount, not so steep
+  it removes the incentive to unlock strategically category-by-category.
+- **Expected outcome:** Both paths price at a 30% discount against buying every
+  still-locked category individually, where `remainingCategories` is the count not yet
+  individually unlocked, evaluated dynamically (it shrinks as categories unlock and
+  grows if a new custom category unlocks via `D-2026-09-20-7`):
+  - Progression: total lifetime marks across all categories (unlocked or not) reaching
+    `ceil(0.7 * remainingCategories * ADVANCED_TILE_MARK_THRESHOLD)` auto-unlocks every
+    still-locked category.
+  - Economy: a single purchase costing
+    `ceil(0.7 * remainingCategories * ADVANCED_TILE_UNLOCK_COST)` board balance unlocks
+    every still-locked category at once.
+- **Scope:** thresholds and discount factor are locked here; the actual
+  `advancedUnlock.ts` extension is implementation, not decided by this record — it
+  lands whenever the advanced-tiles draw/placement integration work picks it up, not
+  required before then.
+- **Revisit:** If a playtest shows the per-category path is rarely reached individually
+  (making `remainingCategories` always ~all of them, and the global unlock functionally
+  identical to a slightly-discounted single-category purchase), reconsider the discount
+  or the mechanism.
+
 ## D-2026-09-21-21 — Recovery floor verified from existing evidence, no fresh sim run
 
 - **Status:** open
