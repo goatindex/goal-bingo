@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  FRESH_RECYCLE_STATE,
   STORAGE_KEY,
   corruptStorage,
   freshState,
@@ -38,6 +39,7 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.pool.length).toBe(state.pool.length)
     expect(loaded.state.categories).toEqual(state.categories)
     expect(loaded.state.challenges).toEqual(state.challenges)
+    expect(loaded.state.recycle).toEqual(state.recycle)
   })
 
   it('soft-resets to a playable starter pool when storage is corrupt', () => {
@@ -81,6 +83,8 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     // Pre-#93 saves never wrote challenges - migration must rebuild the always-active
     // set rather than carry forward nothing.
     expect(loaded.state.challenges).toEqual(initialChallenges(DEFAULT_CATEGORIES))
+    // Pre-#99 saves never wrote a recycle allowance - migration must start a fresh one.
+    expect(loaded.state.recycle).toEqual(FRESH_RECYCLE_STATE)
   })
 
   it('migrates a legacy save with malformed rewards to an empty reward list', () => {

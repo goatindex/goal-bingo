@@ -22,7 +22,9 @@ resolved.
 
 ## Next up
 
-- **File work items for WP-07** and pick up the power-up/economy build.
+- **Build #100** (recycle-allowance upgrade) — blocked by #99, now merged.
+- **Build #101** (swap) and **#102** (grid expansion) — both independent of #99/#100,
+  can be built in any order.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -44,7 +46,30 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **Resolved WP-07's four TBDs** (this PR): `D-2026-09-21-8` — recycle cost is 5 board
+- **#99 (recycle power-up) built** (this PR), first of WP-07's four sub-issues: new
+  `app/src/recycle.ts` — `recycleCell(board, pool, index, recycleState, boardBalance,
+  rng, now)` draws a replacement goal via the same `drawForCell` placement-rule-aware
+  draw the refill path already uses (`ignore = new Set([index])` so the tile's own
+  about-to-be-discarded goal is never consulted for legality), refuses on a marked
+  tile (GB-CON-008) before touching anything, and pays from the free allowance before
+  board balance (GB-FUN-042, `RECYCLE_COST` 5, `D-2026-09-21-8`). The free allowance's
+  rolling 24-hour window (GB-FUN-041) is computed by `effectiveRemaining(state, now)` —
+  `now` is an injected parameter (matching this codebase's existing `rng` convention)
+  so the window logic is deterministically testable rather than depending on real
+  time. `storage.ts`'s `GameState.recycle` follows the `Reward`/`Challenge` precedent
+  (#85/#93): `isGameState` validates it, legacy saves migrate to a fresh allowance.
+  No UI wiring yet — pure domain logic only, following #93/#94's precedent; the
+  existing "Recycle" nav tab stays an unwired placeholder until a later issue. 8 new
+  tests (including a 20-seed stress test proving a recycled tile never violates the
+  long-term/domination placement rules), 89/89 passing. Verified live via
+  `localStorage`: a fresh game state has the correct default allowance (level 1,
+  1 remaining, no active window); no console errors.
+- **Filed WP-07's four sub-issues** ([#99](https://github.com/goatindex/goal-bingo/issues/99)
+  recycle + allowance, [#100](https://github.com/goatindex/goal-bingo/issues/100)
+  allowance upgrade (blocked by #99), [#101](https://github.com/goatindex/goal-bingo/issues/101)
+  swap, [#102](https://github.com/goatindex/goal-bingo/issues/102) grid expansion — the
+  last two independent of the recycle cluster) via `ba-issue`, DoR-checked and clean.
+- **Resolved WP-07's four TBDs** (PR #98): `D-2026-09-21-8` — recycle cost is 5 board
   balance, ported directly from `sim/jam_sim.py`'s own `recycle_cost` default; its own
   A5 sensitivity sweep varies this across `[2, 10]` and shows the recovery floor's
   time-to-unjam is statistically identical at both extremes (paid recycles average
