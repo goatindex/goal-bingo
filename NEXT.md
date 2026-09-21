@@ -23,8 +23,7 @@ resolved.
 ## Next up
 
 - **Build #100** (recycle-allowance upgrade) — blocked by #99, now merged.
-- **Build #101** (swap) and **#102** (grid expansion) — both independent of #99/#100,
-  can be built in any order.
+- **Build #102** (grid expansion) — independent, not started yet.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -46,7 +45,18 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#99 (recycle power-up) built** (this PR), first of WP-07's four sub-issues: new
+- **#101 (swap power-up) built** (PR #104), one of WP-07's four sub-issues,
+  independent of the recycle/allowance cluster: new `app/src/swap.ts` —
+  `swapCells(board, indexA, indexB, boardBalance)` exchanges the full `Cell` (goal and
+  marked state together — a mark travels with its tile, not the position it leaves)
+  of two orthogonally-adjacent cells for a flat 10 board balance (`SWAP_COST`,
+  `D-2026-09-21-10`); refuses on non-adjacent indices (including a cell swapped with
+  itself) or insufficient balance, with no state change either way. Exported
+  `lines.ts`'s existing private `adjacentIndices` helper (already used for the WP-05
+  adjacency bonus) rather than writing a second implementation of the same geometry.
+  No UI wiring, following #93/#94/#99's precedent. 6 new tests, all passing; `tsc
+  --noEmit` clean; no console errors.
+- **#99 (recycle power-up) built** (PR #103), first of WP-07's four sub-issues: new
   `app/src/recycle.ts` — `recycleCell(board, pool, index, recycleState, boardBalance,
   rng, now)` draws a replacement goal via the same `drawForCell` placement-rule-aware
   draw the refill path already uses (`ignore = new Set([index])` so the tile's own
