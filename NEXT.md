@@ -27,10 +27,9 @@ report to the user and ask what's next, not a cue to invent further scope.
 
 - **Ask the user what's next** — every cut work package is closed; there is no
   further build-order item queued.
-- **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
-  owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
-  both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
-  fixed 2026-09-20/21) — both checks are ready to flip; nothing is blocking it anymore.
+- ~~Flip `standing_check` to blocking~~ **Done** (PR #129): both `decision_lint` and
+  `standing_check` now block in `.github/workflows/record-checks.yml` — re-verified clean
+  immediately before the flip (55/55 decisions, 140/140 records, 0 violations).
 - **Settle link-4 decisions when blocked:** category-unlock gate (`D-2026-09-19-16`),
   advanced-tile thresholds (`D-2026-09-19-23`).
 - **Scope the `record-contract` `standing` default fix (chain-wide, not goal-bingo-only).**
