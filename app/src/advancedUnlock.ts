@@ -13,6 +13,8 @@ export type AdvancedTileTrack = 'multi-completion' | 'mini-grid'
 
 export const ADVANCED_TILE_TRACKS: readonly AdvancedTileTrack[] = ['multi-completion', 'mini-grid']
 
+export type PendingAdvancedTilePlacement = { track: AdvancedTileTrack; category: string }
+
 export type AdvancedTileAccess = {
   /** Categories with each track's eligibility unlocked. */
   unlockedCategories: Record<AdvancedTileTrack, string[]>
@@ -20,12 +22,17 @@ export type AdvancedTileAccess = {
    *  reusing one counter rather than tracking two, since both tracks share the same
    *  threshold). */
   marksByCategory: Record<string, number>
+  /** A track that unlocked with no unmarked cell of its category on the board to
+   *  convert immediately - consumed by that category's next refill, guaranteeing the
+   *  placement rather than leaving it to the passive chance alone (D-2026-09-21-23). */
+  pendingPlacements: PendingAdvancedTilePlacement[]
 }
 
 export function freshAdvancedTileAccess(): AdvancedTileAccess {
   return {
     unlockedCategories: { 'multi-completion': [], 'mini-grid': [] },
     marksByCategory: {},
+    pendingPlacements: [],
   }
 }
 
@@ -62,6 +69,20 @@ export function recordAdvancedTileProgress(
     }
   }
   return { ...access, marksByCategory, unlockedCategories }
+}
+
+/** Tracks unlocked in `after` but not `before`, for one category - what a caller
+ *  checks right after `recordAdvancedTileProgress`/`purchaseAdvancedTileUnlock` to
+ *  decide whether to place a tile immediately (D-2026-09-21-23's "automatic on
+ *  unlock"). */
+export function newlyUnlockedTracks(
+  before: AdvancedTileAccess,
+  after: AdvancedTileAccess,
+  category: string,
+): AdvancedTileTrack[] {
+  return ADVANCED_TILE_TRACKS.filter(
+    (track) => !isAdvancedTileUnlocked(before, track, category) && isAdvancedTileUnlocked(after, track, category),
+  )
 }
 
 export type AdvancedTileUnlockResult =

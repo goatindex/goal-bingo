@@ -156,6 +156,11 @@ export type ClearOutcome = {
    *  categories) — the "rare combination" achievement's trigger condition
    *  (GB-FUN-064, D-2026-09-21-14). False on a no-op. */
   hadVarietyCombo: boolean
+  /** Every cell index refilled by this clear, one entry per distinct cleared cell
+   *  (the same set `clearedCategories` is derived from, in the same order) - what a
+   *  caller applying D-2026-09-21-23's passive advanced-tile chance needs to know
+   *  which cells just got a fresh, already-legal goal. Empty on a no-op. */
+  refilledCells: number[]
 }
 
 export type ClearResult = { ok: true; outcome: ClearOutcome } | { ok: false; reason: 'empty-pool' }
@@ -204,6 +209,7 @@ export function resolveLineClears(
         intersectionCells: [],
         clearedCategories: [],
         hadVarietyCombo: false,
+        refilledCells: [],
       },
     }
   }
@@ -253,6 +259,7 @@ export function resolveLineClears(
       intersectionCells,
       clearedCategories,
       hadVarietyCombo,
+      refilledCells: [...occurrences.keys()],
     },
   }
 }
