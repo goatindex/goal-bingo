@@ -582,7 +582,7 @@ invented here reads as fact once it is a requirement.
   | ~~Q4~~ | ~~What happens to a cell shared by two clearing lines~~ — **resolved** by `D-2026-09-19-14`: distinct visual treatment; anchor for the multi-clear bonus | §3.4 |
   | ~~Q5~~ | ~~The starting category list~~ — **resolved** by `D-2026-09-19-16`: health, study, creative, volunteering, relationship, home, work; player-defined unlocks beyond that | §4.2 |
   | ~~Q6~~ | ~~The draw-weighting formula, and its grid-awareness rules~~ — **resolved** by `D-2026-09-19-12` (long-term ~5%) and `D-2026-09-21-1` (short-term splits 40/40/20 hourly/daily/weekly); grid-awareness was already answered by the A4 sensitivity run (`sim/results.md`), which validated the same weights across grid sizes 3, 5, and 7 | §4.4 |
-| Q7 | Base point values | §5.1 |
+  | ~~Q7~~ | ~~Base point values~~ — **resolved** by `D-2026-09-21-3` (1/2/3/5 by cadence), `D-2026-09-21-4` (+50% matching/variety combo bonuses), and `D-2026-09-21-5` (adjacency seed combination) — all explicitly placeholder-grade, per a playable board being what makes a point value mean anything (§5.1) | §5.1 |
   <!-- The multi-clear bonus this question was blocking (GB-FUN-013) is resolved by
   `D-2026-09-20-9` as a formula relative to the base score, so it no longer needs Q7
   answered first. Q7 itself — the base values — remains open. -->

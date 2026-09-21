@@ -15,9 +15,12 @@ GB-CON-005/006/007) — the last package in the first shippable slice.
 
 ## Next up
 
-- **File work items for WP-05** and pick up the scoring/ledgers build. It extends
-  `lines.ts`'s `resolveLineClears` (GB-FUN-003: reward balance on clear) — that
-  interface is now settled by WP-04, so this should build against it cleanly.
+- **File work items for WP-05** and pick up the scoring/ledgers build. Its three TBDs
+  are resolved: `D-2026-09-21-3` (base value 1/2/3/5 by cadence), `D-2026-09-21-4`
+  (+50% matching/variety combo bonuses), `D-2026-09-21-5` (adjacency seed rule,
+  `{ name: "adjacent-marked", value: 1 }`). Extends `lines.ts`'s `resolveLineClears`
+  (GB-FUN-003: reward balance on clear) — that interface is now settled by WP-04, so
+  this should build against it cleanly.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); four of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -40,6 +43,17 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **Resolved WP-05's three blocking TBDs** (this PR): unlike the grid-size and
+  cadence-split questions, none had simulation evidence to ground them —
+  `docs/design-description.md` says outright that point values are "a tuning problem
+  that needs a playable board." Proposed concrete numbers and confirmed with the user
+  rather than inventing silently: `D-2026-09-21-3` (base value 1/2/3/5 points by
+  cadence hourly/daily/weekly/long-term, summed across a line), `D-2026-09-21-4`
+  (+50% for both matching and variety combos, reusing the multi-clear bonus's existing
+  magnitude), `D-2026-09-21-5` (one adjacency seed rule — a cleared cell adjacent to a
+  still-marked cell scores +1 per neighbour — since GB-FUN-031 needs a genuinely
+  board-state-sensitive rule to be testable at all, not just a configurable mechanism
+  that always returns zero). Q7 fully resolved (all three explicitly placeholder-grade).
 - **WP-04 (draw engine, #21) closed.** Both sub-issues merged: #77 cadence-weighted
   draw (PR #79), #78 binding placement rules (PR #80). Link 5 moves on to WP-05 (#22,
   scoring & ledgers) — the last package in the first shippable slice.

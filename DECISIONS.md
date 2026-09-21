@@ -3,6 +3,89 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-5 — Adjacency bonus seed rule: +1 per cleared cell adjacent to a marked cell
+
+- **Status:** open
+- **Context:** GB-FUN-031 requires an adjacency bonus mechanism that is a genuine
+  function of board state (zero when nothing qualifies, non-zero and board-state-
+  dependent otherwise); GB-FUN-068 requires the combination list and its values to live
+  in configuration, not code. `docs/design-description.md` §5.2/§11 explicitly defers
+  which combinations exist and what they are worth ("open") — unlike the grid-size and
+  cadence-split questions, there is no simulation or prior decision to ground this in.
+- **Options considered:** no seed rule, mechanism only (always returns 0) — satisfies
+  GB-FUN-068's configurability trivially but fails GB-FUN-031's own criterion that a
+  qualifying condition must produce a non-zero, board-state-sensitive bonus · a rich
+  multi-combination table (lines of a shape, clusters, etc.) — more faithful to "what
+  sits next to the cleared line" as a long-term vision, but invents several numbers at
+  once with no basis for any of them · **one seed combination: a cleared cell adjacent
+  (up/down/left/right, not diagonal) to a still-marked cell scores +1 per such neighbour
+  (chosen)** — a single, genuinely board-state-dependent rule, simple enough to
+  implement and test now, that rewards exactly the framing in §5.2 ("what sits next to
+  the cleared line... makes the board a single object").
+- **Why:** GB-FUN-031's criteria need *some* real rule to be testable at all — a
+  mechanism that always returns zero cannot demonstrate "a line clear with no
+  qualifying adjacency condition produces zero" as distinct from "always produces
+  zero." One small, honest combination is preferred over several invented ones.
+- **Expected outcome:** The adjacency configuration (GB-FUN-068) starts with exactly one
+  entry: `{ name: "adjacent-marked", value: 1 }`. Adding, removing, or reweighting
+  combinations later is a config change, not a code change.
+- **Revisit:** After first playtest, once the base value and combo multipliers below
+  have been felt in practice — the richer adjacency vision in §5.2 (clusters, shapes)
+  is future work, not reopened by this decision.
+
+## D-2026-09-21-4 — Matching and variety combo bonuses are both +50%
+
+- **Status:** open
+- **Context:** GB-FUN-029 (matching: every tile in the line shares a category) and
+  GB-FUN-030 (variety: every tile is a distinct category) both need a bonus multiplier.
+  `D-2026-09-19-19` already decided the two combos are symmetric — "both are harder
+  than a mixed line, and both should pay a bonus" — with no stated reason to favour one
+  strategy's payout over the other's.
+- **Options considered:** different multipliers per combo (e.g. reward variety more
+  since it is harder to arrange with binding placement rules also in play) — rejected,
+  no evidence yet that one is actually harder to set up in practice, and inventing an
+  asymmetry without a reason to prefer it just adds a second unfounded number ·
+  **+50% for both (chosen)** — reuses the multi-clear bonus's already-established
+  magnitude (`D-2026-09-20-9`) rather than inventing a new one, and keeps the two
+  combos symmetric exactly as `D-2026-09-19-19` intended.
+- **Why:** A magnitude this codebase has already committed to and tested is a better
+  default than a freshly invented one, and symmetry matches the requirement pair's own
+  stated intent.
+- **Expected outcome:** A matching or variety line clear scores 150% of its base value
+  (before adjacency); a line that is neither gets 100%. The two bonuses do not stack —
+  a line cannot be both all-one-category and all-different-category at once.
+- **Revisit:** After first playtest, particularly if one combo turns out much easier to
+  arrange than the other in practice (the binding placement rules from WP-04 constrain
+  category distribution, which could make variety harder than matching in ways not
+  visible from the requirements alone).
+
+## D-2026-09-21-3 — Base clear value scales with cadence: 1 / 2 / 3 / 5 points
+
+- **Status:** open
+- **Context:** GB-FUN-028 requires a cleared line's base value to scale with the
+  cadences of its goals, higher cadence worth more. `docs/design-description.md` §5.1
+  and §11 (Q7) explicitly say no point values are set and that they are "a tuning
+  problem that needs a playable board before any number means anything" — there is no
+  simulation evidence for this one, unlike the grid-size and cadence-split decisions.
+- **Options considered:** a steep curve (e.g. 1/3/9/27, roughly tripling per step) —
+  rejected, would make long-term-heavy lines dominate scoring so completely that the
+  matching/variety combo bonuses below become irrelevant by comparison · a flat value
+  regardless of cadence — rejected, directly contradicts GB-FUN-028's own statement ·
+  **1 (hourly) / 2 (daily) / 3 (weekly) / 5 (long-term) points per tile, a line's base
+  value is the sum of its tiles' values (chosen)** — small whole numbers, a clear and
+  gently-increasing ordering, and long-term still stands out (5x hourly) without
+  swamping the combo and adjacency bonuses layered on top.
+- **Why:** The values themselves are explicitly placeholder-grade per §11, so the
+  priority is a shape that keeps every other scoring mechanism (combos, adjacency)
+  meaningful relative to it, not a "correct" magnitude that doesn't exist yet.
+- **Expected outcome:** `CADENCE_BASE_VALUE = { hourly: 1, daily: 2, weekly: 3,
+  'long-term': 5 }`; a cleared line's base value sums each of its cells' cadence value.
+  GB-FUN-003's reward-balance award and GB-FUN-033's lifetime-score increase both use
+  this base value (plus combos and adjacency) as the clear's total value.
+- **Revisit:** After first playtest data exists — Q7 is closed by this decision plus
+  `D-2026-09-21-4`/`D-2026-09-21-5`, but "closed" here means "a placeholder the game
+  can be played and tuned against," not "final."
+
 ## D-2026-09-21-2 — Category domination threshold is 40% of board cells
 
 - **Status:** open
