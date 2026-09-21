@@ -11,16 +11,15 @@ closed. WP-05's four sub-issues: [#83](https://github.com/goatindex/goal-bingo/i
 clear scoring (PR #87), [#84](https://github.com/goatindex/goal-bingo/issues/84) counter
 display (PR #88), [#85](https://github.com/goatindex/goal-bingo/issues/85) rewards CRUD
 (PR #89), [#86](https://github.com/goatindex/goal-bingo/issues/86) reward purchase
-(this PR). "WP-01 → WP-05 (playable bingo with scoring, no economy)" per
+(PR #90). "WP-01 → WP-05 (playable bingo with scoring, no economy)" per
 `work-packages/cut.md` is now real and playable end to end.
 
 ## Next up
 
-- **Close #22 (WP-05)** now that all four sub-issues are merged, and pick the next
-  package. WP-06 (challenges & board income, #23) and WP-09 (record & discovery, #26)
-  both only depend on WP-05 — neither depends on the other, so either is a reasonable
-  next pick (same parallel-safety reasoning as WP-04/WP-05 earlier this session).
-  WP-07 (economy actions) needs WP-06 first.
+- **Pick the next package.** WP-06 (challenges & board income, #23) and WP-09 (record
+  & discovery, #26) both only depend on WP-05 (now closed) — neither depends on the
+  other, so either is a reasonable next pick. WP-07 (economy actions) needs WP-06
+  first.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -44,10 +43,10 @@ continues with WP-04.
 
 - **WP-05 (scoring & ledgers, #22) closed — first shippable slice complete.** All
   four sub-issues merged: #83 clear scoring (PR #87), #84 counter display (PR #88),
-  #85 rewards CRUD (PR #89), #86 reward purchase (this PR). WP-01 → WP-05 is now a
+  #85 rewards CRUD (PR #89), #86 reward purchase (PR #90). WP-01 → WP-05 is now a
   real, playable bingo loop with scoring, combos, adjacency, and a rewards economy —
   no board-balance economy yet (WP-06/07).
-- **#86 (reward purchase) built** (this PR): `rewards.ts`'s `purchaseReward(rewards,
+- **#86 (reward purchase) built** (PR #90): `rewards.ts`'s `purchaseReward(rewards,
   id, rewardBalance)` deducts a reward's price from reward balance only — its
   signature has no access to lifetime score or board balance, so GB-CON-007 (lifetime
   never decreases) holds by construction, not just by convention. Refuses on an
