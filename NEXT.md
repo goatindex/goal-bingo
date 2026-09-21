@@ -12,15 +12,18 @@ board model (PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) m
 (PR #71), [#66](https://github.com/goatindex/goal-bingo/issues/66) multi-line clear
 (PR #72), [#73](https://github.com/goatindex/goal-bingo/issues/73) board UI (PR #74).
 WP-04 is [#21](https://github.com/goatindex/goal-bingo/issues/21): weighted refill,
-binding placement rules, ~5% long-term draw share (GB-FUN-022, 023, 024, 026, 027).
+binding placement rules, ~5% long-term draw share (GB-FUN-022, 023, 024, 026, 027) — filed
+as two sub-issues: [#77](https://github.com/goatindex/goal-bingo/issues/77) cadence-weighted
+draw (this PR), [#78](https://github.com/goatindex/goal-bingo/issues/78) binding placement
+rules (next).
 
 ## Next up
 
-- **File work items for WP-04** and pick up the draw engine build. Its two TBDs are
-  resolved: `D-2026-09-21-1` (short-term cadence split, ported from `sim/jam_sim.py`'s
-  `SHORT_MIX`) and `D-2026-09-21-2` (40% category domination threshold) — see
-  `sim/jam_sim.py`'s `draw()`/`has_long()` for the binding-rule algorithm to port
-  directly rather than reimplement from scratch.
+- **Pick up #78 (binding placement rules)** — `drawWeighted` (`app/src/draw.ts`, this PR)
+  handles cadence weighting alone; #78 wraps it with board-position awareness (no two
+  long-term goals in a row/column, no category over 40% of cells) and switches
+  `board.ts`/`lines.ts`'s refill calls over to it. Port `sim/jam_sim.py`'s
+  `has_long()`/`draw()` fall-through pattern rather than reimplementing from scratch.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); three of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -43,7 +46,16 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **Resolved WP-04's two blocking TBDs** (this PR): `D-2026-09-21-1` — short-term cadence
+- **#77 (cadence-weighted draw) built** (this PR): `app/src/draw.ts`'s `drawWeighted`
+  picks a cadence first (~5% long-term per `LONG_TERM_DRAW_SHARE`, else 40/40/20
+  hourly/daily/weekly per `SHORT_CADENCE_MIX`), then a uniform goal within that cadence;
+  falls back to `pool.ts`'s plain `drawGoal` when the pool has no goal of the selected
+  cadence, and refuses an empty pool the same way. Not yet wired into `board.ts`/
+  `lines.ts`'s refill calls — that's #78, once binding-rule awareness exists to combine
+  with it. Verified with a 20,000-draw sample against a seeded PRNG (reproducible, not
+  flaky): long-term share lands inside the 0-10% band, short-term split matches
+  `SHORT_CADENCE_MIX` within tolerance. 4 new tests, 51/51 passing.
+- **Resolved WP-04's two blocking TBDs** (PR #76): `D-2026-09-21-1` — short-term cadence
   split is 40% hourly / 40% daily / 20% weekly, ported directly from `sim/jam_sim.py`'s
   `SHORT_MIX` rather than invented, since a different split would have silently
   invalidated the recovery-floor results `D-2026-09-20-8`'s grid sizing already relies
