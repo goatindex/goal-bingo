@@ -4,22 +4,25 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — WP-06 closed; pick the next work package.** WP-01 → WP-06 (#18–#23) are all
-closed. Board balance now has a real income source: universal/category/cadence
-challenges progress on every mark and pay a flat per-mark rate plus a completion bonus
-(`D-2026-09-21-6`, `D-2026-09-21-7`), verified to survive a maximal board jam
-(GB-CON-012). Per `work-packages/cut.md`'s build order, **WP-07 (economy actions)** is
-now unblocked (needed WP-06); **WP-09 (record & discovery)** only needed WP-05 and has
-been available since WP-05 closed. Neither started yet — pick one to begin.
-**Scope note carried from WP-06:** none of its 10 requirements mention a calendar
-period or reset, unlike `docs/design-description.md`'s prose framing ("targets counted
-over a period... this week") — `D-2026-09-21-7` reads the literal requirement text as a
-mark-count cycle instead (reach target, pay bonus, reset, repeat), not a time-based
-one. Flagging in case that's not what was intended.
+**Link 5 — build WP-07 (economy actions).** WP-01 → WP-06 (#18–#23) are all closed.
+WP-07 is [#24](https://github.com/goatindex/goal-bingo/issues/24): grid expansion,
+recycle-allowance upgrade, swap, and recycle power-ups, all spending board balance
+(GB-FUN-036–039, 041, 042, GB-CON-008). Four TBDs resolved: `D-2026-09-21-8` (recycle
+cost 5 board balance, ported from `sim/jam_sim.py`'s own default — the A5 sensitivity
+sweep showed the recovery floor is insensitive to this value across [2, 10]),
+`D-2026-09-21-9` (grid expansion 5x5→7x7 costs 250 board balance — the only supported
+expansion step, per `board.ts`'s `SUPPORTED_SIZES`), `D-2026-09-21-10` (swap costs 10
+board balance — its price was never flagged as a TBD despite Q10 covering power-up
+pricing generally, a requirements-authoring gap), `D-2026-09-21-11` (recycle-allowance
+upgrade caps at 3, two purchasable steps at 100 board balance each). None of these four
+are safety-critical the way grid size or cadence split were — the recovery floor holds
+at every price tested — so they're pacing judgement calls, confirmed with the user
+where no simulation evidence existed (all but the recycle cost). Q10 and Q17 both
+resolved.
 
 ## Next up
 
-- **Start WP-07 or WP-09** (both unblocked; see Current focus).
+- **File work items for WP-07** and pick up the power-up/economy build.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -41,6 +44,21 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **Resolved WP-07's four TBDs** (this PR): `D-2026-09-21-8` — recycle cost is 5 board
+  balance, ported directly from `sim/jam_sim.py`'s own `recycle_cost` default; its own
+  A5 sensitivity sweep varies this across `[2, 10]` and shows the recovery floor's
+  time-to-unjam is statistically identical at both extremes (paid recycles average
+  0.00 in every scenario — the free allowance alone resolves jams first), so there's
+  no evidence-based reason to deviate from the value the rest of `sim/results.md`
+  already assumes. The other three had no simulation evidence at all (`jam_sim.py`'s
+  header explicitly lists swap, grid expansion, and the allowance upgrade as NOT
+  MODELLED), so concrete numbers were proposed and confirmed with the user rather than
+  invented silently: `D-2026-09-21-9` (grid expansion, the single 5x5→7x7 step per
+  `board.ts`'s `SUPPORTED_SIZES`, costs 250 board balance), `D-2026-09-21-10` (swap
+  costs 10 board balance — its price had never even been flagged as a TBD, a genuine
+  gap in the original requirements-authoring pass, not evidence it's free),
+  `D-2026-09-21-11` (recycle-allowance upgrade caps at 3, two steps at 100 board
+  balance each). Q10 and Q17 both fully resolved.
 - **WP-06 (challenges & board income, #23) closed.** Both sub-issues merged: #93
   challenge model (PR #95), #94 mark integration + payment (this PR). Board balance
   has a real income source for the first time since WP-01 — the economy WP-07/WP-08

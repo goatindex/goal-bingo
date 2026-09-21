@@ -588,7 +588,8 @@ verification-criteria: Purchasing the expansion deducts board balance and result
 verification-status: not-verified
 owner: k
 priority: must
-notes: Price is TBD (owner: k, blocks: Q10).
+notes: Price is 250 board balance for the single 5x5-to-7x7 step
+  (`D-2026-09-21-9`). Q10 resolved for this requirement.
 
 ### GB-FUN-037 — Recycle-allowance upgrade power-up
 statement: Goal Bingo shall provide a power-up that permanently increases the number of
@@ -602,7 +603,8 @@ verification-criteria: After purchasing the upgrade, the free recycle allowance 
 verification-status: not-verified
 owner: k
 priority: must
-notes: Upper limit on upgrades and per-step prices are TBD (owner: k, blocks: Q17).
+notes: Caps at 3 free recycles per 24h (two purchasable steps above the default of 1),
+  each step 100 board balance (`D-2026-09-21-11`). Q17 resolved.
 
 ### GB-FUN-038 — Swap power-up exchanges adjacent tiles
 statement: Goal Bingo shall provide a swap power-up that exchanges the positions of two
@@ -617,7 +619,10 @@ verification-criteria: Activating the swap and selecting two adjacent tiles move
 verification-status: not-verified
 owner: k
 priority: must
-notes: Wider-range swap is an upgrade area, not a base-game feature.
+notes: Wider-range swap is an upgrade area, not a base-game feature. Price is 10 board
+  balance (`D-2026-09-21-10`) — this requirement's own price was never flagged as a
+  TBD despite Q10 covering power-up pricing generally; a requirements-authoring gap,
+  now resolved.
 
 ### GB-FUN-039 — Recycle power-up replaces unmarked tile
 statement: When the player activates a recycle on an unmarked tile, Goal Bingo shall remove
@@ -631,6 +636,8 @@ verification-criteria: After a recycle, the selected cell contains a different g
 verification-status: not-verified
 owner: k
 priority: must
+notes: Paid recycle cost (once the free allowance is exhausted, GB-FUN-042) is 5 board
+  balance, ported from `sim/jam_sim.py`'s own `recycle_cost` default (`D-2026-09-21-8`).
 
 ### GB-FUN-040 — Recycle unavailable on marked tiles
 statement: If the player selects a marked tile for recycle, Goal Bingo shall reject the
