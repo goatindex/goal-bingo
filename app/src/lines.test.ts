@@ -9,7 +9,9 @@ import {
   markCellAndResolve,
   resolveLineClears,
 } from './lines'
+import type { Goal } from './pool'
 import { STARTER_POOL } from './storage'
+import { seededRng } from './test-support'
 
 function freshBoard() {
   const pool = STARTER_POOL.map((g) => ({ ...g }))
@@ -194,5 +196,43 @@ describe('perpendicular progress loss (GB-FUN-015)', () => {
     expect(result.outcome.board.cells[0]!.marked).toBe(false)
     expect(result.outcome.board.cells[5]!.marked).toBe(true)
     expect(result.outcome.board.cells[10]!.marked).toBe(true)
+  })
+})
+
+describe('refill respects binding placement rules across a whole batch (GB-FUN-023, GB-FUN-024)', () => {
+  it('a multi-cell refill never places two long-term goals in the same line', () => {
+    const pool: Goal[] = [
+      { id: 'l1', title: 'L1', category: 'a', cadence: 'long-term' },
+      { id: 'l2', title: 'L2', category: 'a', cadence: 'long-term' },
+      { id: 'h1', title: 'H1', category: 'b', cadence: 'hourly' },
+      { id: 'd1', title: 'D1', category: 'c', cadence: 'daily' },
+      { id: 'w1', title: 'W1', category: 'd', cadence: 'weekly' },
+    ]
+    for (let seed = 0; seed < 20; seed++) {
+      const rng = seededRng(seed)
+      const built = createBoard(5, pool, rng)
+      expect(built.ok).toBe(true)
+      if (!built.ok) continue
+      // Mark all of row 0 except cell 4 - the trigger - so the whole row refills at
+      // once, exercising the multi-cell batch path in resolveLineClears.
+      const board = built.board
+      for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
+      const result = resolveLineClears(board, 4, pool, rng)
+      expect(result.ok).toBe(true)
+      if (!result.ok) continue
+      const refilled = result.outcome.board
+      for (let row = 0; row < 5; row++) {
+        const longCount = [0, 1, 2, 3, 4].filter(
+          (c) => refilled.cells[row * 5 + c]!.goal.cadence === 'long-term',
+        ).length
+        expect(longCount).toBeLessThanOrEqual(1)
+      }
+      for (let col = 0; col < 5; col++) {
+        const longCount = [0, 1, 2, 3, 4].filter(
+          (r) => refilled.cells[r * 5 + col]!.goal.cadence === 'long-term',
+        ).length
+        expect(longCount).toBeLessThanOrEqual(1)
+      }
+    }
   })
 })

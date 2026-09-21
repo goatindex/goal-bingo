@@ -3,8 +3,8 @@
 
 import type { Board, BoardSize } from './board'
 import { markCell } from './board'
+import { drawForCell } from './draw'
 import type { Goal } from './pool'
-import { drawGoal } from './pool'
 
 /** Placeholder per-line score until Q7 (design-description.md §11) sets real base point
  *  values. The increment mechanism — that a clear raises lifetime score, once per
@@ -77,7 +77,9 @@ export type ClearResult = { ok: true; outcome: ClearOutcome } | { ok: false; rea
  * Resolve every completed line through the given cell index — typically the cell just
  * marked. Clears each one: awards score, empties its cells, and refills them from the
  * pool before returning (GB-FUN-011) — GB-FUN-008 forbids ever returning a board with
- * an empty cell, so refill happens inline, not as a later step.
+ * an empty cell, so refill happens inline, not as a later step. Refill goes through
+ * `drawForCell` (`draw.ts`), so the binding placement rules (GB-FUN-023, GB-FUN-024)
+ * apply to every cell a clear refills, not only a fresh board's initial fill.
  *
  * Checking every line through the cell, not just one, means a simultaneous multi-line
  * completion is already handled correctly (GB-FUN-012): every completing line clears,
@@ -114,10 +116,16 @@ export function resolveLineClears(
     .map(([i]) => i)
 
   const cells = board.cells.slice()
+  const workingBoard: Board = { ...board, cells }
+  // Every cleared cell still awaiting its new goal must not count toward the binding
+  // rules for the others being drawn in the same batch (its old content is about to be
+  // replaced) - see drawForCell's `ignore` parameter.
+  const pending = new Set(occurrences.keys())
   for (const i of occurrences.keys()) {
-    const drawn = drawGoal(pool, rng)
+    const drawn = drawForCell(pool, workingBoard, i, rng, pending)
     if (!drawn.ok) return { ok: false, reason: 'empty-pool' }
     cells[i] = { goal: drawn.goal, marked: false }
+    pending.delete(i)
   }
 
   const base = completing.length * BASE_SCORE_PER_LINE

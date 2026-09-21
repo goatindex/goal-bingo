@@ -12,18 +12,15 @@ board model (PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) m
 (PR #71), [#66](https://github.com/goatindex/goal-bingo/issues/66) multi-line clear
 (PR #72), [#73](https://github.com/goatindex/goal-bingo/issues/73) board UI (PR #74).
 WP-04 is [#21](https://github.com/goatindex/goal-bingo/issues/21): weighted refill,
-binding placement rules, ~5% long-term draw share (GB-FUN-022, 023, 024, 026, 027) — filed
-as two sub-issues: [#77](https://github.com/goatindex/goal-bingo/issues/77) cadence-weighted
-draw (this PR), [#78](https://github.com/goatindex/goal-bingo/issues/78) binding placement
-rules (next).
+binding placement rules, ~5% long-term draw share (GB-FUN-022, 023, 024, 026, 027) — both
+sub-issues closed: [#77](https://github.com/goatindex/goal-bingo/issues/77)
+cadence-weighted draw (PR #79), [#78](https://github.com/goatindex/goal-bingo/issues/78)
+binding placement rules (this PR). WP-04 is ready to close.
 
 ## Next up
 
-- **Pick up #78 (binding placement rules)** — `drawWeighted` (`app/src/draw.ts`, this PR)
-  handles cadence weighting alone; #78 wraps it with board-position awareness (no two
-  long-term goals in a row/column, no category over 40% of cells) and switches
-  `board.ts`/`lines.ts`'s refill calls over to it. Port `sim/jam_sim.py`'s
-  `has_long()`/`draw()` fall-through pattern rather than reimplementing from scratch.
+- **Close #21 (WP-04)** now that both sub-issues are merged, and move link 5 on to WP-05
+  ([#22](https://github.com/goatindex/goal-bingo/issues/22), scoring & ledgers).
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); three of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -46,7 +43,22 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#77 (cadence-weighted draw) built** (this PR): `app/src/draw.ts`'s `drawWeighted`
+- **#78 (binding placement rules) built** (this PR), closing WP-04: `draw.ts`'s
+  `drawForCell` layers both binding rules on top of `drawWeighted` — no long-term goal
+  in a row/column that already has one (GB-FUN-023), no category over 40% of board
+  cells (`CATEGORY_DOMINATION_THRESHOLD`, `D-2026-09-21-2`, GB-FUN-024) — falling
+  through three progressively looser candidate sets (weighted-and-legal, any-cadence-
+  and-legal, unconstrained) so GB-FUN-008's never-empty guarantee always wins in a
+  genuine deadlock. `board.ts`'s `createBoard`/`resizeBoard` and `lines.ts`'s
+  `resolveLineClears` now call it for every fill; a multi-cell batch refill (e.g. a
+  whole line clearing) treats not-yet-redrawn cells in the same batch as excluded from
+  both rules' checks (their old content is about to vanish) via a `ignore` set, while
+  already-redrawn batch cells still count — verified across 20 seeded boards and a
+  20-seed batch-refill integration test with no violations. `drawForCell` takes only a
+  board and an index, so a future recycle action can reuse it unchanged (GB-FUN-026).
+  9 new tests, 57/57 passing. Verified live in the browser: fresh board creation and a
+  full-row clear/refill both worked with no console errors.
+- **#77 (cadence-weighted draw) built** (PR #79): `app/src/draw.ts`'s `drawWeighted`
   picks a cadence first (~5% long-term per `LONG_TERM_DRAW_SHARE`, else 40/40/20
   hourly/daily/weekly per `SHORT_CADENCE_MIX`), then a uniform goal within that cadence;
   falls back to `pool.ts`'s plain `drawGoal` when the pool has no goal of the selected

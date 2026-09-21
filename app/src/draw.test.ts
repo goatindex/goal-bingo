@@ -1,18 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { LONG_TERM_DRAW_SHARE, SHORT_CADENCE_MIX, drawWeighted } from './draw'
+import { createBoard, type Board } from './board'
+import {
+  CATEGORY_DOMINATION_THRESHOLD,
+  LONG_TERM_DRAW_SHARE,
+  SHORT_CADENCE_MIX,
+  drawForCell,
+  drawWeighted,
+} from './draw'
 import type { Goal } from './pool'
-
-/** Deterministic PRNG (mulberry32) so the distribution tests are reproducible, not
- *  flaky - a real Math.random() would make a statistical assertion non-repeatable. */
-function seededRng(seed: number): () => number {
-  return () => {
-    seed |= 0
-    seed = (seed + 0x6d2b79f5) | 0
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
+import { seededRng } from './test-support'
 
 const MIXED_POOL: Goal[] = [
   { id: 'h1', title: 'Hourly one', category: 'health', cadence: 'hourly' },
@@ -76,5 +72,106 @@ describe('cadence-weighted draw (GB-FUN-022, GB-FUN-027)', () => {
   it('refuses an empty pool the same way drawGoal already refuses it', () => {
     const result = drawWeighted([], () => 0)
     expect(result).toEqual({ ok: false, reason: 'empty-pool' })
+  })
+})
+
+function filledBoard(goals: Goal[]): Board {
+  return { size: 5, cells: goals.map((g) => ({ goal: g, marked: false })) }
+}
+
+describe('binding placement rules (GB-FUN-023, GB-FUN-024, GB-FUN-026)', () => {
+  it('falls through to short-term when the cadence pick would put a second long-term goal in the row', () => {
+    const pool: Goal[] = [
+      { id: 'l1', title: 'Long', category: 'longcat', cadence: 'long-term' },
+      { id: 'h1', title: 'Hourly', category: 'safecat', cadence: 'hourly' },
+    ]
+    // Row 0 is cells 0-4; cell 0 already holds the long-term goal.
+    const filler: Goal = { id: 'f', title: 'Filler', category: 'a', cadence: 'hourly' }
+    const goals = Array.from({ length: 25 }, () => filler)
+    goals[0] = pool[0]!
+    const board = filledBoard(goals)
+    // rng forced into the long-term branch every call (0 < LONG_TERM_DRAW_SHARE).
+    const result = drawForCell(pool, board, 3, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.goal.cadence).not.toBe('long-term')
+  })
+
+  it('rejects a category once it would exceed the 40% domination threshold', () => {
+    const pool: Goal[] = [
+      { id: 'x', title: 'X', category: 'x', cadence: 'hourly' },
+      { id: 'y', title: 'Y', category: 'y', cadence: 'hourly' },
+    ]
+    // 10 of 25 cells (40%, exactly CATEGORY_DOMINATION_THRESHOLD) already category
+    // 'x' - an 11th would be 44%, over the threshold, and must be rejected.
+    const goals = Array.from({ length: 25 }, (_, i) =>
+      i < 10 ? pool[0]! : { id: `f${i}`, title: `F${i}`, category: 'z', cadence: 'hourly' as const },
+    )
+    const board = filledBoard(goals)
+    const result = drawForCell(pool, board, 20, () => 0.99)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.goal.category).not.toBe('x')
+  })
+
+  it('still returns a goal even when every candidate would violate a binding rule (GB-FUN-008 outranks the binding rules)', () => {
+    const pool: Goal[] = [{ id: 'x', title: 'X', category: 'x', cadence: 'hourly' }]
+    // The only goal in the pool is already the board's sole category, at 100% -
+    // there is no legal choice, but the cell must still be filled.
+    const board = filledBoard(Array.from({ length: 25 }, () => pool[0]!))
+    const result = drawForCell(pool, board, 0, () => 0.5)
+    expect(result.ok).toBe(true)
+  })
+
+  it('the same function applied to an arbitrary index (a stand-in for a recycled cell) enforces both rules identically (GB-FUN-026)', () => {
+    const pool: Goal[] = [
+      { id: 'l1', title: 'Long', category: 'longcat', cadence: 'long-term' },
+      { id: 'h1', title: 'Hourly', category: 'safecat', cadence: 'hourly' },
+    ]
+    const filler: Goal = { id: 'f', title: 'Filler', category: 'a', cadence: 'hourly' }
+    const goals = Array.from({ length: 25 }, () => filler)
+    goals[24] = pool[0]! // long-term at the far corner, same column as cell 4
+    const board = filledBoard(goals)
+    // No refill or recycle mechanism is invoked here - the point is that the function
+    // itself takes only a board and an index, so recycle can call it exactly this way.
+    const result = drawForCell(pool, board, 4, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.goal.cadence).not.toBe('long-term')
+  })
+
+  it('createBoard never produces two long-term goals in a line or a category over 40%, across many seeds', () => {
+    const pool: Goal[] = [
+      { id: 'l1', title: 'L1', category: 'a', cadence: 'long-term' },
+      { id: 'l2', title: 'L2', category: 'a', cadence: 'long-term' },
+      { id: 'h1', title: 'H1', category: 'b', cadence: 'hourly' },
+      { id: 'd1', title: 'D1', category: 'c', cadence: 'daily' },
+      { id: 'w1', title: 'W1', category: 'd', cadence: 'weekly' },
+    ]
+    for (let seed = 0; seed < 20; seed++) {
+      const result = createBoard(5, pool, seededRng(seed))
+      expect(result.ok).toBe(true)
+      if (!result.ok) continue
+      const board = result.board
+      for (let row = 0; row < 5; row++) {
+        const longCount = [0, 1, 2, 3, 4].filter(
+          (c) => board.cells[row * 5 + c]!.goal.cadence === 'long-term',
+        ).length
+        expect(longCount).toBeLessThanOrEqual(1)
+      }
+      for (let col = 0; col < 5; col++) {
+        const longCount = [0, 1, 2, 3, 4].filter(
+          (r) => board.cells[r * 5 + col]!.goal.cadence === 'long-term',
+        ).length
+        expect(longCount).toBeLessThanOrEqual(1)
+      }
+      const categoryCounts: Record<string, number> = {}
+      for (const cell of board.cells) {
+        categoryCounts[cell.goal.category] = (categoryCounts[cell.goal.category] ?? 0) + 1
+      }
+      for (const count of Object.values(categoryCounts)) {
+        expect(count / 25).toBeLessThanOrEqual(CATEGORY_DOMINATION_THRESHOLD + 1e-9)
+      }
+    }
   })
 })
