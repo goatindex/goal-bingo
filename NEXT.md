@@ -4,26 +4,26 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — WP-07 closed; pick the next work package.** WP-01 → WP-07 (#18–#24) are
-all closed. Grid expansion, the recycle-allowance upgrade, swap, and recycle all
-spend board balance now (GB-FUN-036–039, 041, 042, GB-CON-008) — the release valve
-(recycle, unconditional even in a jam) and the main long-arc progression (grid
-expansion) both exist for the first time. Per `work-packages/cut.md`'s build order,
-**WP-08 (advanced tiles)** is now unblocked (needed WP-07); **WP-09 (record &
-discovery)** has been available since WP-05 closed and is still unstarted; **WP-10
-(floor constraints)** also needed WP-07. None started yet — pick one to begin.
-None of WP-07's four pricing TBDs (`D-2026-09-21-8/9/10/11`) were safety-critical the
-way grid size or cadence split were — the recovery floor holds at every price
-tested — so they were pacing judgement calls, confirmed with the user where no
-simulation evidence existed (all but the recycle cost, ported from
-`sim/jam_sim.py`'s own default). Q10 and Q17 both resolved. No UI wiring exists yet
-for any of WP-07's four power-ups (following #93/#94's data-model-first precedent) —
-worth flagging before WP-08, since advanced tiles will likely need at least the
-recycle/swap UI to be meaningfully playable.
+**Link 5 — build WP-09 (record & discovery).** WP-01 → WP-07 (#18–#24) are all
+closed. WP-09 is [#26](https://github.com/goatindex/goal-bingo/issues/26):
+statistics (lifetime score, clears by category, clears over time, average clears per
+day) plus a minimum achievement set (first clear, large grid, sustained run, rare
+combination) — GB-FUN-051–054, 063, 064. Four TBDs resolved: `D-2026-09-21-12`
+(category-clear counting is per cleared cell, not per line — confirmed with the
+user, since GB-FUN-052's own "which life areas the player is engaging" rationale is
+about individual goals, not lines), `D-2026-09-21-13` (sustained-run achievement is
+3 consecutive calendar days, the shorter of three proposed options), `D-2026-09-21-14`
+(rare-combination achievement reuses WP-05's existing variety-combo detection
+directly rather than a new concept), `D-2026-09-21-15` (large-grid achievement is
+board size 7 — the only size above the 5x5 start, no real ambiguity). None of these
+needed simulation evidence (achievements and statistics sit outside `sim/jam_sim.py`'s
+scope entirely) — three were genuinely novel judgement calls confirmed with the user,
+one (large grid) was a direct reading of an existing constant. WP-08 (advanced tiles)
+and WP-10 (floor constraints) are also unblocked but not yet started.
 
 ## Next up
 
-- **Start WP-08, WP-09, or WP-10** (see Current focus for which are unblocked).
+- **File work items for WP-09** and pick up the statistics/achievements build.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -45,6 +45,20 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **Resolved WP-09's four TBDs** (this PR): `D-2026-09-21-12` — clears-by-category
+  counts per cleared cell, not per line, confirmed with the user since GB-FUN-052's
+  own rationale ("which life areas the player is engaging") is about individual
+  goals, not lines as a unit — a 5-cell matching line adds 5 to one category, a mixed
+  line adds 1 to each category it contains. `D-2026-09-21-13` — the sustained-run
+  achievement is 3 consecutive calendar days (the shortest of three proposed
+  options), local-date-based rather than a rolling 24h window, consistent with
+  GB-FUN-054's own calendar-day framing. `D-2026-09-21-14` — the rare-combination
+  achievement reuses WP-05's existing variety-combo detection (all 5 cells distinct
+  categories) directly rather than inventing a second rarity concept.
+  `D-2026-09-21-15` — the large-grid achievement is board size 7, the only size above
+  the 5x5 start per `board.ts`'s `SUPPORTED_SIZES`, a direct reading rather than a
+  genuine judgement call. None of these four had simulation evidence to ground them —
+  achievements and statistics sit entirely outside `sim/jam_sim.py`'s scope.
 - **WP-07 (economy actions, #24) closed.** All four sub-issues merged: #99, #100,
   #101, #102. Grid expansion, the recycle-allowance upgrade, swap, and recycle all
   spend board balance now — the release valve (recycle) and the main long-arc

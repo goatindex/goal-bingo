@@ -3,6 +3,100 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-15 — "Large grid" achievement threshold is size 7
+
+- **Status:** open
+- **Context:** GB-FUN-064's minimum achievement set names "reaching a large grid size" as
+  one of four required milestones, with the threshold flagged as TBD.
+- **Options considered:** a fixed cell count independent of `board.ts`'s
+  `SUPPORTED_SIZES` — rejected, invents a second notion of "large" that could drift out
+  of sync with what the game actually allows · **the largest currently supported size,
+  7 (chosen)** — `SUPPORTED_SIZES` is `[5, 7]`; 7 is the only size larger than the 5x5
+  start, so "large grid" has exactly one possible meaning today.
+- **Why:** no genuine ambiguity exists while only two sizes are supported — this is not
+  a tuning judgement call the way the other three GB-FUN-064 thresholds are, just a
+  direct reading of an existing constant.
+- **Expected outcome:** The achievement fires the first time `GameState.board.size`
+  reaches 7 (via grid expansion, #102). If a third size is ever added to
+  `SUPPORTED_SIZES` after its own `sim/jam_sim.py` run (GB-CON-014), this decision
+  should be revisited to decide whether "large" tracks the new maximum or stays
+  anchored at 7.
+- **Revisit:** When `SUPPORTED_SIZES` next grows.
+
+## D-2026-09-21-14 — "Rare category combination" achievement is any variety-combo clear
+
+- **Status:** open
+- **Context:** GB-FUN-064's minimum achievement set names "a rare category combination"
+  as one of four required milestones, with no definition of "rare" and no simulation
+  evidence (achievements are outside `jam_sim.py`'s scope entirely).
+- **Options considered:** a clear including a player-unlocked custom category —
+  rejected, ties an achievement's *name* ("rare combination") to category-unlock
+  progression rather than to the combination itself, and would fire identically for
+  any custom-category clear regardless of what else is in the line · **any
+  variety-combo clear — all 5 cells in the clearing line have distinct categories
+  (chosen)** — reuses `lines.ts`'s existing variety-combo detection (`comboMultiplier`)
+  directly rather than defining a second, achievement-specific notion of rarity.
+- **Why:** confirmed with the user directly — no simulation or existing requirement
+  resolves this, so a concrete definition was proposed and confirmed rather than
+  invented silently. Reusing the already-shipped "variety" combo concept from WP-05
+  keeps the game's vocabulary consistent: a player who has already seen "variety"
+  combo bonuses recognizes the achievement's trigger condition.
+- **Expected outcome:** The achievement fires the first time a line clears where the 5
+  cleared cells have 5 distinct categories (the same condition `comboMultiplier`
+  already checks for the variety bonus).
+- **Revisit:** After first playtest, if a variety clear turns out to be common enough
+  that the achievement fires too early to feel like a discovery.
+
+## D-2026-09-21-13 — Sustained-run achievement threshold is 3 consecutive calendar days
+
+- **Status:** open
+- **Context:** GB-FUN-064's minimum achievement set names "a sustained run of daily
+  clears" as one of four required milestones, with no length specified and no
+  simulation evidence.
+- **Options considered:** 7 days (a full week, matching the "weekly" framing used
+  elsewhere in the design doc and challenge targets) — proposed as the recommended
+  default but not chosen · 14 days — rejected, a much longer commitment before the
+  first badge fires, more appropriate for a later, harder achievement than the
+  minimum set's baseline "sustained run" entry · **3 consecutive calendar days
+  (chosen)** — reachable within the first few days of play, functioning closer to an
+  onboarding nudge than a long-term milestone.
+- **Why:** confirmed with the user directly, choosing the shorter of the three
+  proposed options — no simulation or existing requirement resolves this length.
+- **Expected outcome:** The achievement fires the first time the player has cleared at
+  least one line on each of 3 consecutive calendar days (local device date, not a
+  rolling 24h window — consistent with GB-FUN-054's own calendar-day framing for
+  "average clears per day"). A day with zero clears breaks the streak back to 0.
+- **Revisit:** After first playtest, if 3 days fires too early to register as a
+  meaningful achievement, or if calendar-day (versus rolling-window) boundaries feel
+  arbitrary to players near a day boundary.
+
+## D-2026-09-21-12 — Clears-by-category counts per cell, not per line
+
+- **Status:** open
+- **Context:** GB-FUN-052 tracks clears "broken down by the category of goals in each
+  cleared line," but a line can span multiple categories (WP-05's matching/variety/
+  mixed combos already exist) — the requirement does not say whether a clear
+  increments one category bucket, every distinct category present, or something
+  weighted by how many cells hold each category.
+- **Options considered:** per distinct category in the line (each category present
+  gets +1 regardless of how many cells share it) — rejected, a 5-cell all-health
+  matching line would count identically to a 1-health mixed line toward the health
+  bucket, discarding real information about engagement intensity · **per cleared cell
+  (chosen)** — each of the 5 cleared cells' categories gets +1 independently, so a
+  5-health line adds 5 to the health bucket while a 1-health mixed line adds 1.
+- **Why:** confirmed with the user directly. GB-FUN-052's own rationale is "category
+  breakdowns show which life areas the player is engaging" (§8.1) — engagement is a
+  property of individual goals marked and cleared, not of lines as a unit, so
+  per-cell counting is the reading that actually serves the stated purpose.
+- **Expected outcome:** `resolveLineClears`'s per-clear category tally increments once
+  per distinct cell that clears — a cell shared by 2+ simultaneously-completing lines
+  (an intersection cell) still contributes only once to its category, matching how
+  the existing refill logic already treats it as one cell, not one occurrence per
+  line it belongs to.
+- **Revisit:** After first playtest, if per-cell counting makes the category
+  breakdown too dominated by whichever category the player farms hardest to be a
+  useful "neglected area" signal.
+
 ## D-2026-09-21-11 — Recycle-allowance upgrade caps at 3, flat 100 board balance per step
 
 - **Status:** open

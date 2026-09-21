@@ -835,6 +835,8 @@ verification-criteria: The statistics screen shows a per-category clear count th
 verification-status: not-verified
 owner: k
 priority: must
+notes: Counted per cleared cell, not per line (`D-2026-09-21-12`) — a 5-cell matching
+  line adds 5 to one category, a mixed line adds 1 to each represented category.
 
 ### GB-FUN-053 — Clears over time display
 statement: Goal Bingo shall track and display the player's clear history over time.
@@ -1006,7 +1008,10 @@ verification-criteria: The shipped achievement list contains entries for each of
 verification-status: not-verified
 owner: k
 priority: must
-notes: "Large grid", "sustained run", and "rare combination" thresholds are TBD.
+notes: Large grid = board size 7, the only size above the 5x5 start
+  (`D-2026-09-21-15`). Sustained run = 3 consecutive calendar days with at least one
+  clear each (`D-2026-09-21-13`). Rare combination = any variety-combo clear, all 5
+  cells distinct categories (`D-2026-09-21-14`). All three resolved.
 
 ---
 
