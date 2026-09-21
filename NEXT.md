@@ -23,24 +23,17 @@ expansion). None of these had simulation evidence — advanced tiles sit entirel
 outside `sim/jam_sim.py`'s scope. This WP ships eligibility + tile mechanics as
 fully-tested, directly-constructible domain logic; no code path causes an advanced
 tile to appear on a board through ordinary play yet (flagged, not silently
-resolved). Two of four sub-issues merged (#117, #118); #119 (mini-grid model,
-blocked by #118) and #120 (mini-grid integration, blocked by #119) remain.
+resolved). Three of four sub-issues merged (#117, #118, #119); #120 (mini-grid
+integration, blocked by #119) is the last piece.
 
-WP-10 is [#27](https://github.com/goatindex/goal-bingo/issues/27): verify GB-CON-013/
-GB-CON-014's recovery-floor property against `sim/jam_sim.py`. Unlike every other
-WP this session, it's analysis-only — no application code. `D-2026-09-21-21` verifies
-both directly from the existing `sim/results.md` (experiment A1 for the shipped
-5x5 config, A4's `grid = 7` table for the one size the board can expand to) rather
-than re-running the simulation: every later change (recycle-allowance upgrade,
-challenge completion bonuses, advanced tiles, swap, grid-expansion pricing) either
-doesn't touch what the simulation models, or can only improve on its numbers, argued
-explicitly rather than assumed.
+WP-10 is closed (#27): GB-CON-013/GB-CON-014's recovery-floor property verified
+directly from the existing `sim/results.md` evidence, no fresh simulation run
+needed — see `D-2026-09-21-21`.
 
 ## Next up
 
-- **Build #119** (mini-grid model, blocked by #118, now merged) and **#120**
-  (mini-grid integration, blocked by #119) — the rest of WP-08's four sub-issues.
-- **Close WP-10 (#27)** once #123's PR merges — it's the package's only sub-issue.
+- **Build #120** (mini-grid integration, blocked by #119, now merged) — the last of
+  WP-08's four sub-issues. Once it lands, close WP-08 (#25).
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -62,7 +55,28 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#123 (verify the recovery floor) built** (this PR), WP-10's only sub-issue,
+- **#119 (mini-grid model) built** (this PR), third of WP-08's four sub-issues:
+  `lines.ts`'s `allLines`/`linesThroughIndex` loosened from the main board's
+  `BoardSize` union to plain `number` — general square-grid algorithms with no
+  dependency on the literal 5/7 values, so a mini-grid's differently-sized internal
+  board reuses them directly instead of a parallel implementation. `board.ts`'s
+  `AdvancedTile` union gains a `'mini-grid'` variant (`{kind: 'mini-grid', cells:
+  Cell[]}`, its own internal cells are plain `Cell`s — no nested mini-grids);
+  `markCell` refuses a direct tap on a mini-grid's parent cell (a no-op, the same
+  shape as an already-marked cell) since only completing its internal line marks it.
+  New `app/src/miniGrid.ts` — `createMiniGrid(pool, rng)` populates 9 cells with
+  `draw.ts`'s cadence-weighted `drawWeighted` (GB-FUN-048; no main-board placement
+  rules, which exist for jam-avoidance concerns a 3x3 internal grid does not share);
+  `markMiniGridCell(cells, index, pool, rng)` taps an internal cell, and on
+  completing an internal line, refills it and reports the clear's own score (reusing
+  `lines.ts`'s exported `CADENCE_BASE_VALUE`/`COMBO_BONUS_RATIO`/
+  `MULTI_CLEAR_BONUS_RATIO` directly, so "the same formula" is genuinely the same
+  code, minus the main board's adjacency term, which has no meaning inside a
+  mini-grid) and that the parent cell should now be marked. Wiring that report into
+  the main board (GB-FUN-049's cascading clear, GB-FUN-050's full-board bonus) is
+  the next issue. 8 new tests (7 `miniGrid.test.ts`, 1 `board.test.ts`), 146/146
+  passing.
+- **#123 (verify the recovery floor) built** (PR #124), WP-10's only sub-issue,
   built in parallel with WP-08: `sim/jam_sim.py`'s `DEFAULTS`/`SHORT_MIX` confirmed
   to match `draw.ts`'s `LONG_TERM_DRAW_SHARE`/`SHORT_CADENCE_MIX` and `recycle.ts`'s
   `RECYCLE_COST` exactly. `D-2026-09-21-21` verifies GB-CON-013 from the existing A1

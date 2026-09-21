@@ -188,7 +188,8 @@ describe('multi-completion tiles (GB-FUN-045)', () => {
       board = result.board
     }
     expect(board.cells[0]!.marked).toBe(true)
-    expect(board.cells[0]!.advanced?.completionsSoFar).toBe(3)
+    const advanced = board.cells[0]!.advanced
+    expect(advanced?.kind === 'multi-completion' && advanced.completionsSoFar).toBe(3)
   })
 
   it('tapping an already-marked multi-completion tile is a no-op, same board reference', () => {
@@ -200,5 +201,21 @@ describe('multi-completion tiles (GB-FUN-045)', () => {
     expect(board.cells[0]!.marked).toBe(true)
     const second = markCell(board, 0)
     expect(second).toEqual({ ok: true, board })
+  })
+})
+
+describe('mini-grid tiles (GB-FUN-047)', () => {
+  it('a direct tap on a mini-grid cell is a no-op - it never marks from an external tap', () => {
+    const pool = STARTER_POOL.map((g) => ({ ...g }))
+    const result = createBoard(5, pool, () => 0)
+    if (!result.ok) throw new Error('unreachable: STARTER_POOL is never empty')
+    const cells = result.board.cells.slice()
+    cells[0] = {
+      ...cells[0]!,
+      advanced: { kind: 'mini-grid', cells: [{ goal: pool[0]!, marked: false }] },
+    }
+    const board = { ...result.board, cells }
+    const marked = markCell(board, 0)
+    expect(marked).toEqual({ ok: true, board })
   })
 })

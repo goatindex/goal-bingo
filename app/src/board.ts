@@ -14,12 +14,12 @@ export function isSupportedSize(size: number): size is BoardSize {
 }
 
 /** Advanced tile state a cell can carry on top of its ordinary goal/marked pair
- *  (§3.2: "Ordinary tiles need one completion. Advanced tiles need more."). */
-export type AdvancedTile = {
-  kind: 'multi-completion'
-  completionsRequired: number
-  completionsSoFar: number
-}
+ *  (§3.2: "Ordinary tiles need one completion. Advanced tiles need more."). A
+ *  mini-grid's own internal cells are plain `Cell`s themselves (never carrying a
+ *  further `advanced` field - no nested mini-grids). */
+export type AdvancedTile =
+  | { kind: 'multi-completion'; completionsRequired: number; completionsSoFar: number }
+  | { kind: 'mini-grid'; cells: Cell[] }
 
 export type Cell = { goal: Goal; marked: boolean; advanced?: AdvancedTile }
 
@@ -121,12 +121,17 @@ export type MarkResult = { ok: true; board: Board } | { ok: false; reason: 'inva
  *
  * A multi-completion tile (GB-FUN-045) increments its progress instead of marking
  * immediately, only reaching `marked: true` on the tap that meets its required count
- * — every other cell shape keeps today's one-tap behaviour unchanged.
+ * — every other cell shape keeps today's one-tap behaviour unchanged. A mini-grid
+ * tile (GB-FUN-047) never marks from a direct tap on its parent index at all — a
+ * no-op, the same shape as tapping an already-marked cell — since completing its
+ * internal line is the sole condition that marks it; that happens through a separate
+ * mini-grid-specific interaction, not this function.
  */
 export function markCell(board: Board, index: number): MarkResult {
   const cell = board.cells[index]
   if (!cell) return { ok: false, reason: 'invalid-cell' }
   if (cell.marked) return { ok: true, board }
+  if (cell.advanced?.kind === 'mini-grid') return { ok: true, board }
   const cells = board.cells.slice()
   if (cell.advanced?.kind === 'multi-completion') {
     const completionsSoFar = cell.advanced.completionsSoFar + 1
