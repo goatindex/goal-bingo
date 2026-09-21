@@ -1,10 +1,11 @@
 /** Mini-grid tiles: a self-contained internal board nested in one main-board cell
- *  (GB-FUN-047, GB-FUN-048). */
+ *  (GB-FUN-047, GB-FUN-048, GB-FUN-049, GB-FUN-050). */
 
-import type { AdvancedTile, Cell } from './board'
+import type { AdvancedTile, Board, Cell } from './board'
 import { drawWeighted } from './draw'
 import {
   linesThroughIndex,
+  resolveLineClears,
   CADENCE_BASE_VALUE,
   COMBO_BONUS_RATIO,
   MULTI_CLEAR_BONUS_RATIO,
@@ -105,4 +106,68 @@ export function markMiniGridCell(
   }
 
   return { ok: true, cells: refilled, scoreDelta, parentShouldMark: true }
+}
+
+/** +100% of the mini-grid clear's own value when it is the last cell to clear on the
+ *  whole main board (GB-FUN-050, D-2026-09-21-19). */
+export const FULL_BOARD_BONUS_RATIO = 1.0
+
+export type MiniGridBoardResult =
+  | { ok: true; board: Board; scoreDelta: number }
+  | { ok: false; reason: 'invalid-cell' | 'not-mini-grid' | 'empty-pool' }
+
+/**
+ * Tap a cell inside the mini-grid tile at `parentIndex` on the main board. Always
+ * updates the parent cell's internal grid state. If the tap completes an internal
+ * line, the parent cell is marked directly (bypassing `markCell`'s own refusal of a
+ * *direct external* tap on a mini-grid cell - that guard exists for a raw tap on the
+ * parent index, not for this, the one legitimate path that marks it) and
+ * `resolveLineClears` runs from there so any main-board line through the parent
+ * index cascades through the normal pipeline (GB-FUN-049). If the parent cell was
+ * the only remaining unmarked cell on the main board *before* it was marked, an
+ * additional full-board bonus is added on top of every other component
+ * (GB-FUN-050).
+ */
+export function markMiniGridCellOnBoard(
+  board: Board,
+  parentIndex: number,
+  internalIndex: number,
+  pool: Goal[],
+  rng: () => number = Math.random,
+): MiniGridBoardResult {
+  const parentCell = board.cells[parentIndex]
+  if (!parentCell) return { ok: false, reason: 'invalid-cell' }
+  if (parentCell.advanced?.kind !== 'mini-grid') return { ok: false, reason: 'not-mini-grid' }
+
+  const tapped = markMiniGridCell(parentCell.advanced.cells, internalIndex, pool, rng)
+  if (!tapped.ok) return { ok: false, reason: tapped.reason }
+
+  const cellsWithUpdatedGrid = board.cells.slice()
+  cellsWithUpdatedGrid[parentIndex] = {
+    ...parentCell,
+    advanced: { kind: 'mini-grid', cells: tapped.cells },
+  }
+  const boardWithUpdatedGrid: Board = { ...board, cells: cellsWithUpdatedGrid }
+
+  if (!tapped.parentShouldMark) {
+    return { ok: true, board: boardWithUpdatedGrid, scoreDelta: tapped.scoreDelta }
+  }
+
+  // Checked before marking: the parent cell itself counts as the one still-unmarked
+  // cell, so this can only be true on the mark that would leave zero cells unmarked.
+  const wasLastUnmarked = boardWithUpdatedGrid.cells.every(
+    (c, i) => i === parentIndex || c.marked,
+  )
+
+  const markedCells = boardWithUpdatedGrid.cells.slice()
+  markedCells[parentIndex] = { ...boardWithUpdatedGrid.cells[parentIndex]!, marked: true }
+  const markedBoard: Board = { ...boardWithUpdatedGrid, cells: markedCells }
+
+  const resolved = resolveLineClears(markedBoard, parentIndex, pool, rng)
+  if (!resolved.ok) return { ok: false, reason: resolved.reason }
+
+  const fullBoardBonus = wasLastUnmarked ? Math.round(tapped.scoreDelta * FULL_BOARD_BONUS_RATIO) : 0
+  const scoreDelta = tapped.scoreDelta + resolved.outcome.scoreDelta + fullBoardBonus
+
+  return { ok: true, board: resolved.outcome.board, scoreDelta }
 }

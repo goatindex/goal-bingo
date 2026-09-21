@@ -23,8 +23,8 @@ expansion). None of these had simulation evidence — advanced tiles sit entirel
 outside `sim/jam_sim.py`'s scope. This WP ships eligibility + tile mechanics as
 fully-tested, directly-constructible domain logic; no code path causes an advanced
 tile to appear on a board through ordinary play yet (flagged, not silently
-resolved). Three of four sub-issues merged (#117, #118, #119); #120 (mini-grid
-integration, blocked by #119) is the last piece.
+resolved). All four sub-issues built (#117, #118, #119, #120); WP-08 (#25) closes
+once #120 merges.
 
 WP-10 is closed (#27): GB-CON-013/GB-CON-014's recovery-floor property verified
 directly from the existing `sim/results.md` evidence, no fresh simulation run
@@ -32,8 +32,9 @@ needed — see `D-2026-09-21-21`.
 
 ## Next up
 
-- **Build #120** (mini-grid integration, blocked by #119, now merged) — the last of
-  WP-08's four sub-issues. Once it lands, close WP-08 (#25).
+- **Close WP-08 (#25)** once #120 merges — its last sub-issue. This closes every WP
+  in `work-packages/cut.md` (WP-01 through WP-10); report to the user and ask what's
+  next rather than assuming further scope.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -55,7 +56,28 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#119 (mini-grid model) built** (this PR), third of WP-08's four sub-issues:
+- **#120 (mini-grid integration) built** (this PR), the last of WP-08's four
+  sub-issues: new `markMiniGridCellOnBoard(board, parentIndex, internalIndex, pool,
+  rng)` in `app/src/miniGrid.ts` taps the mini-grid's internal grid via the existing
+  `markMiniGridCell`, then — only when that completes an internal line — bypasses
+  `markCell`'s own no-op guard against a *direct* external tap on a mini-grid cell
+  (that guard exists for a raw tap on the parent index, not this, the one legitimate
+  path that marks it) by setting `marked: true` directly and calling
+  `resolveLineClears` itself, so any main-board line through the parent index
+  cascades through the normal clear pipeline (GB-FUN-049). Adds
+  `FULL_BOARD_BONUS_RATIO = 1.0`: +100% of the mini-grid clear's own value when the
+  parent cell was the only cell left unmarked on the whole main board *before* it was
+  marked — the only reading under which that condition can ever be true (GB-FUN-050,
+  `D-2026-09-21-19`). `lines.ts`'s `allLines`/`linesThroughIndex`, loosened to plain
+  `number` when #119 landed, is what lets the mini-grid's own 3x3 internal grid reuse
+  the identical line-enumeration code. 6 new tests, 152/152 passing — verified the
+  full-board bonus with a delta-comparison technique (run the same near-full-board
+  scenario twice, once with one extra, line-and-adjacency-safe cell left unmarked,
+  and assert the score difference equals exactly the mini-grid clear's own value)
+  rather than hand-computing a 3-line simultaneous cascade by hand. No UI wiring —
+  mini-grid creation/placement stays out of scope (`D-2026-09-21-16`), matching
+  #117/#118/#119's precedent.
+- **#119 (mini-grid model) built** (PR #125), third of WP-08's four sub-issues:
   `lines.ts`'s `allLines`/`linesThroughIndex` loosened from the main board's
   `BoardSize` union to plain `number` — general square-grid algorithms with no
   dependency on the literal 5/7 values, so a mini-grid's differently-sized internal
