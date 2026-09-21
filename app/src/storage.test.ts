@@ -42,6 +42,7 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.recycle).toEqual(state.recycle)
     expect(loaded.state.stats).toEqual(state.stats)
     expect(loaded.state.achievements).toEqual(state.achievements)
+    expect(loaded.state.advancedTileAccess).toEqual(state.advancedTileAccess)
   })
 
   it('soft-resets to a playable starter pool when storage is corrupt', () => {
@@ -93,6 +94,11 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(typeof loaded.state.stats.firstPlayedAt).toBe('number')
     // Pre-#109 saves never wrote achievements - migration must start a fresh, empty list.
     expect(loaded.state.achievements).toEqual([])
+    // Pre-#117 saves never wrote advanced-tile progress - migration must start fresh.
+    expect(loaded.state.advancedTileAccess).toEqual({
+      unlockedCategories: [],
+      marksByCategory: {},
+    })
   })
 
   it('migrates a legacy save with malformed rewards to an empty reward list', () => {
