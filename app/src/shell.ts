@@ -95,6 +95,8 @@ function renderHome(state: GameState, lastIntersectionCells: number[]): string {
     <section class="shell__status" aria-label="Local status">
       <p>Pool: <strong data-testid="pool-count">${state.pool.length}</strong> goals</p>
       <p>Lifetime: <strong data-testid="lifetime">${state.score.lifetime}</strong></p>
+      <p>Reward balance: <strong data-testid="reward-balance">${state.score.rewardBalance}</strong></p>
+      <p>Board balance: <strong data-testid="board-balance">${state.score.boardBalance}</strong></p>
       <p class="shell__hint">No account. Works offline. Data stays on this device.</p>
     </section>
     ${renderBoard(state.board, lastIntersectionCells)}
