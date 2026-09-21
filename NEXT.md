@@ -4,24 +4,21 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — build WP-04 (draw engine).** WP-01 (platform shell, #18), WP-02 (goal pool,
-#19), and WP-03 (board loop, [#20](https://github.com/goatindex/goal-bingo/issues/20))
-are all closed. WP-03's five sub-issues: [#63](https://github.com/goatindex/goal-bingo/issues/63)
-board model (PR #67), [#64](https://github.com/goatindex/goal-bingo/issues/64) marking
-(PR #69), [#65](https://github.com/goatindex/goal-bingo/issues/65) single-line clear
-(PR #71), [#66](https://github.com/goatindex/goal-bingo/issues/66) multi-line clear
-(PR #72), [#73](https://github.com/goatindex/goal-bingo/issues/73) board UI (PR #74).
-WP-04 is [#21](https://github.com/goatindex/goal-bingo/issues/21): weighted refill,
-binding placement rules, ~5% long-term draw share (GB-FUN-022, 023, 024, 026, 027) — both
-sub-issues closed: [#77](https://github.com/goatindex/goal-bingo/issues/77)
-cadence-weighted draw (PR #79), [#78](https://github.com/goatindex/goal-bingo/issues/78)
-binding placement rules (this PR). WP-04 is ready to close.
+**Link 5 — build WP-05 (scoring & ledgers).** WP-01 (platform shell, #18), WP-02 (goal
+pool, #19), WP-03 (board loop, #20), and WP-04 (draw engine,
+[#21](https://github.com/goatindex/goal-bingo/issues/21)) are all closed. WP-04's two
+sub-issues: [#77](https://github.com/goatindex/goal-bingo/issues/77) cadence-weighted
+draw (PR #79), [#78](https://github.com/goatindex/goal-bingo/issues/78) binding placement
+rules (PR #80). WP-05 is [#22](https://github.com/goatindex/goal-bingo/issues/22): reward
+balance on clear, combos, adjacency config hook (GB-FUN-003, 028-035, 034b, 068,
+GB-CON-005/006/007) — the last package in the first shippable slice.
 
 ## Next up
 
-- **Close #21 (WP-04)** now that both sub-issues are merged, and move link 5 on to WP-05
-  ([#22](https://github.com/goatindex/goal-bingo/issues/22), scoring & ledgers).
-- **First shippable slice:** WP-01 → WP-05 (#18–#22); three of five packages closed.
+- **File work items for WP-05** and pick up the scoring/ledgers build. It extends
+  `lines.ts`'s `resolveLineClears` (GB-FUN-003: reward balance on clear) — that
+  interface is now settled by WP-04, so this should build against it cleanly.
+- **First shippable slice:** WP-01 → WP-05 (#18–#22); four of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -43,7 +40,10 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#78 (binding placement rules) built** (this PR), closing WP-04: `draw.ts`'s
+- **WP-04 (draw engine, #21) closed.** Both sub-issues merged: #77 cadence-weighted
+  draw (PR #79), #78 binding placement rules (PR #80). Link 5 moves on to WP-05 (#22,
+  scoring & ledgers) — the last package in the first shippable slice.
+- **#78 (binding placement rules) built** (PR #80), closing WP-04: `draw.ts`'s
   `drawForCell` layers both binding rules on top of `drawWeighted` — no long-term goal
   in a row/column that already has one (GB-FUN-023), no category over 40% of board
   cells (`CATEGORY_DOMINATION_THRESHOLD`, `D-2026-09-21-2`, GB-FUN-024) — falling
