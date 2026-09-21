@@ -3,6 +3,119 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-19 — Mini-grid full-board bonus is +100% of the clear's value
+
+- **Status:** open
+- **Context:** GB-FUN-050 requires a full-board bonus when a mini-grid tile's internal
+  clear is also the last cell to clear on the entire main board, with the amount
+  explicitly flagged as TBD, blocked on Q7. Q7 (base point values) is now resolved
+  (`D-2026-09-21-3/4/5`), so a bonus can be set relative to an already-established
+  clear value the way `MULTI_CLEAR_BONUS_RATIO` already is.
+- **Options considered:** +50%, reusing `MULTI_CLEAR_BONUS_RATIO`'s exact magnitude —
+  rejected, a full-board clear (the single rarest event the game can produce — every
+  other cell on the entire board already cleared) is qualitatively rarer than a
+  same-mark multi-line clear and should not share its bonus size · +200% (triple) —
+  rejected as a first cut, risks the bonus dominating the score of whatever line it
+  rode in on, making the underlying clear's own value feel irrelevant · **+100% of
+  the clear's value (chosen)** — doubles the mini-grid clear's value, distinctly
+  larger than the multi-clear bonus without swamping it.
+- **Why:** confirmed with the user directly — no simulation or existing requirement
+  resolves this magnitude; achievements and advanced tiles sit entirely outside
+  `sim/jam_sim.py`'s scope.
+- **Expected outcome:** When a mini-grid tile's internal line completes and that cell
+  was the only remaining unmarked cell on the main board, the score award includes an
+  additional 100% of that clear's own value on top of the normal award.
+- **Revisit:** After first playtest, alongside the other placeholder-grade scoring
+  constants from `D-2026-09-21-3/4/5`.
+
+## D-2026-09-21-18 — Multi-completion tiles default to 3 completions required
+
+- **Status:** open
+- **Context:** GB-FUN-045 requires a configured number of completions per
+  multi-completion tile, "set at tile creation" per its own notes — a link-4
+  decision. No simulation or existing requirement sets a default.
+- **Options considered:** 2, the minimum the requirement's own wording ("two or
+  more") allows — rejected as a default, barely distinguishable from an ordinary
+  tile and undersells the "visible, structured commitment" framing (§7.1) · 5 —
+  rejected as a first cut, a much larger step that risks feeling closer to a second
+  long-term blocker than a moving, structured goal · **3 (chosen)** — a small but
+  real multi-step commitment, matching WP-09's sustained-run achievement threshold
+  (`D-2026-09-21-13`, also 3) for what this project treats as "visibly more than
+  once."
+- **Why:** confirmed with the user directly — no evidence exists to ground this
+  number; picked for consistency with the one other "how many repeats counts as
+  meaningful" number already set this session.
+- **Expected outcome:** A multi-completion tile created without an explicit override
+  requires 3 taps before it counts as marked. The mechanism itself stays fully
+  parametric (any N is a valid input to the marking function) — this decision sets
+  only the default a future creation/draw pathway should use.
+- **Revisit:** After first playtest, or if a future advanced-tile type needs a
+  different default (this decision covers the one type shipping now).
+
+## D-2026-09-21-17 — Advanced-tile acquisition: 50 marks per category, 150 board balance secondary unlock
+
+- **Status:** open
+- **Context:** GB-FUN-043 needs a per-category lifetime mark threshold (progression
+  unlock path) and GB-FUN-044 needs a board-balance price (economy secondary unlock
+  path) for advanced-tile eligibility. Neither has simulation evidence — advanced
+  tiles sit entirely outside `sim/jam_sim.py`'s scope. This requires a new counter
+  (lifetime marks per category) that nothing currently tracks: WP-09's
+  `stats.clearsByCategory` counts cleared cells, not raw marks, and WP-06's
+  category challenges reset their counter every 10 marks (`D-2026-09-21-7`) rather
+  than accumulating a lifetime total.
+- **Options considered:** 25 marks / 100 board balance — rejected as a first cut,
+  makes advanced tiles a near-term unlock reachable inside a single play session,
+  undercutting the "bought into after some play" framing (§7) · 100 marks / 250
+  board balance, matching grid expansion's own price — rejected as a first cut, a
+  per-category advanced-tile unlock is a narrower, more repeatable reward than the
+  single main long-arc progression item and shouldn't cost the same · **50 marks /
+  150 board balance (chosen)** — roughly 5 challenge-cycles of focused play in one
+  category (the universal/category/cadence challenge target is 10 marks per cycle,
+  `D-2026-09-21-7`), and a price between the recycle-allowance upgrade (100,
+  `D-2026-09-21-11`) and grid expansion (250, `D-2026-09-21-9`).
+- **Why:** confirmed with the user directly — no evidence exists to ground either
+  number; chosen to sit at a meaningful-but-reachable point relative to every other
+  pacing number already set this session, rather than in isolation.
+- **Expected outcome:** A category becomes advanced-tile-eligible the moment either
+  path is satisfied: 50 lifetime marks recorded in that category, or a 150-board-
+  balance purchase. Reaching the threshold after already purchasing (or vice versa)
+  does not create two independent unlocks — eligibility is a single flag per
+  category.
+- **Revisit:** After first playtest, alongside the other WP-07/WP-08 pricing
+  decisions.
+
+## D-2026-09-21-16 — Advanced-tile draw/placement mechanism is out of scope for WP-08
+
+- **Status:** open
+- **Context:** None of WP-08's 8 requirements (GB-FUN-043–050) specify how an
+  advanced tile actually appears in a board cell once a category is eligible —
+  GB-FUN-043/044 only grant "availability"/"access," and GB-FUN-045–050 describe tile
+  *behaviour* (completion counting, mini-grid clearing and scoring) assuming a tile
+  instance already exists somewhere to behave. `work-packages/cut.md`'s partition is
+  enforced exact (`scripts/partition_check.py`), and the WP-08 tracking issue itself
+  says "do not silently absorb neighbouring requirements — raise a re-cut if the
+  boundary is wrong."
+- **Options considered:** invent a draw-integration mechanism now (e.g. a flat
+  per-mark chance for an eligible category to draw an advanced variant) so the
+  feature is playable end-to-end — rejected, no requirement asks for this and no
+  evidence grounds a probability; inventing one risks committing to unrequested,
+  unfounded policy the same way a silently-absorbed requirement would · **build the
+  eligibility gate and tile mechanics only; leave draw/placement as an explicitly
+  flagged gap (chosen)** — every GB-FUN-043–050 acceptance criterion is satisfiable
+  by directly constructing a tile instance in a test, without deciding how the game
+  would place one during ordinary play.
+- **Why:** confirmed with the user directly. This mirrors WP-06's calendar-period
+  scope note and WP-07's swap-price gap — a genuine gap in the baselined requirement
+  set, flagged rather than silently resolved one way.
+- **Expected outcome:** WP-08 ships advanced-tile eligibility (per-category flag,
+  two unlock paths) and fully working multi-completion/mini-grid tile mechanics,
+  each independently constructible and testable. No code path in this WP causes an
+  advanced tile to appear on a board through ordinary play — that mechanism is
+  undesigned and unscoped, flagged in `NEXT.md` for a future decision.
+- **Revisit:** When a future work item designs how eligible categories actually
+  produce advanced tiles during play — this decision's "out of scope" framing should
+  be revisited at that point, not before.
+
 ## D-2026-09-21-15 — "Large grid" achievement threshold is size 7
 
 - **Status:** open

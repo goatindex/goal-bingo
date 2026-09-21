@@ -4,17 +4,27 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — WP-09 closed; pick the next work package.** WP-01 → WP-09 (#18–#26,
-except WP-08) are all closed. Statistics (lifetime score, category breakdown, clear
-history, average clears per day) and the minimum achievement set (first clear, large
-grid, sustained run, rare combination) are live on a new "Stats" nav tab. Per
-`work-packages/cut.md`'s build order, **WP-08 (advanced tiles)** and **WP-10 (floor
-constraints)** are both unblocked (both needed WP-07, already closed). Neither
-started yet — pick one to begin.
+**Link 5 — build WP-08 (advanced tiles).** WP-01 → WP-07, WP-09 (#18–#26 except
+WP-08) are all closed. WP-08 is [#25](https://github.com/goatindex/goal-bingo/issues/25):
+per-category advanced-tile eligibility, multi-completion tiles, and mini-grid tiles
+— GB-FUN-043–050. Five TBDs resolved: `D-2026-09-21-16` (draw/placement mechanism —
+how an eligible category's advanced tiles actually reach a board cell — is out of
+scope; no GB-FUN-043–050 requirement specifies it, and inventing one would be the
+same silently-absorbed-scope mistake the WP-08 issue itself warns against),
+`D-2026-09-21-17` (acquisition: 50 lifetime marks per category or 150 board balance,
+either path sets the same eligibility flag), `D-2026-09-21-18` (multi-completion
+tiles default to 3 completions, matching WP-09's sustained-run precedent),
+`D-2026-09-21-19` (mini-grid full-board bonus is +100% of the clear's value, now
+unblocked since Q7's base point values are resolved). None of these had simulation
+evidence — advanced tiles sit entirely outside `sim/jam_sim.py`'s scope. This WP
+ships eligibility + tile mechanics as fully-tested, directly-constructible domain
+logic; no code path causes an advanced tile to appear on a board through ordinary
+play yet (flagged, not silently resolved). WP-10 (floor constraints) is also
+unblocked but not started.
 
 ## Next up
 
-- **Start WP-08 or WP-10** (see Current focus for why both are unblocked).
+- **File work items for WP-08** and pick up the advanced-tiles build.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -36,7 +46,21 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#110 (statistics and achievements display view) built** (this PR), closing
+- **Resolved WP-08's four TBDs, plus a scope gap** (this PR): `D-2026-09-21-16` — no
+  GB-FUN-043–050 requirement specifies how an eligible category's advanced tiles
+  actually reach a board cell during ordinary play; confirmed with the user to leave
+  this unscoped rather than invent an ungrounded draw-integration policy, matching
+  the WP-08 issue's own "do not silently absorb neighbouring requirements" warning.
+  `D-2026-09-21-17` — advanced-tile eligibility: 50 lifetime marks in a category, or
+  150 board balance, either path sets the same per-category flag (a new lifetime
+  per-category mark counter is needed — neither WP-09's `stats.clearsByCategory`,
+  which counts cleared cells, nor WP-06's category challenges, which reset every 10
+  marks, already track this). `D-2026-09-21-18` — multi-completion tiles default to
+  3 completions, matching WP-09's sustained-run precedent. `D-2026-09-21-19` —
+  mini-grid full-board bonus is +100% of the clear's own value, unblocked now that
+  Q7's base point values are resolved. None had simulation evidence; achievements
+  and advanced tiles sit entirely outside `sim/jam_sim.py`'s scope.
+- **#110 (statistics and achievements display view) built** (PR #113), closing
   WP-09's last sub-issue: `shell.ts` gains a 6th nav tab, "Stats" (`ShellView` union
   extended to `'stats'`), and `renderStats(state)` shows the lifetime score (already
   tracked since WP-05), the average-clears-per-day figure, a category breakdown
