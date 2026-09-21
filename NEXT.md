@@ -4,37 +4,29 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — WP-08 and WP-10 both in progress.** WP-01 → WP-07, WP-09 (#18–#26 except
-WP-08) are all closed; WP-08 and WP-10 are being built in parallel (both only needed
-WP-07). WP-08 is [#25](https://github.com/goatindex/goal-bingo/issues/25):
-per-category advanced-tile eligibility, multi-completion tiles, and mini-grid tiles
-— GB-FUN-043–050. Six TBDs resolved: `D-2026-09-21-16` (draw/placement mechanism —
-how an eligible category's advanced tiles actually reach a board cell — is out of
-scope; no GB-FUN-043–050 requirement specifies it, and inventing one would be the
-same silently-absorbed-scope mistake the WP-08 issue itself warns against),
-`D-2026-09-21-17` (acquisition: 50 lifetime marks per category or 150 board balance,
-either path sets the same eligibility flag), `D-2026-09-21-18` (multi-completion
-tiles default to 3 completions, matching WP-09's sustained-run precedent),
-`D-2026-09-21-19` (mini-grid full-board bonus is +100% of the clear's value, now
-unblocked since Q7's base point values are resolved), `D-2026-09-21-20` (mini-grid
-internal size is 3x3, found while scoping the mini-grid issue — distinct from the
-main board's `SUPPORTED_SIZES`, which stays reserved for GB-CON-014's sim-validated
-expansion). None of these had simulation evidence — advanced tiles sit entirely
-outside `sim/jam_sim.py`'s scope. This WP ships eligibility + tile mechanics as
-fully-tested, directly-constructible domain logic; no code path causes an advanced
-tile to appear on a board through ordinary play yet (flagged, not silently
-resolved). All four sub-issues built (#117, #118, #119, #120); WP-08 (#25) closes
-once #120 merges.
+**Link 5 build phase complete — all 10 work packages closed.** WP-01 through WP-10
+(issues [#18](https://github.com/goatindex/goal-bingo/issues/18)–[#27](https://github.com/goatindex/goal-bingo/issues/27))
+are every package `work-packages/cut.md` cut from the requirement set, and every one
+is now closed. WP-08 ([#25](https://github.com/goatindex/goal-bingo/issues/25),
+per-category advanced-tile eligibility, multi-completion tiles, mini-grid tiles —
+GB-FUN-043–050) was last to close: four sub-issues (#117, #118, #119, #120) and six
+TBDs resolved along the way (`D-2026-09-21-16` through `-21`), all listed in Done
+below. WP-10 ([#27](https://github.com/goatindex/goal-bingo/issues/27),
+GB-CON-013/GB-CON-014) closed via analysis of existing `sim/results.md` evidence, no
+fresh simulation run — see `D-2026-09-21-21`.
 
-WP-10 is closed (#27): GB-CON-013/GB-CON-014's recovery-floor property verified
-directly from the existing `sim/results.md` evidence, no fresh simulation run
-needed — see `D-2026-09-21-21`.
+Advanced tiles (WP-08) ship as fully-tested, directly-constructible domain logic; no
+code path causes one to appear on a board through ordinary play yet — draw/placement
+integration is explicitly out of scope (`D-2026-09-21-16`), flagged rather than
+silently absorbed.
+
+**Nothing in `work-packages/cut.md` is left to build.** This is a stopping point to
+report to the user and ask what's next, not a cue to invent further scope.
 
 ## Next up
 
-- **Close WP-08 (#25)** once #120 merges — its last sub-issue. This closes every WP
-  in `work-packages/cut.md` (WP-01 through WP-10); report to the user and ask what's
-  next rather than assuming further scope.
+- **Ask the user what's next** — every cut work package is closed; there is no
+  further build-order item queued.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -51,12 +43,16 @@ needed — see `D-2026-09-21-21`.
 
 ## Done means
 
-WP-03 is done when its acceptance criteria pass and the board loop is on `main`. Link 5
-continues with WP-04.
+A work package is done when its acceptance criteria pass and the code is on `main`.
+As of this session, every package in `work-packages/cut.md` (WP-01 through WP-10) is
+done — link 5's build phase is complete.
 
 ## Done (2026-09-21 session)
 
-- **#120 (mini-grid integration) built** (this PR), the last of WP-08's four
+- **WP-08 (#25) closed.** All four sub-issues merged: #117, #118, #119, #120. This
+  was the last open work package — WP-01 through WP-10 (`work-packages/cut.md`) are
+  now all closed, completing link 5's build phase.
+- **#120 (mini-grid integration) built** (PR #126), the last of WP-08's four
   sub-issues: new `markMiniGridCellOnBoard(board, parentIndex, internalIndex, pool,
   rng)` in `app/src/miniGrid.ts` taps the mini-grid's internal grid via the existing
   `markMiniGridCell`, then — only when that completes an internal line — bypasses
