@@ -27,7 +27,9 @@ unblocked but not started.
 
 ## Next up
 
-- **File work items for WP-08** and pick up the advanced-tiles build.
+- **Build #118** (multi-completion tiles), **#119** (mini-grid model, blocked by
+  #118), and **#120** (mini-grid integration, blocked by #119) — the rest of WP-08's
+  four sub-issues; #117 (advanced-tile eligibility) is merged.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -49,7 +51,23 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **Resolved a fifth WP-08 gap found while scoping** (this PR): `D-2026-09-21-20` —
+- **#117 (advanced-tile eligibility) built** (this PR), first of WP-08's four
+  sub-issues: new `app/src/advancedUnlock.ts` — `recordAdvancedTileProgress(access,
+  category)` tracks a lifetime per-category mark count (independent of WP-09's
+  `stats.clearsByCategory`, which counts cleared cells, and WP-06's category
+  challenges, which reset every 10 marks) and auto-unlocks eligibility at 50 marks
+  (`D-2026-09-21-17`); `purchaseAdvancedTileUnlock` is the board-balance secondary
+  path (150), refusing with no state change if already unlocked or balance is
+  insufficient. `main.ts`'s `onMarkCell` records progress only on a genuine new mark,
+  the same `isNewMark` guard `challenges.ts` already established. `storage.ts`'s
+  `GameState.advancedTileAccess` follows the established precedent. No UI — neither
+  GB-FUN-043 nor GB-FUN-044 requires display, following #93/#94/#99's precedent; how
+  an eligible category's advanced tiles reach a board cell stays explicitly out of
+  scope (`D-2026-09-21-16`). 9 new tests, 133/133 passing. Verified live: set a
+  category to 49 marks via `localStorage`, marked one real cell of that category
+  through the UI, confirmed eligibility unlocked at exactly 50; confirmed re-tapping
+  an already-marked cell left the count unchanged; no console errors.
+- **Resolved a fifth WP-08 gap found while scoping** (PR #116): `D-2026-09-21-20` —
   mini-grid internal size is 3x3, distinct from the main board's `SUPPORTED_SIZES`
   (reserved for GB-CON-014's sim-validated expansion). Confirmed with the user; no
   requirement or simulation sets this.

@@ -1,6 +1,8 @@
 /** Local-first persistence envelope (GB-DAT-001, GB-FUN-066). */
 
 import { ACHIEVEMENT_IDS, type Achievement } from './achievements'
+import type { AdvancedTileAccess } from './advancedUnlock'
+import { freshAdvancedTileAccess } from './advancedUnlock'
 import type { Board } from './board'
 import { createBoard, isSupportedSize } from './board'
 import { DEFAULT_CATEGORIES } from './categories'
@@ -27,6 +29,7 @@ export type GameState = {
   recycle: RecycleState
   stats: Stats
   achievements: Achievement[]
+  advancedTileAccess: AdvancedTileAccess
 }
 
 export const FRESH_RECYCLE_STATE: RecycleState = {
@@ -71,6 +74,7 @@ export function freshState(): GameState {
     recycle: { ...FRESH_RECYCLE_STATE },
     stats: freshStats(),
     achievements: [],
+    advancedTileAccess: freshAdvancedTileAccess(),
   }
 }
 
@@ -165,6 +169,16 @@ function isAchievement(value: unknown): value is Achievement {
   )
 }
 
+function isAdvancedTileAccess(value: unknown): value is AdvancedTileAccess {
+  if (!value || typeof value !== 'object') return false
+  const a = value as Record<string, unknown>
+  return (
+    Array.isArray(a.unlockedCategories) &&
+    a.unlockedCategories.every((c) => typeof c === 'string') &&
+    isStringRecord(a.marksByCategory)
+  )
+}
+
 function isGameState(value: unknown): value is GameState {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
@@ -184,7 +198,8 @@ function isGameState(value: unknown): value is GameState {
     isRecycleState(v.recycle) &&
     isStats(v.stats) &&
     Array.isArray(v.achievements) &&
-    v.achievements.every(isAchievement)
+    v.achievements.every(isAchievement) &&
+    isAdvancedTileAccess(v.advancedTileAccess)
   )
 }
 
@@ -259,6 +274,9 @@ export function loadState(storage: Storage = localStorage): {
           // Pre-#109 saves never wrote achievements - a returning player re-earns
           // them rather than trusting unvalidated data.
           achievements: [],
+          // Pre-#117 saves never wrote advanced-tile progress - a returning player
+          // re-earns eligibility rather than trusting unvalidated data.
+          advancedTileAccess: freshAdvancedTileAccess(),
         }
         saveState(state, storage)
         return { state, softReset: false }

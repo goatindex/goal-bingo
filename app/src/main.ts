@@ -10,6 +10,7 @@ import {
 import { addCategoryChallenge, progressChallenges, BOARD_BALANCE_PER_MARK, CHALLENGE_TARGET } from './challenges'
 import { recordClear, totalClears } from './stats'
 import { evaluateAchievements } from './achievements'
+import { recordAdvancedTileProgress } from './advancedUnlock'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) {
@@ -66,6 +67,13 @@ function paint(): void {
         state.challenges = progressed.challenges
         state.score.boardBalance +=
           BOARD_BALANCE_PER_MARK + progressed.completedCount * CHALLENGE_TARGET
+        // GB-FUN-043: lifetime per-category mark count, independent of the
+        // challenge counters above (which reset) and stats.clearsByCategory (which
+        // counts cleared cells, not marks).
+        state.advancedTileAccess = recordAdvancedTileProgress(
+          state.advancedTileAccess,
+          tappedCell.goal.category,
+        )
         // GB-FUN-063/064: evaluated after stats/challenges update, using the same
         // no-op guard so a re-tap can't re-check (harmless but wasteful) conditions.
         const newAchievements = evaluateAchievements(state.achievements, {
