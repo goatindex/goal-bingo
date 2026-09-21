@@ -24,7 +24,7 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     state.score.boardBalance = 3
     state.score.rewardBalance = 5
     state.board.cells[0]!.marked = true
-    state.rewards = [{ name: 'Takeaway' }]
+    state.rewards = [{ id: 'rw-1', name: 'Takeaway', price: 20 }]
     state.categories = [...state.categories, 'pets']
     saveState(state, storage)
     const loaded = loadState(storage)
@@ -32,7 +32,7 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.score).toEqual(state.score)
     expect(loaded.state.board).toEqual(state.board)
     expect(loaded.state.board.cells[0]!.marked).toBe(true)
-    expect(loaded.state.rewards).toEqual([{ name: 'Takeaway' }])
+    expect(loaded.state.rewards).toEqual([{ id: 'rw-1', name: 'Takeaway', price: 20 }])
     expect(loaded.state.pool.length).toBe(state.pool.length)
     expect(loaded.state.categories).toEqual(state.categories)
   })
@@ -75,6 +75,21 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.board.size).toBe(5)
     expect(loaded.state.board.cells.length).toBe(25)
     expect(loaded.state.board.cells.every((c) => c.goal != null)).toBe(true)
+  })
+
+  it('migrates a legacy save with malformed rewards to an empty reward list', () => {
+    const storage = new MemoryStorage()
+    const legacy = {
+      version: 1 as const,
+      pool: [{ id: 'g1', title: 'Drink water', category: 'health', cadence: 'hourly' }],
+      board: null,
+      score: { lifetime: 0, rewardBalance: 0, boardBalance: 0 },
+      rewards: [{ name: 'Takeaway' }], // pre-WP-05 shape, no id/price
+    }
+    storage.setItem(STORAGE_KEY, JSON.stringify(legacy))
+    const loaded = loadState(storage)
+    expect(loaded.softReset).toBe(false)
+    expect(loaded.state.rewards).toEqual([])
   })
 
   it('soft-resets a legacy-shaped payload with invalid goals', () => {

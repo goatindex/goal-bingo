@@ -7,12 +7,13 @@ import {
   listCustomCategories,
 } from './categories'
 
-export type ShellView = 'home' | 'pool'
+export type ShellView = 'home' | 'pool' | 'rewards'
 
 const PRIMARY_ACTIONS = [
   { id: 'mark', label: 'Mark' },
   { id: 'board', label: 'Board' },
   { id: 'pool', label: 'Pool' },
+  { id: 'rewards', label: 'Rewards' },
   { id: 'recycle', label: 'Recycle' },
 ] as const
 
@@ -32,6 +33,8 @@ export type ShellHandlers = {
   ) => string | null
   onRemoveGoal: (id: string) => void
   onAddCategory: (name: string) => string | null
+  onAddReward: (input: { name: string; price: string }) => string | null
+  onRemoveReward: (id: string) => void
   onDismissEmptyPrompt: () => void
 }
 
@@ -71,14 +74,18 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
         ${
           h.view === 'home'
             ? renderHome(state, h.lastIntersectionCells)
-            : renderPool(state, unlockReady, customCategories)
+            : h.view === 'pool'
+              ? renderPool(state, unlockReady, customCategories)
+              : renderRewards(state)
         }
       </main>
 
       <nav class="shell__thumb" aria-label="Primary actions">
         ${PRIMARY_ACTIONS.map((a) => {
           const active =
-            (a.id === 'pool' && h.view === 'pool') || (a.id === 'board' && h.view === 'home')
+            (a.id === 'pool' && h.view === 'pool') ||
+            (a.id === 'rewards' && h.view === 'rewards') ||
+            (a.id === 'board' && h.view === 'home')
           return `<button type="button" class="thumb-btn${active ? ' thumb-btn--active' : ''}" data-action="${a.id}" data-testid="action-${a.id}">${a.label}</button>`
         }).join('')}
       </nav>
@@ -87,6 +94,7 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
 
   bindHome(root, h)
   bindPool(root, h)
+  bindRewards(root, h)
   bindNav(root, h)
 }
 
@@ -204,9 +212,39 @@ function renderPool(
   `
 }
 
+function renderRewards(state: GameState): string {
+  const rows = state.rewards
+    .map(
+      (r) => `
+      <li class="pool-item" data-reward-id="${escapeHtml(r.id)}">
+        <span>${escapeHtml(r.name)}</span>
+        <span>${r.price}</span>
+        <button type="button" data-testid="remove-reward" data-action="remove">Remove</button>
+      </li>`,
+    )
+    .join('')
+
+  return `
+    <section class="pool" aria-label="Personal rewards" data-testid="rewards-view">
+      <h2 class="pool__heading">Personal rewards</h2>
+      <p class="shell__hint">Your own rewards, priced in reward balance.</p>
+      <ul class="pool__list" data-testid="rewards-list">${rows || '<li class="shell__hint">No rewards yet.</li>'}</ul>
+
+      <form class="pool__form" data-testid="add-reward-form">
+        <h3>Add reward</h3>
+        <label>Name <input name="name" required data-testid="add-reward-name" /></label>
+        <label>Price <input name="price" type="number" min="1" step="1" required data-testid="add-reward-price" /></label>
+        <button type="submit">Add</button>
+        <p class="pool__error" data-testid="add-reward-error" hidden></p>
+      </form>
+    </section>
+  `
+}
+
 function bindNav(root: HTMLElement, h: ShellHandlers): void {
   root.querySelector('[data-action="board"]')?.addEventListener('click', () => h.onNavigate('home'))
   root.querySelector('[data-action="pool"]')?.addEventListener('click', () => h.onNavigate('pool'))
+  root.querySelector('[data-action="rewards"]')?.addEventListener('click', () => h.onNavigate('rewards'))
   root.querySelector('[data-action="mark"]')?.addEventListener('click', () => h.onNavigate('home'))
   // Recycle stays unwired until WP-07 — do not overload the label with a draw stub.
 }
@@ -274,6 +312,36 @@ function bindPool(root: HTMLElement, h: ShellHandlers): void {
       const cadence =
         item.querySelector<HTMLSelectElement>('[data-field="cadence"]')?.value ?? ''
       h.onUpdateGoal(id, { title, category, cadence })
+    })
+  })
+}
+
+function bindRewards(root: HTMLElement, h: ShellHandlers): void {
+  const addForm = root.querySelector<HTMLFormElement>('[data-testid="add-reward-form"]')
+  addForm?.addEventListener('submit', (event) => {
+    event.preventDefault()
+    const fd = new FormData(addForm)
+    const error = h.onAddReward({
+      name: String(fd.get('name') ?? ''),
+      price: String(fd.get('price') ?? ''),
+    })
+    const errEl = root.querySelector<HTMLElement>('[data-testid="add-reward-error"]')
+    if (errEl) {
+      if (error) {
+        errEl.hidden = false
+        errEl.textContent = error
+      } else {
+        errEl.hidden = true
+        errEl.textContent = ''
+      }
+    }
+  })
+
+  root.querySelectorAll<HTMLElement>('[data-reward-id]').forEach((item) => {
+    const id = item.dataset.rewardId
+    if (!id) return
+    item.querySelector('[data-action="remove"]')?.addEventListener('click', () => {
+      h.onRemoveReward(id)
     })
   })
 }
