@@ -18,6 +18,35 @@ export const RECYCLE_ALLOWANCE_WINDOW_MS = 24 * 60 * 60 * 1000
 /** Paid recycle cost once the free allowance is exhausted, ported from sim/jam_sim.py's own default (D-2026-09-21-8). */
 export const RECYCLE_COST = 5
 
+/** Recycle-allowance upgrade: cap and per-step price (GB-FUN-037, D-2026-09-21-11). */
+export const RECYCLE_ALLOWANCE_MAX_LEVEL = 3
+export const RECYCLE_ALLOWANCE_UPGRADE_COST = 100
+
+export type AllowanceUpgradeResult =
+  | { ok: true; recycle: RecycleState; boardBalance: number }
+  | { ok: false; reason: 'max-level' | 'insufficient-balance' }
+
+/**
+ * Permanently raise the recycle-allowance level by one step, deducting board balance.
+ * Refuses with no state change at the cap or with insufficient balance.
+ */
+export function purchaseAllowanceUpgrade(
+  recycleState: RecycleState,
+  boardBalance: number,
+): AllowanceUpgradeResult {
+  if (recycleState.allowanceLevel >= RECYCLE_ALLOWANCE_MAX_LEVEL) {
+    return { ok: false, reason: 'max-level' }
+  }
+  if (boardBalance < RECYCLE_ALLOWANCE_UPGRADE_COST) {
+    return { ok: false, reason: 'insufficient-balance' }
+  }
+  return {
+    ok: true,
+    recycle: { ...recycleState, allowanceLevel: recycleState.allowanceLevel + 1 },
+    boardBalance: boardBalance - RECYCLE_ALLOWANCE_UPGRADE_COST,
+  }
+}
+
 /**
  * Free recycles available right now, accounting for the rolling window (GB-FUN-041). A
  * window that has fully elapsed reads as a full restore without needing to be written
