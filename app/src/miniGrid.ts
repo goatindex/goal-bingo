@@ -22,16 +22,25 @@ export type MiniGridResult =
   | { ok: false; reason: 'empty-pool' }
 
 /**
- * GB-FUN-048: populate a fresh mini-grid by drawing from the main pool, the same
- * cadence-weighted draw the main board's own refills use. No placement rules apply
+ * GB-FUN-048: populate a fresh mini-grid by drawing only from goals in the parent
+ * tile's own category (D-2026-09-21-23, superseding this decision's original
+ * whole-pool default for this specific behaviour) - the same cadence-weighted draw
+ * the main board's own refills use, filtered to `category` first. Duplicates are
+ * allowed when that category has fewer than 9 distinct goals; the mini-grid never
+ * falls back to other categories to fill remaining cells. No placement rules apply
  * (GB-FUN-023/024 exist for the main board's jam-avoidance concerns, which a 3x3
  * internal grid does not share) - see the parent issue's own scope note.
  */
-export function createMiniGrid(pool: Goal[], rng: () => number = Math.random): MiniGridResult {
+export function createMiniGrid(
+  pool: Goal[],
+  category: string,
+  rng: () => number = Math.random,
+): MiniGridResult {
+  const categoryPool = pool.filter((g) => g.category === category)
   const total = MINI_GRID_SIZE * MINI_GRID_SIZE
   const cells: Cell[] = []
   for (let i = 0; i < total; i++) {
-    const drawn = drawWeighted(pool, rng)
+    const drawn = drawWeighted(categoryPool, rng)
     if (!drawn.ok) return { ok: false, reason: 'empty-pool' }
     cells.push({ goal: drawn.goal, marked: false })
   }

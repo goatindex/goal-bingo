@@ -20,9 +20,14 @@ export const ADVANCED_TILE_PASSIVE_CHANCE = 0.15
  *  secondary eligibility-unlock price (D-2026-09-21-23, D-2026-09-21-17). */
 export const ADVANCED_TILE_PLACEMENT_COST = 150
 
-function createTile(track: AdvancedTileTrack, pool: Goal[], rng: () => number): AdvancedTile | null {
+function createTile(
+  track: AdvancedTileTrack,
+  category: string,
+  pool: Goal[],
+  rng: () => number,
+): AdvancedTile | null {
   if (track === 'multi-completion') return createMultiCompletionTile()
-  const result = createMiniGrid(pool, rng)
+  const result = createMiniGrid(pool, category, rng)
   return result.ok ? result.advanced : null
 }
 
@@ -52,7 +57,7 @@ export function applyPassivePlacement(
 
     const pendingIndex = pending.findIndex((p) => p.category === category)
     if (pendingIndex !== -1) {
-      const advanced = createTile(pending[pendingIndex]!.track, pool, rng)
+      const advanced = createTile(pending[pendingIndex]!.track, category, pool, rng)
       if (advanced) {
         cells[index] = { ...cell, advanced }
         pending = pending.filter((_, i) => i !== pendingIndex)
@@ -63,7 +68,7 @@ export function applyPassivePlacement(
     for (const track of ADVANCED_TILE_TRACKS) {
       if (!isAdvancedTileUnlocked(access, track, category)) continue
       if (rng() < ADVANCED_TILE_PASSIVE_CHANCE) {
-        const advanced = createTile(track, pool, rng)
+        const advanced = createTile(track, category, pool, rng)
         if (advanced) {
           cells[index] = { ...cell, advanced }
           break
@@ -98,7 +103,7 @@ export function placeOnUnlock(
       access: { ...access, pendingPlacements: [...access.pendingPlacements, { track, category }] },
     }
   }
-  const advanced = createTile(track, pool, rng)
+  const advanced = createTile(track, category, pool, rng)
   if (!advanced) return { board, access }
   const cells = board.cells.slice()
   cells[index] = { ...cells[index]!, advanced }
@@ -136,7 +141,7 @@ export function placeAdvancedTile(
   if (boardBalance < ADVANCED_TILE_PLACEMENT_COST) {
     return { ok: false, reason: 'insufficient-balance' }
   }
-  const advanced = createTile(track, pool, rng)
+  const advanced = createTile(track, cell.goal.category, pool, rng)
   if (!advanced) return { ok: false, reason: 'empty-pool' }
   const cells = board.cells.slice()
   cells[index] = { ...cell, advanced }
