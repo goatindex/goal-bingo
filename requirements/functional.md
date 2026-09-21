@@ -444,7 +444,9 @@ verification-criteria: A cleared line of long-term goals produces a higher base 
 verification-status: not-verified
 owner: k
 priority: must
-notes: Point values are TBD (owner: k, blocks: Q7).
+notes: 1 (hourly) / 2 (daily) / 3 (weekly) / 5 (long-term) points per tile, summed
+  across the line (`D-2026-09-21-3`). Q7 resolved (placeholder-grade, per that
+  decision's own framing).
 
 ---
 
@@ -462,7 +464,7 @@ verification-criteria: A cleared line where all goals share one category scores 
 verification-status: not-verified
 owner: k
 priority: must
-notes: Multiplier value is TBD (owner: k, blocks: Q7).
+notes: +50% multiplier (`D-2026-09-21-4`). Q7 resolved.
 
 ### GB-FUN-030 — Variety category combo bonus
 statement: When every tile in a cleared line belongs to a different category, Goal Bingo
@@ -476,7 +478,7 @@ verification-criteria: A cleared line where all goals have distinct categories s
 verification-status: not-verified
 owner: k
 priority: must
-notes: Multiplier value is TBD (owner: k, blocks: Q7).
+notes: +50% multiplier (`D-2026-09-21-4`). Q7 resolved.
 
 ### GB-FUN-031 — Adjacency bonus mechanism
 statement: Goal Bingo shall compute an adjacency bonus for each line clear, where the
@@ -494,8 +496,8 @@ verification-criteria: Clearing the same line in two different board configurati
 verification-status: not-verified
 owner: k
 priority: must
-notes: Specific adjacency combinations and their values are deferred to Q7 (owner: k).
-  See GB-FUN-068 for the configurability obligation.
+notes: Seed combination `{ name: "adjacent-marked", value: 1 }` (`D-2026-09-21-5`).
+  See GB-FUN-068 for the configurability obligation. Q7 resolved.
 
 ---
 
@@ -1055,4 +1057,5 @@ verification-criteria: Changing the adjacency configuration and restarting the a
 verification-status: not-verified
 owner: k
 priority: must
-notes: Initial combination list and values remain deferred to Q7.
+notes: Initial combination list is the single seed entry from `D-2026-09-21-5`. Q7
+  resolved.
