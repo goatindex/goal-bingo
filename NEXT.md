@@ -7,7 +7,7 @@ _Convention: update at end of each working session. The weekly portfolio review 
 **Link 5 — build WP-08 (advanced tiles).** WP-01 → WP-07, WP-09 (#18–#26 except
 WP-08) are all closed. WP-08 is [#25](https://github.com/goatindex/goal-bingo/issues/25):
 per-category advanced-tile eligibility, multi-completion tiles, and mini-grid tiles
-— GB-FUN-043–050. Five TBDs resolved: `D-2026-09-21-16` (draw/placement mechanism —
+— GB-FUN-043–050. Six TBDs resolved: `D-2026-09-21-16` (draw/placement mechanism —
 how an eligible category's advanced tiles actually reach a board cell — is out of
 scope; no GB-FUN-043–050 requirement specifies it, and inventing one would be the
 same silently-absorbed-scope mistake the WP-08 issue itself warns against),
@@ -15,11 +15,14 @@ same silently-absorbed-scope mistake the WP-08 issue itself warns against),
 either path sets the same eligibility flag), `D-2026-09-21-18` (multi-completion
 tiles default to 3 completions, matching WP-09's sustained-run precedent),
 `D-2026-09-21-19` (mini-grid full-board bonus is +100% of the clear's value, now
-unblocked since Q7's base point values are resolved). None of these had simulation
-evidence — advanced tiles sit entirely outside `sim/jam_sim.py`'s scope. This WP
-ships eligibility + tile mechanics as fully-tested, directly-constructible domain
-logic; no code path causes an advanced tile to appear on a board through ordinary
-play yet (flagged, not silently resolved). WP-10 (floor constraints) is also
+unblocked since Q7's base point values are resolved), `D-2026-09-21-20` (mini-grid
+internal size is 3x3, found while scoping the mini-grid issue — distinct from the
+main board's `SUPPORTED_SIZES`, which stays reserved for GB-CON-014's sim-validated
+expansion). None of these had simulation evidence — advanced tiles sit entirely
+outside `sim/jam_sim.py`'s scope. This WP ships eligibility + tile mechanics as
+fully-tested, directly-constructible domain logic; no code path causes an advanced
+tile to appear on a board through ordinary play yet (flagged, not silently
+resolved). WP-10 (floor constraints) is also
 unblocked but not started.
 
 ## Next up
@@ -46,7 +49,11 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **Resolved WP-08's four TBDs, plus a scope gap** (this PR): `D-2026-09-21-16` — no
+- **Resolved a fifth WP-08 gap found while scoping** (this PR): `D-2026-09-21-20` —
+  mini-grid internal size is 3x3, distinct from the main board's `SUPPORTED_SIZES`
+  (reserved for GB-CON-014's sim-validated expansion). Confirmed with the user; no
+  requirement or simulation sets this.
+- **Resolved WP-08's four TBDs, plus a scope gap** (PR #115): `D-2026-09-21-16` — no
   GB-FUN-043–050 requirement specifies how an eligible category's advanced tiles
   actually reach a board cell during ordinary play; confirmed with the user to leave
   this unscoped rather than invent an ungrounded draw-integration policy, matching

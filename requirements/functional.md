@@ -770,6 +770,7 @@ verification-criteria: Completing a row, column, or diagonal inside the mini-gri
 verification-status: not-verified
 owner: k
 priority: must
+notes: Internal grid is 3x3 (`D-2026-09-21-20`).
 
 ### GB-FUN-048 — Mini-grid draws from main pool by default
 statement: By default, Goal Bingo shall populate mini-grid cells by drawing from the
