@@ -5,11 +5,11 @@
 # them here except a person remembering to. Audited 2026-09-20 alongside the ba-issue
 # corruption fix (see NEXT.md) rather than left as more capable-but-unenforced checks.
 #
-# disposal_check / provenance_check / record_index pass clean today, so they run
-# blocking. decision_lint and standing_check found real pre-existing gaps (5 decisions
-# missing a required field; 12 requirements with no verification-status) that this
-# workflow does not invent values to paper over - they run non-blocking (report only)
-# until that data is fixed and someone flips continue-on-error to false.
+# decision_lint and standing_check ran non-blocking at first (5 decisions missing a
+# required field; 12 requirements with no verification-status) rather than invent
+# values to paper over gaps the workflow didn't create. Both gaps are fixed and both
+# checks verified clean (55/55 decisions, 140/140 records) as of 2026-09-21 -
+# all five checks now block.
 name: record-checks
 
 on:
@@ -31,15 +31,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decision log format (blocking is deferred - see header)
-        continue-on-error: true
+      - name: Decision log format
         run: python3 scripts/decision_lint.py --file DECISIONS.md
 
       - name: Record index (enumerates every record type; informational)
         run: python3 scripts/record_index.py --root .
 
-      - name: Standing check (blocking is deferred - see header)
-        continue-on-error: true
+      - name: Standing check
         run: python3 scripts/standing_check.py --root .
 
       - name: Provenance check (every citation that claims to resolve, does)
