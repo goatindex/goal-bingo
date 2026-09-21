@@ -4,25 +4,22 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — build WP-06 (challenges & board income).** WP-01 → WP-05 (#18–#22) are all
-closed — the first shippable slice is complete and playable end to end. WP-06 is
-[#23](https://github.com/goatindex/goal-bingo/issues/23): board balance per qualifying
-mark, three parallel challenge types (universal/category/cadence), completion bonus
-(GB-FUN-004, 055-062, GB-CON-012). Its two TBDs are resolved: `D-2026-09-21-6`
-(+1 board balance per mark, matching `sim/jam_sim.py`'s own assumption) and
-`D-2026-09-21-7` (target 10 marks, completion bonus 10, counter resets and repeats).
-**Scope note found while resolving these:** none of WP-06's 10 requirements mention a
-calendar period or reset, unlike `docs/design-description.md`'s prose framing
-("targets counted over a period... this week") — `D-2026-09-21-7` reads the literal
-requirement text as a mark-count cycle instead (reach target, pay bonus, reset,
-repeat), not a time-based one. Flagging in case that's not what was intended.
+**Link 5 — WP-06 closed; pick the next work package.** WP-01 → WP-06 (#18–#23) are all
+closed. Board balance now has a real income source: universal/category/cadence
+challenges progress on every mark and pay a flat per-mark rate plus a completion bonus
+(`D-2026-09-21-6`, `D-2026-09-21-7`), verified to survive a maximal board jam
+(GB-CON-012). Per `work-packages/cut.md`'s build order, **WP-07 (economy actions)** is
+now unblocked (needed WP-06); **WP-09 (record & discovery)** only needed WP-05 and has
+been available since WP-05 closed. Neither started yet — pick one to begin.
+**Scope note carried from WP-06:** none of its 10 requirements mention a calendar
+period or reset, unlike `docs/design-description.md`'s prose framing ("targets counted
+over a period... this week") — `D-2026-09-21-7` reads the literal requirement text as a
+mark-count cycle instead (reach target, pay bonus, reset, repeat), not a time-based
+one. Flagging in case that's not what was intended.
 
 ## Next up
 
-- **Close WP-06 (#23) and pick the next work package.** Both sub-issues (#93, #94) are
-  merged — board balance now has a real income source (a maximal jam still pays via
-  marking, per GB-CON-012). WP-07 needs WP-06 first; check `work-packages/cut.md` for
-  what else is unblocked.
+- **Start WP-07 or WP-09** (both unblocked; see Current focus).
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
