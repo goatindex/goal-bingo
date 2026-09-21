@@ -4,19 +4,17 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — finishing WP-09 (record & discovery).** WP-01 → WP-07 (#18–#24) are all
-closed. WP-09 is [#26](https://github.com/goatindex/goal-bingo/issues/26). Its four
-TBDs resolved (`D-2026-09-21-12/13/14/15` — category-clear counting per cell,
-sustained-run 3 days, rare-combination reuses the variety-combo check, large-grid is
-size 7); none needed simulation evidence, since achievements and statistics sit
-outside `sim/jam_sim.py`'s scope entirely. Two of three sub-issues merged (#108
-stats tracking, #109 achievement model); #110 (the display view) is the last piece.
-WP-08 (advanced tiles) and WP-10 (floor constraints) are also unblocked but not yet
-started.
+**Link 5 — WP-09 closed; pick the next work package.** WP-01 → WP-09 (#18–#26,
+except WP-08) are all closed. Statistics (lifetime score, category breakdown, clear
+history, average clears per day) and the minimum achievement set (first clear, large
+grid, sustained run, rare combination) are live on a new "Stats" nav tab. Per
+`work-packages/cut.md`'s build order, **WP-08 (advanced tiles)** and **WP-10 (floor
+constraints)** are both unblocked (both needed WP-07, already closed). Neither
+started yet — pick one to begin.
 
 ## Next up
 
-- **Merge #110's PR and close WP-09 (#26).**
+- **Start WP-08 or WP-10** (see Current focus for why both are unblocked).
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
