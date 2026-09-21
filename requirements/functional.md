@@ -701,12 +701,16 @@ trace-to-source: design-description.md 7
 verification-method: test
 verification-criteria: After reaching the mark threshold for a category, the player gains
   access to advanced tiles for goals in that category.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: Threshold is 50 lifetime marks in the category (`D-2026-09-21-17`). Scope note:
-  no requirement in this set specifies how an unlocked category's advanced tiles
-  actually reach a board cell — flagged and left unresolved (`D-2026-09-21-16`).
+notes: Threshold is 50 lifetime marks in the category (`D-2026-09-21-17`), split into
+  two independent tracks — multi-completion and mini-grid unlock separately, both
+  reading this same mark count (`D-2026-09-21-23`). Draw/placement — how an unlocked
+  category's advanced tiles actually reach a board cell — was flagged and left
+  unresolved by `D-2026-09-21-16`; resolved by `D-2026-09-21-23` and shipped in
+  `app/src/advancedPlacement.ts` (automatic placement on unlock, a passive chance on
+  later refills, and a paid on-demand action).
 
 ### GB-FUN-044 — Secondary advanced tile unlock via board balance
 statement: Goal Bingo shall provide a secondary path to unlock advanced tiles using board
@@ -717,7 +721,7 @@ trace-to-source: design-description.md 7
 verification-method: test
 verification-criteria: With sufficient board balance and without meeting the progression
   threshold, the player can purchase access to an advanced tile slot.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Price is 150 board balance (`D-2026-09-21-17`). Either unlock path (this or
@@ -772,21 +776,27 @@ owner: k
 priority: must
 notes: Internal grid is 3x3 (`D-2026-09-21-20`).
 
-### GB-FUN-048 — Mini-grid draws from main pool by default
-statement: By default, Goal Bingo shall populate mini-grid cells by drawing from the
-  player's main goal pool.
+### GB-FUN-048 — Mini-grid draws only from the parent tile's own category
+statement: Goal Bingo shall populate mini-grid cells by drawing only from goals in the
+  parent tile's own category, repeating goals if that category has fewer than 9
+  distinct ones.
 type: functional
-rationale: Using the main pool requires no additional player setup. D-2026-09-19-24.
+rationale: Drawing from the parent category keeps a mini-grid thematically consistent
+  with its parent tile and requires no additional player setup (`D-2026-09-21-23`,
+  superseding `D-2026-09-19-24`'s original whole-pool default for this specific
+  behaviour — the sub-pool/player-placed upgrade options `D-2026-09-19-24` also
+  describes are unaffected and still don't ship in the base game).
 trace-to-source: design-description.md 7.2
 verification-method: test
-verification-criteria: When a mini-grid tile is placed and no upgrade is active, its cells
-  are filled with goals drawn from the same pool as the main board.
-verification-status: not-verified
+verification-criteria: A mini-grid tile's 9 cells are all drawn from goals matching its
+  parent category; a category with fewer than 9 distinct goals still produces a full
+  9-cell mini-grid with some goals repeated, never falling back to another category.
+verification-status: verified
 owner: k
 priority: must
-notes: "Placed" is read as constructible directly (e.g. by a future creation/draw
-  pathway) - how a mini-grid tile actually reaches a board cell during ordinary play
-  is unscoped (`D-2026-09-21-16`), same as GB-FUN-043's gap.
+notes: How a mini-grid tile actually reaches a board cell during ordinary play was
+  flagged and left unresolved by `D-2026-09-21-16`; resolved by `D-2026-09-21-23` and
+  shipped in `app/src/advancedPlacement.ts`, same as GB-FUN-043's gap.
 
 ### GB-FUN-049 — Mini-grid clear scores as a normal clear
 statement: When a line completes inside a mini-grid tile, Goal Bingo shall score the clear

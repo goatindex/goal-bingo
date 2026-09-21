@@ -4,34 +4,39 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 build phase complete — all 10 work packages closed.** WP-01 through WP-10
-(issues [#18](https://github.com/goatindex/goal-bingo/issues/18)–[#27](https://github.com/goatindex/goal-bingo/issues/27))
+**Link 5 build phase complete — all 10 work packages closed — and the advanced-tiles
+draw/placement gap WP-08 deliberately left open is now closed too.** WP-01 through
+WP-10 (issues [#18](https://github.com/goatindex/goal-bingo/issues/18)–[#27](https://github.com/goatindex/goal-bingo/issues/27))
 are every package `work-packages/cut.md` cut from the requirement set, and every one
-is now closed. WP-08 ([#25](https://github.com/goatindex/goal-bingo/issues/25),
-per-category advanced-tile eligibility, multi-completion tiles, mini-grid tiles —
-GB-FUN-043–050) was last to close: four sub-issues (#117, #118, #119, #120) and six
-TBDs resolved along the way (`D-2026-09-21-16` through `-21`), all listed in Done
-below. WP-10 ([#27](https://github.com/goatindex/goal-bingo/issues/27),
-GB-CON-013/GB-CON-014) closed via analysis of existing `sim/results.md` evidence, no
-fresh simulation run — see `D-2026-09-21-21`.
+is closed. Advanced tiles shipped as fully-tested, directly-constructible domain logic
+with no code path that placed one through ordinary play (`D-2026-09-21-16`); that gap
+is now closed by four follow-on issues (#133–#136, all merged or awaiting final merge —
+see Done below) under `D-2026-09-21-23`: eligibility splits into two independent
+per-category tracks (multi-completion, mini-grid), a tile places automatically the
+moment a track unlocks plus a 15% passive chance on later refills, a paid action places
+one on demand, and mini-grids draw only from the parent tile's own category. A related
+decision, `D-2026-09-21-22`, separately scoped (not yet built) a future global unlock
+layered on top of the per-category foundation.
 
-Advanced tiles (WP-08) ship as fully-tested, directly-constructible domain logic; no
-code path causes one to appear on a board through ordinary play yet — draw/placement
-integration is explicitly out of scope (`D-2026-09-21-16`), flagged rather than
-silently absorbed.
-
-**Nothing in `work-packages/cut.md` is left to build.** This is a stopping point to
-report to the user and ask what's next, not a cue to invent further scope.
+**Nothing in `work-packages/cut.md` is left to build, and the flagged WP-08 gap is
+closed.** This is a stopping point to report to the user and ask what's next again.
 
 ## Next up
 
-- **Ask the user what's next** — every cut work package is closed; there is no
-  further build-order item queued.
-- ~~Flip `standing_check` to blocking~~ **Done** (PR #129): both `decision_lint` and
-  `standing_check` now block in `.github/workflows/record-checks.yml` — re-verified clean
-  immediately before the flip (55/55 decisions, 140/140 records, 0 violations).
-- **Settle link-4 decisions when blocked:** category-unlock gate (`D-2026-09-19-16`),
-  advanced-tile thresholds (`D-2026-09-19-23`).
+- **Ask the user what's next** — the advanced-tiles gap that was the last queued item
+  is closed; there is no further build-order item queued.
+- **Build the global-unlock layer** (`D-2026-09-21-22`, scoped but not built): total
+  lifetime marks across all categories, or a bulk board-balance purchase, unlocks every
+  still-locked category at once, both priced at a 30% discount against buying them
+  individually.
+- ~~Settle the advanced-tile-thresholds link-4 decision~~ **Done**: `D-2026-09-21-23`
+  and #133–#136 (above) resolve this.
+- **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`,
+  "lifetime score ≥ 10 unlocks one custom category slot") — its own revisit trigger
+  ("at first playtest or when category-unlock progression is designed properly for
+  WP-08/09") has fired now that WP-08/09 are done, but the user chose to leave it
+  provisional until an actual playtest supplies real data rather than guess a
+  replacement number now.
 - **Scope the `record-contract` `standing` default fix (chain-wide, not goal-bingo-only).**
   `RECORD-CONTRACT.md`'s `standing` field still defaults to `active` when absent — the same
   "absence read as default" shape the owner/verification-status migration above just closed
@@ -48,6 +53,27 @@ done — link 5's build phase is complete.
 
 ## Done (2026-09-21 session)
 
+- **Closed the advanced-tiles draw/placement gap WP-08 deliberately left open**
+  (`D-2026-09-21-23`, four issues): #133 split eligibility into two independent
+  per-category tracks (`multiCompletionUnlocked`/`miniGridUnlocked`, both reading the
+  existing shared `marksByCategory` counter); #134 added automatic placement the
+  moment a track unlocks plus a 15% passive chance on later refills (new
+  `app/src/advancedPlacement.ts`); #135 added a paid on-demand placement action (150
+  board balance, mirrors `recycleCell`'s shape); #136 changed mini-grid population to
+  draw only from the parent tile's own category (duplicates allowed), superseding
+  `D-2026-09-19-24`'s whole-pool default for that one behaviour. #133–135 merged;
+  #136 (PR #140) verified locally, awaiting merge. Each step verified live through the
+  actual UI, not just unit tests: marking a real cell crossed a threshold and placed a
+  tile automatically; a mini-grid placed for a category with only 2 distinct goals
+  correctly repeated them across all 9 cells rather than pulling from other categories.
+  Deliberately scoped out, flagged not silently dropped: `resizeBoard`'s (grid
+  expansion) newly-exposed cells don't get the passive chance yet — a much rarer
+  event than an ordinary line clear.
+- **Scoped a future global-unlock layer** (`D-2026-09-21-22`, decision only, not yet
+  built): total lifetime marks across all categories, or a bulk board-balance
+  purchase, would unlock every still-locked category at once, both priced at a 30%
+  discount against buying them individually. Mirrors the per-category shape exactly
+  rather than inventing a new mechanic.
 - **WP-08 (#25) closed.** All four sub-issues merged: #117, #118, #119, #120. This
   was the last open work package — WP-01 through WP-10 (`work-packages/cut.md`) are
   now all closed, completing link 5's build phase.
