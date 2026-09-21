@@ -16,6 +16,10 @@ import type { Goal } from './pool'
  *  occasional, not the common case. Provisional pending a playtest. */
 export const ADVANCED_TILE_PASSIVE_CHANCE = 0.15
 
+/** Board-balance price for the on-demand paid placement action, matching the existing
+ *  secondary eligibility-unlock price (D-2026-09-21-23, D-2026-09-21-17). */
+export const ADVANCED_TILE_PLACEMENT_COST = 150
+
 function createTile(track: AdvancedTileTrack, pool: Goal[], rng: () => number): AdvancedTile | null {
   if (track === 'multi-completion') return createMultiCompletionTile()
   const result = createMiniGrid(pool, rng)
@@ -99,4 +103,46 @@ export function placeOnUnlock(
   const cells = board.cells.slice()
   cells[index] = { ...cells[index]!, advanced }
   return { board: { ...board, cells }, access }
+}
+
+export type PlaceAdvancedTileResult =
+  | { ok: true; board: Board; boardBalance: number }
+  | { ok: false; reason: 'invalid-cell' | 'marked' | 'already-advanced' | 'not-unlocked' | 'insufficient-balance' | 'empty-pool' }
+
+/**
+ * D-2026-09-21-23's paid placement action, mirroring `recycleCell`'s shape: pick any
+ * unmarked cell showing a goal from a category where `track` is unlocked, pay
+ * `ADVANCED_TILE_PLACEMENT_COST`, and it becomes that tile type immediately - giving
+ * the player agency over board position, alongside the automatic/passive mechanism
+ * above rather than instead of it. Refuses with no state change on every failure path
+ * before committing anything.
+ */
+export function placeAdvancedTile(
+  board: Board,
+  index: number,
+  track: AdvancedTileTrack,
+  access: AdvancedTileAccess,
+  boardBalance: number,
+  pool: Goal[],
+  rng: () => number = Math.random,
+): PlaceAdvancedTileResult {
+  const cell = board.cells[index]
+  if (!cell) return { ok: false, reason: 'invalid-cell' }
+  if (cell.marked) return { ok: false, reason: 'marked' }
+  if (cell.advanced) return { ok: false, reason: 'already-advanced' }
+  if (!isAdvancedTileUnlocked(access, track, cell.goal.category)) {
+    return { ok: false, reason: 'not-unlocked' }
+  }
+  if (boardBalance < ADVANCED_TILE_PLACEMENT_COST) {
+    return { ok: false, reason: 'insufficient-balance' }
+  }
+  const advanced = createTile(track, pool, rng)
+  if (!advanced) return { ok: false, reason: 'empty-pool' }
+  const cells = board.cells.slice()
+  cells[index] = { ...cell, advanced }
+  return {
+    ok: true,
+    board: { ...board, cells },
+    boardBalance: boardBalance - ADVANCED_TILE_PLACEMENT_COST,
+  }
 }

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { ADVANCED_TILE_PASSIVE_CHANCE, applyPassivePlacement, placeOnUnlock } from './advancedPlacement'
+import {
+  ADVANCED_TILE_PASSIVE_CHANCE,
+  ADVANCED_TILE_PLACEMENT_COST,
+  applyPassivePlacement,
+  placeAdvancedTile,
+  placeOnUnlock,
+} from './advancedPlacement'
 import { freshAdvancedTileAccess, type AdvancedTileAccess } from './advancedUnlock'
 import type { Board, Cell } from './board'
 import type { Goal } from './pool'
@@ -105,5 +111,58 @@ describe('applyPassivePlacement (D-2026-09-21-23)', () => {
     // rng always returns 0 (would always roll true if a track were unlocked).
     const result = applyPassivePlacement(board, [0], access, [goal('g1', 'health')], () => 0)
     expect(result.board.cells[0]!.advanced).toBeUndefined()
+  })
+})
+
+describe('placeAdvancedTile (D-2026-09-21-23)', () => {
+  it('converts an unmarked cell of an unlocked category, deducting the cost', () => {
+    const board = boardOf([cell(goal('g1', 'health'))])
+    const access = withUnlocked(freshAdvancedTileAccess(), 'multi-completion', 'health')
+    const result = placeAdvancedTile(board, 0, 'multi-completion', access, ADVANCED_TILE_PLACEMENT_COST, [goal('g1', 'health')])
+    expect(result).toEqual({
+      ok: true,
+      board: { size: 5, cells: [{ goal: goal('g1', 'health'), marked: false, advanced: { kind: 'multi-completion', completionsRequired: 3, completionsSoFar: 0 } }] },
+      boardBalance: 0,
+    })
+  })
+
+  it('refuses on an out-of-range index, with no state change', () => {
+    const board = boardOf([cell(goal('g1', 'health'))])
+    const access = withUnlocked(freshAdvancedTileAccess(), 'multi-completion', 'health')
+    const result = placeAdvancedTile(board, 5, 'multi-completion', access, 1000, [goal('g1', 'health')])
+    expect(result).toEqual({ ok: false, reason: 'invalid-cell' })
+  })
+
+  it('refuses on an already-marked cell, with no state change', () => {
+    const board = boardOf([cell(goal('g1', 'health'), true)])
+    const access = withUnlocked(freshAdvancedTileAccess(), 'multi-completion', 'health')
+    const result = placeAdvancedTile(board, 0, 'multi-completion', access, 1000, [goal('g1', 'health')])
+    expect(result).toEqual({ ok: false, reason: 'marked' })
+  })
+
+  it('refuses on a cell that is already an advanced tile, with no state change', () => {
+    const advancedCell: Cell = {
+      goal: goal('g1', 'health'),
+      marked: false,
+      advanced: { kind: 'mini-grid', cells: [] },
+    }
+    const board = boardOf([advancedCell])
+    const access = withUnlocked(freshAdvancedTileAccess(), 'multi-completion', 'health')
+    const result = placeAdvancedTile(board, 0, 'multi-completion', access, 1000, [goal('g1', 'health')])
+    expect(result).toEqual({ ok: false, reason: 'already-advanced' })
+  })
+
+  it('refuses when the requested track is not unlocked for the cell\'s category, with no state change', () => {
+    const board = boardOf([cell(goal('g1', 'health'))])
+    const access = withUnlocked(freshAdvancedTileAccess(), 'mini-grid', 'health')
+    const result = placeAdvancedTile(board, 0, 'multi-completion', access, 1000, [goal('g1', 'health')])
+    expect(result).toEqual({ ok: false, reason: 'not-unlocked' })
+  })
+
+  it('refuses with insufficient board balance, with no state change', () => {
+    const board = boardOf([cell(goal('g1', 'health'))])
+    const access = withUnlocked(freshAdvancedTileAccess(), 'multi-completion', 'health')
+    const result = placeAdvancedTile(board, 0, 'multi-completion', access, ADVANCED_TILE_PLACEMENT_COST - 1, [goal('g1', 'health')])
+    expect(result).toEqual({ ok: false, reason: 'insufficient-balance' })
   })
 })
