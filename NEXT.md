@@ -19,10 +19,10 @@ repeat), not a time-based one. Flagging in case that's not what was intended.
 
 ## Next up
 
-- **Build #94** (progress challenges and pay board balance on every mark) — blocked by
-  #93, now merged. `main.ts`'s `onMarkCell` needs to read the tapped cell's goal
-  *before* calling `markCellAndResolve` (that call may refill the very cell that was
-  tapped, if the mark completes a line through it).
+- **Close WP-06 (#23) and pick the next work package.** Both sub-issues (#93, #94) are
+  merged — board balance now has a real income source (a maximal jam still pays via
+  marking, per GB-CON-012). WP-07 needs WP-06 first; check `work-packages/cut.md` for
+  what else is unblocked.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -44,7 +44,31 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#93 (challenge model) built** (this PR), first of WP-06's two sub-issues: new
+- **WP-06 (challenges & board income, #23) closed.** Both sub-issues merged: #93
+  challenge model (PR #95), #94 mark integration + payment (this PR). Board balance
+  has a real income source for the first time since WP-01 — the economy WP-07/WP-08
+  build on top of now exists.
+- **#94 (progress challenges, pay board balance) built** (this PR), closing WP-06:
+  `challenges.ts` gains `progressChallenges(challenges, goal)` — increments every
+  active challenge the goal qualifies for (universal always, plus matching category
+  and cadence, GB-FUN-056/060), resets a challenge to 0 and reports a completion when
+  it reaches target rather than carrying progress past it (GB-FUN-062). `main.ts`'s
+  `onMarkCell` now reads the tapped cell's goal *before* calling `markCellAndResolve` —
+  necessary because that call refills the tapped cell itself when the mark completes a
+  line through it, so the result's board no longer holds the goal that was actually
+  marked. Pays a flat `BOARD_BALANCE_PER_MARK` (1) plus `CHALLENGE_TARGET` (10) per
+  completion, but only on a genuine unmarked-to-marked transition — re-tapping an
+  already-marked cell (`board.ts`'s existing no-op) does not progress challenges or
+  pay again, since GB-FUN-004 only fires "when the player marks a cell". 3 new tests,
+  81/81 passing. Verified live via `localStorage`: built a maximal jam (long-term
+  goals on the board's main diagonal block all 12 lines at once), marked several
+  non-blocker cells and confirmed board balance climbed 1 per mark with zero clears
+  and zero lifetime-score change (GB-CON-012); drove the universal challenge to its
+  target across 10 marks and confirmed a 10-board-balance completion bonus landed on
+  top of the per-mark payments (board balance 20 after 10 marks, universal reset to
+  0); confirmed re-tapping an already-marked cell left both board balance and
+  progress unchanged. No console errors.
+- **#93 (challenge model) built** (PR #95), first of WP-06's two sub-issues: new
   `app/src/challenges.ts` — `Challenge` type (`id`/`kind`/`qualifier`/`progress`/
   `target`), `initialChallenges(unlockedCategories)` builds the always-active set (one
   universal, one per cadence tier, one per unlocked category), `addCategoryChallenge`
