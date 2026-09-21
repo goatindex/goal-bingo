@@ -13,14 +13,14 @@ rules (PR #80). WP-05 is [#22](https://github.com/goatindex/goal-bingo/issues/22
 balance on clear, combos, adjacency config hook (GB-FUN-003, 028-035, 034b, 068,
 GB-CON-005/006/007) — the last package in the first shippable slice. Filed as four
 sub-issues: [#83](https://github.com/goatindex/goal-bingo/issues/83) clear scoring
-(this PR), [#84](https://github.com/goatindex/goal-bingo/issues/84) counter display,
-[#85](https://github.com/goatindex/goal-bingo/issues/85) rewards CRUD,
+(PR #87), [#84](https://github.com/goatindex/goal-bingo/issues/84) counter display
+(this PR), [#85](https://github.com/goatindex/goal-bingo/issues/85) rewards CRUD,
 [#86](https://github.com/goatindex/goal-bingo/issues/86) reward purchase.
 
 ## Next up
 
-- **Pick up #84 (display all three counters)** — reward balance now actually moves
-  (#83, this PR); the home view still only shows lifetime score.
+- **Pick up #85 (personal rewards CRUD)** — create, name, price, and delete a personal
+  reward; the domain `GameState.rewards` is still the WP-01-era `unknown[]` placeholder.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); four of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -43,7 +43,13 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#83 (clear scoring) built** (this PR): `lines.ts`'s `resolveLineClears` now scores
+- **#84 (counter display) built** (this PR): `shell.ts`'s `renderHome()` now shows
+  reward balance and board balance alongside lifetime score, each a distinct labelled
+  value (`data-testid="reward-balance"`/`"board-balance"`, matching the existing
+  `"lifetime"` pattern). No DOM test harness exists in this codebase, so verified live
+  in the browser (consistent with #73's precedent): all three counters render
+  distinctly on a fresh board, no console errors.
+- **#83 (clear scoring) built** (PR #87): `lines.ts`'s `resolveLineClears` now scores
   each completing line as its cadence-summed base (`CADENCE_BASE_VALUE`) times a
   matching/variety combo multiplier (`COMBO_BONUS_RATIO`) plus an adjacency bonus read
   from the pre-refill board (`ADJACENCY_CONFIG`) — the multi-clear bonus applies to
