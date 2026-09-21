@@ -343,8 +343,10 @@ verification-criteria: In a large sample of draws from a mixed pool, long-term g
 verification-status: not-verified
 owner: k
 priority: must
-notes: Exact weighting formula is TBD (owner: k, blocks: Q6). Long-term share approximately
-  5% (D-2026-09-19-12).
+notes: Long-term share ~5% (`D-2026-09-19-12`); the remaining weight splits 40% hourly /
+  40% daily / 20% weekly (`D-2026-09-21-1`, ported from `sim/jam_sim.py`'s `SHORT_MIX`,
+  already validated across grid sizes 3/5/7 by that simulation's own A4 sensitivity run).
+  Q6 resolved.
 
 ### GB-FUN-023 — No two long-term goals in the same row or column (binding)
 statement: Goal Bingo shall not draw a long-term goal into a cell whose row or column
@@ -377,7 +379,7 @@ verification-criteria: After any draw, no single category occupies more than the
 verification-status: not-verified
 owner: k
 priority: must
-notes: Domination threshold is TBD (owner: k, blocks: Q21).
+notes: Domination threshold is 40% of board cells (`D-2026-09-21-2`). Q21 resolved.
 
 ### GB-FUN-025 — Draw prefers completable-line placement (preference rule)
 statement: Where more than one legally placed goal exists and at least one placement leaves

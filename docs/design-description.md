@@ -581,7 +581,7 @@ invented here reads as fact once it is a requirement.
   | ~~Q3~~ | ~~Resolution when one mark completes a row and a column at once~~ — **resolved** by `D-2026-09-19-13`: every completing line resolves; bonus points for the multi-clear | §3.4 |
   | ~~Q4~~ | ~~What happens to a cell shared by two clearing lines~~ — **resolved** by `D-2026-09-19-14`: distinct visual treatment; anchor for the multi-clear bonus | §3.4 |
   | ~~Q5~~ | ~~The starting category list~~ — **resolved** by `D-2026-09-19-16`: health, study, creative, volunteering, relationship, home, work; player-defined unlocks beyond that | §4.2 |
-| Q6 | The draw-weighting formula, and its grid-awareness rules | §4.4 |
+  | ~~Q6~~ | ~~The draw-weighting formula, and its grid-awareness rules~~ — **resolved** by `D-2026-09-19-12` (long-term ~5%) and `D-2026-09-21-1` (short-term splits 40/40/20 hourly/daily/weekly); grid-awareness was already answered by the A4 sensitivity run (`sim/results.md`), which validated the same weights across grid sizes 3, 5, and 7 | §4.4 |
 | Q7 | Base point values | §5.1 |
   <!-- The multi-clear bonus this question was blocking (GB-FUN-013) is resolved by
   `D-2026-09-20-9` as a formula relative to the base score, so it no longer needs Q7
@@ -599,8 +599,8 @@ invented here reads as fact once it is a requirement.
   | ~~Q18~~ | ~~Which mark-based challenges ship first, and what each pays per mark and on completion~~ — **resolved** by `D-2026-09-19-17`: universal + category + cadence, all parallel; rates are tuning | §8.2, §5.3 |
 | Q19 | Whether one free recycle per 24 hours is fast enough against how quickly a board re-jams. The rate was chosen on daily rhythm, not on any showing that it outpaces re-jamming | §6.2, §10.3 |
 | ~~Q20~~ | ~~The floor's bound~~ — **resolved by measurement.** Simulated median time-to-unjam is same-day, p99 one to two days, zero trials still jammed after 180 days, at every setting tested. The reserved tightening is not needed to make the floor safe | §10.3, §4.4 |
-| Q21 | What share of the board counts as one category dominating it (§4.4 rule 2) | §4.4 |
-| Q22 | How the remaining draw weight splits across the three short-term cadences (hourly/daily/weekly), now that the long-term share is set | §4.4, §4.3 |
+  | ~~Q21~~ | ~~What share of the board counts as one category dominating it (§4.4 rule 2)~~ — **resolved** by `D-2026-09-21-2`: 40% of board cells | §4.4 |
+  | ~~Q22~~ | ~~How the remaining draw weight splits across the three short-term cadences (hourly/daily/weekly), now that the long-term share is set~~ — **resolved** by `D-2026-09-21-1`: 40% hourly / 40% daily / 20% weekly, ported from `sim/jam_sim.py`'s own `SHORT_MIX` | §4.4, §4.3 |
   | ~~Q23~~ | ~~Whether ambient blocking (§10.4) should target a fixed share, or vary with grid size~~ — **resolved** by `D-2026-09-19-25`: fixed share regardless of grid size; perception difference is speculative | §10.4, §3.1 |
   | Q24 | Whether `sim/jam_sim.py`'s remaining harsher assumptions (swap not modelled; challenge income idealised as always-available) should be revisited once those questions settle — the Q14 assumption (marks lost) is now the decided rule (`D-2026-09-19-15`) and is confirmed | §10.3, §10.4 |
 

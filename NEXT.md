@@ -16,7 +16,11 @@ binding placement rules, ~5% long-term draw share (GB-FUN-022, 023, 024, 026, 02
 
 ## Next up
 
-- **File work items for WP-04** and pick up the draw engine build.
+- **File work items for WP-04** and pick up the draw engine build. Its two TBDs are
+  resolved: `D-2026-09-21-1` (short-term cadence split, ported from `sim/jam_sim.py`'s
+  `SHORT_MIX`) and `D-2026-09-21-2` (40% category domination threshold) — see
+  `sim/jam_sim.py`'s `draw()`/`has_long()` for the binding-rule algorithm to port
+  directly rather than reimplement from scratch.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); three of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -39,6 +43,13 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **Resolved WP-04's two blocking TBDs** (this PR): `D-2026-09-21-1` — short-term cadence
+  split is 40% hourly / 40% daily / 20% weekly, ported directly from `sim/jam_sim.py`'s
+  `SHORT_MIX` rather than invented, since a different split would have silently
+  invalidated the recovery-floor results `D-2026-09-20-8`'s grid sizing already relies
+  on. `D-2026-09-21-2` — category domination threshold is 40% of board cells (no
+  simulation precedent existed for this one; chosen to keep a full single-category line
+  achievable while still capping crowding-out). Q6, Q21, Q22 all resolved.
 - **WP-03 (board loop, #20) closed.** All five sub-issues merged: #63 board model
   (PR #67), #64 marking (PR #69), #65 single-line clear (PR #71), #66 multi-line clear
   (PR #72), #73 board UI (PR #74). Link 5 moves on to WP-04 (#21, draw engine).
