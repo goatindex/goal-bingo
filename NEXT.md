@@ -23,7 +23,8 @@ and WP-10 (floor constraints) are also unblocked but not yet started.
 
 ## Next up
 
-- **File work items for WP-09** and pick up the statistics/achievements build.
+- **Build #109** (achievement model, blocked by #108, now merged) and **#110**
+  (display view, blocked by #108 and #109) — the rest of WP-09's three sub-issues.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -45,7 +46,27 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **Resolved WP-09's four TBDs** (this PR): `D-2026-09-21-12` — clears-by-category
+- **#108 (clear-statistics tracking) built** (this PR), first of WP-09's three
+  sub-issues: `lines.ts`'s `ClearOutcome` gains `clearedCategories` — the category of
+  every distinct cell that cleared, one entry per cell (GB-FUN-052, D-2026-09-21-12),
+  read from the pre-refill board the same way scoring already does; an intersection
+  cell shared by 2+ simultaneously-completing lines contributes once, matching how it
+  is refilled once. New `app/src/stats.ts` — `recordClear(stats, clearedCategories,
+  clearedLineCount, now)` tallies per-category counts and per-local-calendar-day line
+  counts (GB-FUN-053), a no-op when `clearedLineCount` is 0 (a mark that cleared
+  nothing); `averageClearsPerDay` divides total clears by days since first play,
+  counting the current day as day 1 so a brand-new game never divides by zero
+  (GB-FUN-054). `now` is an injected parameter throughout, matching the `rng`/
+  `recycle.ts` convention. `storage.ts`'s `GameState.stats` follows the `Reward`/
+  `Challenge`/`RecycleState` precedent: `isGameState` validates it, legacy saves
+  migrate to a fresh (empty) record — accepting the same understated-history
+  trade-off already made for categories/challenges/recycle on migration. 13 new
+  tests (8 in `stats.test.ts`, 3 new `lines.test.ts` assertions including an
+  intersection-cell double-counting check, 2 `storage.test.ts` assertions),
+  116/116 passing. Verified live: marked a full row (5 cells, 4 distinct categories,
+  one appearing twice), confirmed `clearsByCategory` summed to exactly 5 across the
+  right categories and today's date showed 1 line clear; no console errors.
+- **Resolved WP-09's four TBDs** (PR #107): `D-2026-09-21-12` — clears-by-category
   counts per cleared cell, not per line, confirmed with the user since GB-FUN-052's
   own rationale ("which life areas the player is engaging") is about individual
   goals, not lines as a unit — a 5-cell matching line adds 5 to one category, a mixed

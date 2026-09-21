@@ -8,6 +8,8 @@ import { initialChallenges } from './challenges'
 import type { Goal } from './pool'
 import type { RecycleState } from './recycle'
 import type { Reward } from './rewards'
+import type { Stats } from './stats'
+import { freshStats } from './stats'
 
 export const STORAGE_KEY = 'goal-bingo:v1'
 
@@ -22,6 +24,7 @@ export type GameState = {
   rewards: Reward[]
   challenges: Challenge[]
   recycle: RecycleState
+  stats: Stats
 }
 
 export const FRESH_RECYCLE_STATE: RecycleState = {
@@ -64,6 +67,7 @@ export function freshState(): GameState {
     rewards: [],
     challenges: initialChallenges(DEFAULT_CATEGORIES),
     recycle: { ...FRESH_RECYCLE_STATE },
+    stats: freshStats(),
   }
 }
 
@@ -133,6 +137,21 @@ function isRecycleState(value: unknown): value is RecycleState {
   )
 }
 
+function isStringRecord(value: unknown): value is Record<string, number> {
+  if (!value || typeof value !== 'object') return false
+  return Object.values(value as Record<string, unknown>).every((n) => typeof n === 'number')
+}
+
+function isStats(value: unknown): value is Stats {
+  if (!value || typeof value !== 'object') return false
+  const s = value as Record<string, unknown>
+  return (
+    typeof s.firstPlayedAt === 'number' &&
+    isStringRecord(s.clearsByCategory) &&
+    isStringRecord(s.clearsByDate)
+  )
+}
+
 function isGameState(value: unknown): value is GameState {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
@@ -149,7 +168,8 @@ function isGameState(value: unknown): value is GameState {
     v.rewards.every(isReward) &&
     Array.isArray(v.challenges) &&
     v.challenges.every(isChallenge) &&
-    isRecycleState(v.recycle)
+    isRecycleState(v.recycle) &&
+    isStats(v.stats)
   )
 }
 
@@ -217,6 +237,10 @@ export function loadState(storage: Storage = localStorage): {
           // Pre-#99 saves never wrote a recycle allowance - start a fresh one rather
           // than trust unvalidated data.
           recycle: { ...FRESH_RECYCLE_STATE },
+          // Pre-#108 saves never wrote stats - start fresh. This understates a
+          // returning player's true first-play date (no earlier timestamp exists to
+          // recover), the same accepted loss as categories/challenges/recycle above.
+          stats: freshStats(),
         }
         saveState(state, storage)
         return { state, softReset: false }

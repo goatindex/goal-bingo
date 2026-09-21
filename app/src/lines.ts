@@ -132,6 +132,11 @@ export type ClearOutcome = {
    *  intersection's distinct visual treatment (GB-FUN-014). Empty on a single-line
    *  clear or a no-op. */
   intersectionCells: number[]
+  /** The category of every distinct cell that cleared, one entry per cell, read from
+   *  the pre-refill board (GB-FUN-052, D-2026-09-21-12) — a cell shared by 2+
+   *  completing lines contributes once, matching how it is refilled once, not once
+   *  per line it belongs to. Empty on a no-op. */
+  clearedCategories: string[]
 }
 
 export type ClearResult = { ok: true; outcome: ClearOutcome } | { ok: false; reason: 'empty-pool' }
@@ -173,7 +178,13 @@ export function resolveLineClears(
   if (completing.length === 0) {
     return {
       ok: true,
-      outcome: { board, scoreDelta: 0, clearedLineCount: 0, intersectionCells: [] },
+      outcome: {
+        board,
+        scoreDelta: 0,
+        clearedLineCount: 0,
+        intersectionCells: [],
+        clearedCategories: [],
+      },
     }
   }
 
@@ -184,6 +195,9 @@ export function resolveLineClears(
   const intersectionCells = [...occurrences.entries()]
     .filter(([, count]) => count >= 2)
     .map(([i]) => i)
+  // Read against the pre-refill board, same as scoring - each distinct clearing cell
+  // contributes its category once (D-2026-09-21-12), not once per line it belongs to.
+  const clearedCategories = [...occurrences.keys()].map((i) => board.cells[i]!.goal.category)
 
   // Value each line against the pre-refill board - adjacency asks what already sat
   // next to the line, not what replaces it.
@@ -216,6 +230,7 @@ export function resolveLineClears(
       scoreDelta,
       clearedLineCount: completing.length,
       intersectionCells,
+      clearedCategories,
     },
   }
 }
