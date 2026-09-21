@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { createBoard, everyCellHasOneTile } from './board'
+import { createBoard, everyCellHasOneTile, type Board } from './board'
 import {
-  BASE_SCORE_PER_LINE,
+  CADENCE_BASE_VALUE,
+  COMBO_BONUS_RATIO,
   MULTI_CLEAR_BONUS_RATIO,
   allLines,
   countMarked,
@@ -91,13 +92,13 @@ describe('single-line clear (GB-FUN-011)', () => {
     expect(result.outcome.scoreDelta).toBe(0)
   })
 
-  it('a clear increases score by BASE_SCORE_PER_LINE and the cells are refilled', () => {
+  it('a clear increases score and the cells are refilled', () => {
     const { board, pool } = freshBoard()
     for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
     const result = markCellAndResolve(board, 4, pool, () => 0)
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    expect(result.outcome.scoreDelta).toBe(BASE_SCORE_PER_LINE)
+    expect(result.outcome.scoreDelta).toBeGreaterThan(0)
     expect(everyCellHasOneTile(result.outcome.board)).toBe(true)
   })
 
@@ -144,21 +145,67 @@ describe('simultaneous multi-line clear (GB-FUN-012, GB-FUN-013, GB-FUN-014)', (
     expect(everyCellHasOneTile(outcome.board)).toBe(true)
   })
 
-  it('awards a 50% multi-clear bonus on top of the summed base score (D-2026-09-20-9)', () => {
-    const outcome = setUpDoubleClear()
-    const summedBase = 2 * BASE_SCORE_PER_LINE
-    const expectedBonus = Math.round(summedBase * MULTI_CLEAR_BONUS_RATIO)
-    expect(outcome.scoreDelta).toBe(summedBase + expectedBonus)
-    expect(outcome.scoreDelta).toBeGreaterThan(summedBase)
+  it('awards a 50% multi-clear bonus on top of the summed line value (D-2026-09-20-9)', () => {
+    const g = (id: string, category: string): Goal => ({
+      id,
+      title: id,
+      category,
+      cadence: 'hourly',
+    })
+    const goals: Record<number, Goal> = {
+      10: g('g10', 'p'),
+      11: g('g11', 'p'),
+      12: g('g12', 'q'),
+      13: g('g13', 'q'),
+      14: g('g14', 'r'),
+      2: g('g2', 's'),
+      7: g('g7', 's'),
+      17: g('g17', 't'),
+      22: g('g22', 't'),
+    }
+    const filler = g('filler', 'zz')
+    const cells = Array.from({ length: 25 }, (_, i) => ({
+      goal: goals[i] ?? filler,
+      marked: false,
+    }))
+    const board: Board = { size: 5, cells }
+    const pool = Object.values(goals)
+    for (const i of [10, 11, 13, 14, 2, 7, 17, 22]) board.cells[i]!.marked = true
+    const result = markCellAndResolve(board, 12, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    // Both lines: 5 hourly tiles each, mixed categories (no combo), no adjacency
+    // (nothing outside the two clearing lines is marked) - each line's value is just
+    // its summed cadence base.
+    const perLineValue = 5 * CADENCE_BASE_VALUE.hourly
+    const summedLineValue = 2 * perLineValue
+    const expectedBonus = Math.round(summedLineValue * MULTI_CLEAR_BONUS_RATIO)
+    expect(result.outcome.scoreDelta).toBe(summedLineValue + expectedBonus)
+    expect(result.outcome.scoreDelta).toBeGreaterThan(summedLineValue)
   })
 
   it('a single-line clear earns no multi-clear bonus', () => {
-    const { board, pool } = freshBoard()
+    // Row 0, all hourly, mixed categories (a,a,b,b,c - no combo): base value 5, no
+    // multi-clear bonus since only one line completes.
+    const g = (id: string, category: string): Goal => ({
+      id,
+      title: id,
+      category,
+      cadence: 'hourly',
+    })
+    const filler = g('filler', 'zz')
+    const rowGoals = [g('g0', 'a'), g('g1', 'a'), g('g2', 'b'), g('g3', 'b'), g('g4', 'c')]
+    const cells = Array.from({ length: 25 }, (_, i) => ({
+      goal: i < 5 ? rowGoals[i]! : filler,
+      marked: false,
+    }))
+    const board: Board = { size: 5, cells }
+    const pool = [...rowGoals, filler]
     for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
     const result = markCellAndResolve(board, 4, pool, () => 0)
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    expect(result.outcome.scoreDelta).toBe(BASE_SCORE_PER_LINE)
+    expect(result.outcome.scoreDelta).toBe(5 * CADENCE_BASE_VALUE.hourly)
   })
 
   it('reports the shared cell as the intersection of the two clearing lines', () => {
@@ -234,5 +281,117 @@ describe('refill respects binding placement rules across a whole batch (GB-FUN-0
         expect(longCount).toBeLessThanOrEqual(1)
       }
     }
+  })
+})
+
+function goal(id: string, category: string, cadence: Goal['cadence']): Goal {
+  return { id, title: id, category, cadence }
+}
+
+function lineBoard(lineGoals: Goal[], fillerCategory = 'zz'): { board: Board; pool: Goal[] } {
+  const filler = goal('filler', fillerCategory, 'hourly')
+  const cells = Array.from({ length: 25 }, (_, i) => ({
+    goal: lineGoals[i] ?? filler,
+    marked: false,
+  }))
+  return { board: { size: 5, cells }, pool: [...lineGoals, filler] }
+}
+
+// Every row/column/diagonal on a 5x5 board is 5 cells - "mixed" here always means 3
+// distinct categories (a,a,b,b,c), which is neither all-same (matching) nor
+// all-distinct (variety), to isolate whatever effect a given test is checking.
+const MIXED_CATEGORIES = ['a', 'a', 'b', 'b', 'c']
+
+describe('clear scoring (GB-FUN-003, GB-FUN-028, GB-FUN-029, GB-FUN-030, GB-FUN-031, GB-FUN-033, GB-FUN-068)', () => {
+  it('a cleared line of long-term goals scores higher than an equal-length line of daily goals', () => {
+    const longLine = MIXED_CATEGORIES.map((c, i) => goal(`l${i}`, c, 'long-term'))
+    const { board: longBoard, pool: longPool } = lineBoard(longLine)
+    for (let i = 0; i < 4; i++) longBoard.cells[i]!.marked = true
+    const longResult = markCellAndResolve(longBoard, 4, longPool, () => 0)
+    expect(longResult.ok).toBe(true)
+
+    const dailyLine = MIXED_CATEGORIES.map((c, i) => goal(`d${i}`, c, 'daily'))
+    const { board: dailyBoard, pool: dailyPool } = lineBoard(dailyLine)
+    for (let i = 0; i < 4; i++) dailyBoard.cells[i]!.marked = true
+    const dailyResult = markCellAndResolve(dailyBoard, 4, dailyPool, () => 0)
+    expect(dailyResult.ok).toBe(true)
+
+    if (!longResult.ok || !dailyResult.ok) return
+    expect(longResult.outcome.scoreDelta).toBeGreaterThan(dailyResult.outcome.scoreDelta)
+    expect(longResult.outcome.scoreDelta).toBe(5 * CADENCE_BASE_VALUE['long-term'])
+    expect(dailyResult.outcome.scoreDelta).toBe(5 * CADENCE_BASE_VALUE.daily)
+  })
+
+  it('a matching line (all one category) scores higher than the same cadences mixed', () => {
+    const matching = [0, 1, 2, 3, 4].map((i) => goal(`m${i}`, 'same', 'daily'))
+    const { board: matchBoard, pool: matchPool } = lineBoard(matching)
+    for (let i = 0; i < 4; i++) matchBoard.cells[i]!.marked = true
+    const matchResult = markCellAndResolve(matchBoard, 4, matchPool, () => 0)
+
+    const mixed = MIXED_CATEGORIES.map((c, i) => goal(`x${i}`, c, 'daily'))
+    const { board: mixedBoard, pool: mixedPool } = lineBoard(mixed)
+    for (let i = 0; i < 4; i++) mixedBoard.cells[i]!.marked = true
+    const mixedResult = markCellAndResolve(mixedBoard, 4, mixedPool, () => 0)
+
+    expect(matchResult.ok).toBe(true)
+    expect(mixedResult.ok).toBe(true)
+    if (!matchResult.ok || !mixedResult.ok) return
+    expect(matchResult.outcome.scoreDelta).toBeGreaterThan(mixedResult.outcome.scoreDelta)
+    const base = 5 * CADENCE_BASE_VALUE.daily
+    expect(matchResult.outcome.scoreDelta).toBe(Math.round(base * (1 + COMBO_BONUS_RATIO)))
+    expect(mixedResult.outcome.scoreDelta).toBe(base)
+  })
+
+  it('a variety line (all distinct categories) scores higher than the same cadences mixed', () => {
+    const variety = ['a', 'b', 'c', 'd', 'e'].map((c, i) => goal(`v${i}`, c, 'daily'))
+    const { board: varietyBoard, pool: varietyPool } = lineBoard(variety)
+    for (let i = 0; i < 4; i++) varietyBoard.cells[i]!.marked = true
+    const varietyResult = markCellAndResolve(varietyBoard, 4, varietyPool, () => 0)
+
+    const mixed = MIXED_CATEGORIES.map((c, i) => goal(`x${i}`, c, 'daily'))
+    const { board: mixedBoard, pool: mixedPool } = lineBoard(mixed)
+    for (let i = 0; i < 4; i++) mixedBoard.cells[i]!.marked = true
+    const mixedResult = markCellAndResolve(mixedBoard, 4, mixedPool, () => 0)
+
+    expect(varietyResult.ok).toBe(true)
+    expect(mixedResult.ok).toBe(true)
+    if (!varietyResult.ok || !mixedResult.ok) return
+    expect(varietyResult.outcome.scoreDelta).toBeGreaterThan(mixedResult.outcome.scoreDelta)
+    const base = 5 * CADENCE_BASE_VALUE.daily
+    expect(varietyResult.outcome.scoreDelta).toBe(Math.round(base * (1 + COMBO_BONUS_RATIO)))
+  })
+
+  it('the same line shape scores differently depending on adjacent marked cells (GB-FUN-031)', () => {
+    const rowGoals = MIXED_CATEGORIES.map((c, i) => goal(`r${i}`, c, 'hourly'))
+    const { board: plainBoard, pool } = lineBoard(rowGoals)
+    for (let i = 0; i < 4; i++) plainBoard.cells[i]!.marked = true
+    const plainResult = markCellAndResolve(plainBoard, 4, pool, () => 0)
+    expect(plainResult.ok).toBe(true)
+    if (!plainResult.ok) return
+    expect(plainResult.outcome.scoreDelta).toBe(5 * CADENCE_BASE_VALUE.hourly)
+
+    // Same row, but cell 5 (directly below cell 0, adjacent to the line) is marked -
+    // one qualifying neighbour, and not itself part of the clearing line.
+    const { board: adjBoard, pool: adjPool } = lineBoard(rowGoals)
+    for (let i = 0; i < 4; i++) adjBoard.cells[i]!.marked = true
+    adjBoard.cells[5]!.marked = true
+    const adjResult = markCellAndResolve(adjBoard, 4, adjPool, () => 0)
+    expect(adjResult.ok).toBe(true)
+    if (!adjResult.ok) return
+
+    expect(adjResult.outcome.scoreDelta).toBeGreaterThan(plainResult.outcome.scoreDelta)
+    expect(adjResult.outcome.scoreDelta - plainResult.outcome.scoreDelta).toBe(1)
+  })
+
+  it('produces zero adjacency bonus when no cell outside the line is marked', () => {
+    const rowGoals = MIXED_CATEGORIES.map((c, i) => goal(`z${i}`, c, 'hourly'))
+    const { board, pool } = lineBoard(rowGoals)
+    for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
+    const result = markCellAndResolve(board, 4, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    // No adjacency bonus means the score is exactly the base value - no combo either
+    // (MIXED_CATEGORIES is neither all-same nor all-distinct).
+    expect(result.outcome.scoreDelta).toBe(5 * CADENCE_BASE_VALUE.hourly)
   })
 })

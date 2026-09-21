@@ -1,17 +1,35 @@
-/** Line detection and clear resolution, single and simultaneous multi-line
- *  (GB-FUN-010 through GB-FUN-015). */
+/** Line detection and clear resolution, single and simultaneous multi-line, plus clear
+ *  scoring (GB-FUN-003, 010-015, 028-031, 033, 068). */
 
 import type { Board, BoardSize } from './board'
 import { markCell } from './board'
+import type { Cadence } from './categories'
 import { drawForCell } from './draw'
 import type { Goal } from './pool'
 
-/** Placeholder per-line score until Q7 (design-description.md §11) sets real base point
- *  values. The increment mechanism — that a clear raises lifetime score, once per
- *  completing line — is this module's obligation; the magnitude is Q7's. */
-export const BASE_SCORE_PER_LINE = 1
+/** Base value per tile by cadence, summed across a cleared line (`D-2026-09-21-3`).
+ *  Placeholder-grade per that decision — a shape that keeps combos and adjacency
+ *  meaningful relative to it, not a tuned magnitude. */
+export const CADENCE_BASE_VALUE: Record<Cadence, number> = {
+  hourly: 1,
+  daily: 2,
+  weekly: 3,
+  'long-term': 5,
+}
 
-/** 50% of the summed base score of the clearing lines, on top of that base score
+/** +50% for a matching (all one category) or variety (all distinct categories) combo
+ *  (`D-2026-09-21-4`). The two never both apply to one line: a line longer than 1 cell
+ *  cannot be both all-the-same and all-different at once. */
+export const COMBO_BONUS_RATIO = 0.5
+
+/** Adjacency bonus configuration (GB-FUN-068) — a data table kept separate from the
+ *  function that reads it, so changing a value here needs no other code change.
+ *  Currently one seed combination (`D-2026-09-21-5`). */
+export const ADJACENCY_CONFIG: { name: string; value: number }[] = [
+  { name: 'adjacent-marked', value: 1 },
+]
+
+/** 50% of the summed value of the clearing lines, on top of that value
  *  (D-2026-09-20-9). Only applies when more than one line clears on the same mark
  *  (GB-FUN-013's own trigger condition) — a single-line clear earns no bonus. */
 export const MULTI_CLEAR_BONUS_RATIO = 0.5
@@ -54,6 +72,51 @@ function isLineComplete(board: Board, line: number[]): boolean {
   return line.every((i) => board.cells[i]!.marked)
 }
 
+/** GB-FUN-028: sum of each tile's cadence value. */
+function lineBaseValue(board: Board, line: number[]): number {
+  return line.reduce((sum, i) => sum + CADENCE_BASE_VALUE[board.cells[i]!.goal.cadence], 0)
+}
+
+/** GB-FUN-029/030: 1 + COMBO_BONUS_RATIO for a matching or variety line, else 1. */
+function comboMultiplier(board: Board, line: number[]): number {
+  const categories = line.map((i) => board.cells[i]!.goal.category)
+  const distinct = new Set(categories).size
+  if (distinct === 1 || distinct === categories.length) return 1 + COMBO_BONUS_RATIO
+  return 1
+}
+
+function adjacentIndices(size: BoardSize, index: number): number[] {
+  const row = Math.floor(index / size)
+  const col = index % size
+  const out: number[] = []
+  if (row > 0) out.push(index - size)
+  if (row < size - 1) out.push(index + size)
+  if (col > 0) out.push(index - 1)
+  if (col < size - 1) out.push(index + 1)
+  return out
+}
+
+/** GB-FUN-031: a cleared cell orthogonally adjacent to a still-marked cell (one that is
+ *  not itself part of this clear) scores the "adjacent-marked" value per such neighbour.
+ *  Reads the pre-refill board, since the point is what already sat next to the line. */
+function adjacencyBonus(board: Board, line: number[], clearing: ReadonlySet<number>): number {
+  const value = ADJACENCY_CONFIG.find((c) => c.name === 'adjacent-marked')?.value ?? 0
+  let bonus = 0
+  for (const i of line) {
+    for (const n of adjacentIndices(board.size, i)) {
+      if (board.cells[n]!.marked && !clearing.has(n)) bonus += value
+    }
+  }
+  return bonus
+}
+
+/** A single line's total value: base × combo multiplier, plus adjacency (additive, per
+ *  GB-FUN-031's own "bonus" framing versus GB-FUN-029/030's "multiplier" framing). */
+function lineValue(board: Board, line: number[], clearing: ReadonlySet<number>): number {
+  return Math.round(lineBaseValue(board, line) * comboMultiplier(board, line)) +
+    adjacencyBonus(board, line, clearing)
+}
+
 /** How many cells of a line are currently marked — the observable form of a line's
  *  "progress" (GB-FUN-015). A completing line's count equals its length; a
  *  perpendicular line that lost a contributing cell to a clear reads one lower. */
@@ -80,6 +143,13 @@ export type ClearResult = { ok: true; outcome: ClearOutcome } | { ok: false; rea
  * an empty cell, so refill happens inline, not as a later step. Refill goes through
  * `drawForCell` (`draw.ts`), so the binding placement rules (GB-FUN-023, GB-FUN-024)
  * apply to every cell a clear refills, not only a fresh board's initial fill.
+ *
+ * Each line's value is its cadence-summed base (GB-FUN-028) times a matching/variety
+ * combo multiplier (GB-FUN-029, GB-FUN-030) plus an adjacency bonus read from the
+ * pre-refill board (GB-FUN-031, GB-FUN-068's configuration). `scoreDelta` is the total
+ * across every completing line, plus the multi-clear bonus on top when more than one
+ * clears — this is the same value GB-FUN-003 awards to reward balance and GB-FUN-033
+ * adds to lifetime score; the caller applies it to both counters identically.
  *
  * Checking every line through the cell, not just one, means a simultaneous multi-line
  * completion is already handled correctly (GB-FUN-012): every completing line clears,
@@ -115,6 +185,17 @@ export function resolveLineClears(
     .filter(([, count]) => count >= 2)
     .map(([i]) => i)
 
+  // Value each line against the pre-refill board - adjacency asks what already sat
+  // next to the line, not what replaces it.
+  const clearingSet = new Set(occurrences.keys())
+  const summedLineValue = completing.reduce(
+    (sum, line) => sum + lineValue(board, line, clearingSet),
+    0,
+  )
+  const multiClearBonus =
+    completing.length > 1 ? Math.round(summedLineValue * MULTI_CLEAR_BONUS_RATIO) : 0
+  const scoreDelta = summedLineValue + multiClearBonus
+
   const cells = board.cells.slice()
   const workingBoard: Board = { ...board, cells }
   // Every cleared cell still awaiting its new goal must not count toward the binding
@@ -128,14 +209,11 @@ export function resolveLineClears(
     pending.delete(i)
   }
 
-  const base = completing.length * BASE_SCORE_PER_LINE
-  const bonus = completing.length > 1 ? Math.round(base * MULTI_CLEAR_BONUS_RATIO) : 0
-
   return {
     ok: true,
     outcome: {
       board: { ...board, cells },
-      scoreDelta: base + bonus,
+      scoreDelta,
       clearedLineCount: completing.length,
       intersectionCells,
     },
