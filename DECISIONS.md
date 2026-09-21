@@ -3,6 +3,102 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-11 — Recycle-allowance upgrade caps at 3, flat 100 board balance per step
+
+- **Status:** open
+- **Context:** GB-FUN-037 (Q17) leaves the recycle-allowance upgrade's cap and per-step
+  price open. Default allowance is 1 free recycle per 24h (GB-FUN-041). No simulation
+  modeled the upgrade (`jam_sim.py`'s NOT MODELLED list explicitly names it).
+- **Options considered:** cap 2, single 150-board-balance step — rejected, a one-shot
+  upgrade is a smaller progression axis than the design doc's framing of "turns the
+  release valve into a progression axis" (§6.2) implies · cap 3, escalating 100 then
+  250 — rejected as a first cut, an escalating curve is a reasonable future refinement
+  but adds a second axis of unfounded numbers (the escalation ratio) without evidence
+  to ground it · **cap 3, flat 100 board balance per step (chosen)** — two purchasable
+  steps (1→2, 2→3), predictable pricing, cheaper per step than grid expansion since
+  it's an incremental unlock rather than the main long-arc goal.
+- **Why:** confirmed with the user directly, for the same reason as `D-2026-09-21-9`/
+  `D-2026-09-21-10` — no simulation evidence exists for this axis at all.
+- **Expected outcome:** The player can purchase up to two upgrade steps, each for 100
+  board balance, raising the free recycle allowance from 1 to 2 and then 2 to 3 per
+  24-hour window. No further upgrade exists once the allowance reaches 3.
+- **Revisit:** Alongside the other WP-07 pricing decisions, after first playtest.
+
+## D-2026-09-21-10 — Swap costs 10 board balance
+
+- **Status:** open
+- **Context:** GB-FUN-038's swap power-up says "purchased with board balance" but,
+  unlike GB-FUN-036/037, its `notes:` field never flagged a price TBD — a gap in the
+  requirements-authoring pass rather than evidence the action is free. No simulation
+  modeled swap either (`jam_sim.py`'s NOT MODELLED list).
+- **Options considered:** 5 board balance (matching `D-2026-09-21-8`'s recycle cost
+  exactly) — rejected, undervalues that swap preserves both goals in place while
+  recycle discards one entirely · 20 board balance — rejected as a first cut,
+  discourages the "cluster blockers together" consolidation use case
+  (`D-2026-09-19-22`) the mechanic exists for, which needs to be usable often, not
+  hoarded · **10 board balance (chosen)** — double the recycle cost, reflecting
+  swap's extra positional value, while cheap enough to use freely.
+- **Why:** confirmed with the user directly, for the same reason as `D-2026-09-21-9`
+  — no simulation evidence exists, so the number is a judgement call rather than a
+  measured result.
+- **Expected outcome:** Activating swap and selecting two adjacent tiles costs 10
+  board balance and exchanges their positions.
+- **Revisit:** Alongside `D-2026-09-21-9` and `D-2026-09-21-7` — a first-playtest
+  pacing review, not a safety one.
+
+## D-2026-09-21-9 — Grid expansion (5x5 to 7x7) costs 250 board balance
+
+- **Status:** open
+- **Context:** GB-FUN-036 needs a price for the grid expansion power-up (Q10).
+  `board.ts`'s `SUPPORTED_SIZES` is `[5, 7]`, so this is a single one-time purchase,
+  not a stepped formula. No simulation modeled grid expansion (`jam_sim.py`'s header
+  lists it under NOT MODELLED), and the A4 sensitivity run already showed the
+  recovery floor holds at 7x7 independent of price — so this is a pacing choice, not
+  a safety one.
+- **Options considered:** 150 board balance (light, ~35-40 marks) — rejected,
+  undersells the design doc's framing of expansion as "the main long-arc progression"
+  (§6.2) if it's reachable within a single short session · 500 board balance (steep,
+  100+ marks) — rejected as a first cut, risks feeling unreachable before the player
+  has built up several parallel challenge streams · **250 board balance (chosen)** —
+  roughly 60 marks at the economy's rough long-run rate once several challenges are
+  cycling in parallel, a meaningful mid-session goal without being a multi-day grind.
+- **Why:** confirmed with the user directly — no simulation evidence exists to ground
+  this number, and inventing one silently would misrepresent it as evidence-based
+  when it is a pacing judgement call.
+- **Expected outcome:** Purchasing grid expansion deducts 250 board balance and
+  permanently grows the board from 5x5 to 7x7.
+- **Revisit:** After first playtest, alongside `D-2026-09-21-7`'s revisit trigger —
+  if the whole board-balance economy's pacing turns out to run faster or slower than
+  assumed here.
+
+## D-2026-09-21-8 — Recycle cost is 5 board balance, ported from the simulation's own default
+
+- **Status:** open
+- **Context:** GB-FUN-039/042's paid recycle (beyond the free allowance) needs a
+  board-balance price. Q10 covers power-up pricing generally. `jam_sim.py`'s
+  `DEFAULTS` sets `recycle_cost=5` and uses it as the baseline for every experiment
+  except its own A5 sensitivity sweep, which explicitly varies `recycle_cost` across
+  `[2, 10]` (labelled Q10 in the sim's own comments) specifically to test this
+  question.
+- **Options considered:** invent an unrelated price — rejected, ignores existing
+  tested evidence · adopt one of the swept extremes (2 or 10) — rejected, A5 shows
+  the recovery floor's time-to-unjam and paid-recycle usage are statistically
+  identical at both extremes (paid recycles average 0.00 across every player/
+  tightening combination at both 2 and 10 — the free allowance alone resolves jams
+  before a paid recycle is ever needed in the simulated scenarios), so neither
+  extreme is privileged by the evidence · **5 board balance (chosen)** — the value
+  used throughout every other experiment in the same instrument, including the ones
+  `D-2026-09-20-8`'s grid sizing and `D-2026-09-21-1`'s cadence split already rely on.
+- **Why:** recycle cost is not safety-critical the way grid size or cadence split
+  were — A5 shows the recovery floor holds at every tested value — so there is no
+  evidence-based reason to deviate from the simulation's own established default, and
+  doing so would introduce a discrepancy against every other result in
+  `sim/results.md` that assumed 5.
+- **Expected outcome:** A recycle costs 5 board balance once the free allowance for
+  that 24-hour window is exhausted (GB-FUN-042).
+- **Revisit:** If board-balance income rates change (WP-06 tuning) such that 5
+  becomes trivially cheap or prohibitively expensive relative to typical income.
+
 ## D-2026-09-21-7 — Challenge target is 10 marks; completion bonus equals the target
 
 - **Status:** open
