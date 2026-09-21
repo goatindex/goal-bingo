@@ -3,6 +3,71 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-7 — Challenge target is 10 marks; completion bonus equals the target
+
+- **Status:** open
+- **Context:** GB-FUN-062 requires a completion bonus "when a challenge progress
+  counter reaches the challenge target," but no requirement sets what that target is,
+  and `docs/design-description.md` §8.2 explicitly defers both ("specific rates and
+  completion bonuses are tuning questions waiting for a prototype"). Unlike
+  `D-2026-09-21-6`'s per-mark rate, no simulation models challenges at all
+  (`sim/jam_sim.py`'s header says completion bonuses are ignored entirely), so there is
+  no evidence to ground either number.
+- **Options considered:** different targets per challenge type (universal lower since
+  it is the coverage floor, category/cadence higher since they are narrower) —
+  rejected, invents a second axis of unfounded numbers with no basis for the ratio
+  between them · a large target requiring sustained multi-day play — rejected,
+  delays the first observable completion bonus past the point a prototype could
+  usefully show it working · **10 marks, uniform across universal, category, and
+  cadence challenges, completion bonus equal to the target (10) (chosen)** — round
+  enough to reach within a day or two of ordinary play (the universal challenge counts
+  every mark), simple to reason about, and a completed challenge roughly doubles the
+  income from that batch of marks before repeating.
+- **Why:** WP-06's requirements describe an ongoing, always-active challenge (GB-FUN-055,
+  057, 059 all say "maintain... at each point" / "at all times"), not a one-shot; no
+  requirement mentions a calendar period. The simplest reading consistent with the
+  literal text is a mark-count cycle: reach the target, pay the bonus, reset the
+  counter, and the same challenge continues — rather than inventing a time-based
+  period ("this week") that nothing in GB-FUN-055–062 actually requires.
+- **Expected outcome:** Every challenge (universal, each unlocked category, each
+  cadence tier) tracks progress toward a target of 10 qualifying marks. Reaching 10
+  awards a completion bonus of 10 board balance on top of the per-mark payments
+  already made, then the counter resets to 0 and progress continues toward the same
+  target again.
+- **Revisit:** After first playtest — particularly if 10 feels too fast or too slow to
+  reach, or if universal (coverage floor) and category/cadence (narrower, harder to
+  fill) turn out to need different targets after all.
+
+## D-2026-09-21-6 — Board balance pays +1 per qualifying mark
+
+- **Status:** open
+- **Context:** GB-FUN-061 needs a per-mark board-balance rate (Q18). Unlike
+  GB-FUN-062's completion bonus, this one already has direct evidence:
+  `sim/jam_sim.py`'s recovery-floor simulation — the same one `D-2026-09-20-8`'s grid
+  sizing and `D-2026-09-21-1`'s cadence split already rely on — hard-codes
+  `self.balance += 1` per qualifying mark (`# D-8: per qualifying mark`), and its own
+  header states plainly that completion bonuses are ignored in that model, so the
+  already-validated recovery floor holds on per-mark income alone.
+- **Options considered:** invent a different flat rate — rejected, would silently
+  diverge from a number the recovery-floor result already depends on · scale the rate
+  by how many challenges a mark qualifies for (universal + category + cadence at once,
+  GB-FUN-060) — rejected, nothing in the requirements ties the *payment* to the
+  *count* of qualifying challenges, only the progress counters (GB-FUN-060 increments
+  each qualifying challenge's counter, GB-FUN-004/GB-CON-012 describe a single board-
+  balance increase per mark) · **+1 board balance per qualifying mark, flat, regardless
+  of how many challenges it also progresses (chosen)** — matches the simulation exactly.
+- **Why:** Every mark always qualifies for at least the universal challenge
+  (GB-FUN-055 has no restriction), so GB-FUN-004's "mark qualifies toward at least one
+  active challenge" condition is unconditionally true — the simulation's unconditional
+  per-mark increment already models exactly this.
+- **Expected outcome:** Every mark increases board balance by 1, independent of which
+  or how many challenges (universal, category, cadence) it also progresses. This
+  keeps the recovery-floor guarantee (`sim/results.md`) valid without re-running the
+  simulation.
+- **Revisit:** If a future re-run of `sim/jam_sim.py` models completion bonuses or a
+  different per-mark rate and finds the recovery floor still holds, or after first
+  playtest data on how income actually feels.
+
 ## D-2026-09-21-5 — Adjacency bonus seed rule: +1 per cleared cell adjacent to a marked cell
 
 - **Status:** open
