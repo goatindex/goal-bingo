@@ -3,6 +3,65 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-23 — Advanced-tile draw/placement: split eligibility, automatic + passive + paid placement
+
+- **Status:** open
+- **Context:** GB-FUN-043/044 only require that a category becomes *eligible* for
+  advanced tiles; nothing in GB-FUN-043–050 or design doc §7 specifies how eligibility
+  turns into an actual tile on the board — flagged and deliberately left unscoped by
+  `D-2026-09-21-16`. WP-08 built multi-completion and mini-grid as fully-tested,
+  directly-constructible domain logic with no code path that places one through
+  ordinary play. This closes that gap.
+- **Options considered (placement mechanism):** a player-paid action alone,
+  mirroring recycle/swap (rejected as the *sole* mechanism — removes any element of
+  surprise, and doesn't reward reaching a threshold with anything visible) · a purely
+  passive draw chance alone (rejected as the sole mechanism — no guaranteed payoff for
+  reaching a threshold, and no player agency over timing) · **automatic placement the
+  moment a track unlocks, plus an ongoing passive chance on later refills, plus a
+  separate player-paid action for on-demand placement (chosen)** — combines a
+  guaranteed reward at the unlock moment with both a passive path (consistent with the
+  cadence-weighted draw) and player agency (consistent with recycle/swap), rather than
+  forcing a single-mechanism choice.
+- **Options considered (eligibility tracking):** one shared `unlockedCategories` flag
+  covering both tile types (the current WP-08 shape, rejected — multi-completion and
+  mini-grid are different things to unlock, not interchangeable flavors of one flag) ·
+  **two independent per-category tracks, `multiCompletionUnlocked` and
+  `miniGridUnlocked`, each checked against the existing shared `marksByCategory`
+  counter (reusing WP-08's single per-category mark count rather than tracking two),
+  with its own independent board-balance purchase (chosen)** — a player can
+  progression-unlock one track and separately purchase the other early, without
+  duplicating the underlying counter.
+- **Why:** Reuses every existing shape (cadence-weighted passive draw, recycle's
+  cell-targeted paid action, the mark-threshold-or-balance progression/economy pair)
+  rather than inventing new mechanics, consistent with how every other system in this
+  game composes from a small set of established patterns.
+- **Expected outcome:**
+  - Both tracks keep the existing numbers (50 marks / 150 board balance,
+    `D-2026-09-21-17`) independently rather than inventing new ones — nothing suggests
+    they should differ, and doing so without evidence would repeat exactly the mistake
+    this project has avoided everywhere else. **Explicitly provisional**: adjust with
+    playtest data once the mechanism exists to generate any.
+  - The moment either track unlocks for a category, one tile of that type is placed
+    immediately (replacing the next drawn cell of that category, or an existing
+    unmarked cell of that category if none is drawn imminently).
+  - After that, ordinary refill draws in an eligible category carry a 15% passive
+    chance of producing that tile type instead of a plain goal (mechanism mirrors
+    `drawWeighted`'s cadence weighting) — roughly triple the long-term cadence share
+    (`LONG_TERM_DRAW_SHARE`, 5%), since an advanced tile is meant to be a noticeable
+    but still occasional event within an already-eligible category, not the common
+    case.
+  - A new paid action costing 150 board balance (matching the existing secondary
+    unlock price) lets the player pick any unmarked cell showing a goal from an
+    eligible category and convert it to their chosen tile type immediately.
+  - Mini-grid population (`createMiniGrid`) draws only from goals in the parent tile's
+    own category, duplicates allowed, replacing the current whole-pool draw
+    (supersedes `D-2026-09-19-24`'s "draws from the main pool" default for this
+    specific behaviour — the sub-pool/player-placed upgrades D-2026-09-19-24 also
+    describes are unaffected and still don't ship in the base game).
+- **Revisit:** All four numbers here (both tracks' thresholds, the passive-chance rate,
+  the paid-action cost) are provisional pending a playtest, per the user's explicit
+  direction — this decision is about the mechanism shape, not final tuning.
+
 ## D-2026-09-21-22 — Global advanced-tile unlock: mirrored progression/economy shape, 30% bulk discount
 
 - **Status:** open
