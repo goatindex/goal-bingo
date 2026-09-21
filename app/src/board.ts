@@ -1,8 +1,8 @@
 /** Board state: grid sizing, cells, marking, permanent expansion
  *  (GB-FUN-001, 002, 005, 006, 007, 008, 009). */
 
+import { drawForCell } from './draw'
 import type { Goal } from './pool'
-import { drawGoal } from './pool'
 
 /** 5x5 start, verified through 7x7 (D-2026-09-20-8). Larger sizes need a
  *  sim/jam_sim.py run first (GB-CON-014) before they are added here. */
@@ -35,11 +35,20 @@ export type BoardResult =
  * empty-pool prompt (GB-FUN-008 forbids ever presenting an unfilled cell as playable).
  */
 export function createBoard(size: BoardSize, pool: Goal[], rng: () => number = Math.random): BoardResult {
-  const cells: Cell[] = []
-  for (let i = 0; i < size * size; i++) {
-    const drawn = drawGoal(pool, rng)
+  if (pool.length === 0) return { ok: false, reason: 'empty-pool' }
+  const total = size * size
+  // Placeholder cells so `board` is a full-length view drawForCell can scan; every
+  // index but the one currently being decided starts "ignored" (see drawForCell) so
+  // the placeholder's own content is never actually consulted.
+  const cells: Cell[] = new Array(total).fill({ goal: pool[0]!, marked: false })
+  const board: Board = { size, cells }
+  const ignore = new Set<number>()
+  for (let i = 1; i < total; i++) ignore.add(i)
+  for (let i = 0; i < total; i++) {
+    const drawn = drawForCell(pool, board, i, rng, ignore)
     if (!drawn.ok) return { ok: false, reason: 'empty-pool' }
-    cells.push({ goal: drawn.goal, marked: false })
+    cells[i] = { goal: drawn.goal, marked: false }
+    ignore.delete(i)
   }
   return { ok: true, board: { size, cells } }
 }
@@ -59,18 +68,29 @@ export function resizeBoard(
 ): BoardResult {
   if (!isSupportedSize(newSize)) return { ok: false, reason: 'unsupported-size' }
   if (newSize === board.size) return { ok: true, board }
-  const cells: Cell[] = new Array(newSize * newSize)
+  if (pool.length === 0) return { ok: false, reason: 'empty-pool' }
+  const total = newSize * newSize
+  const cells: Cell[] = new Array(total).fill({ goal: pool[0]!, marked: false })
+  const newBoard: Board = { size: newSize, cells }
+  const toDraw: number[] = []
   for (let row = 0; row < newSize; row++) {
     for (let col = 0; col < newSize; col++) {
       const newIdx = row * newSize + col
       if (row < board.size && col < board.size) {
         cells[newIdx] = board.cells[row * board.size + col]!
       } else {
-        const drawn = drawGoal(pool, rng)
-        if (!drawn.ok) return { ok: false, reason: 'empty-pool' }
-        cells[newIdx] = { goal: drawn.goal, marked: false }
+        toDraw.push(newIdx)
       }
     }
+  }
+  // Copied cells are real and count immediately; only the newly-exposed cells need
+  // "ignoring" (see drawForCell) until each gets its own fresh draw.
+  const ignore = new Set(toDraw)
+  for (const idx of toDraw) {
+    const drawn = drawForCell(pool, newBoard, idx, rng, ignore)
+    if (!drawn.ok) return { ok: false, reason: 'empty-pool' }
+    cells[idx] = { goal: drawn.goal, marked: false }
+    ignore.delete(idx)
   }
   return { ok: true, board: { size: newSize, cells } }
 }
