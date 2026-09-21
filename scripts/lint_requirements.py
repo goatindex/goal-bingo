@@ -2,8 +2,8 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/incose-requirements/scripts/lint_requirements.py
-# Commit: f2f0cba
-# Copied: 2026-09-20
+# Commit: 86ae18a
+# Copied: 2026-09-21
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
 # lost at the next refresh, and drift is reported by --check.
@@ -371,6 +371,7 @@ def check_statement(rec, meta, glossary, findings):
     lower = statement.lower()
     condition, action = split_at_shall(statement)
     is_need = rec.is_need()
+    entity = meta.get("entity", "")
 
     # R1 / obligation verb
     if is_need:
@@ -385,9 +386,21 @@ def check_statement(rec, meta, glossary, findings):
         elif shalls > 1:
             add("warn", "R18", "%d occurrences of 'shall' - likely more than one obligation"
                 % shalls)
+        # The subject slot normally requires a definite article ("the Ingest
+        # Service") because it disambiguates one entity among several. A set
+        # with exactly one entity, declared in _meta.md as a proper noun (a
+        # product name like "Goal Bingo"), correctly carries no article at
+        # all -- "The Goal Bingo shall" is not English. Accept the declared
+        # entity's bare name as an alternative subject rather than loosening
+        # the pattern for everyone; a set that has NOT declared an entity, or
+        # that declares the generic "system", still requires "the" (F-61:
+        # project-tracking's own WOW-DAT-* records rely on this being strict).
+        subject_alt = r"the\s+.+?"
+        if entity and entity.lower() != "system":
+            subject_alt = r"(?:the\s+.+?|%s)" % re.escape(entity)
         pattern = re.compile(
             r"^\s*(?:(?:when|while|where|if|upon|given|during)\b[^,]{3,},\s*"
-            r"(?:then\s+)?)?the\s+.+?\s+shall\s+\S+", re.I)
+            r"(?:then\s+)?)?" + subject_alt + r"\s+shall\s+\S+", re.I)
         if not pattern.match(statement):
             add("warn", "R1",
                 "does not match a declared pattern (see references/patterns.md)")
@@ -403,7 +416,6 @@ def check_statement(rec, meta, glossary, findings):
         add("warn", "R5", "subject uses an indefinite article - use 'the'")
 
     # generic subject where an entity is declared
-    entity = meta.get("entity", "")
     if entity and entity.lower() != "system" and re.search(r"\bthe system\b", lower):
         add("info", "R3", "'the system' used although the entity is '%s'" % entity)
 
