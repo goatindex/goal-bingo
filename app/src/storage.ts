@@ -1,6 +1,6 @@
 /** Local-first persistence envelope (GB-DAT-001, GB-FUN-066). */
 
-import type { Achievement, AchievementId } from './achievements'
+import { ACHIEVEMENT_IDS, type Achievement } from './achievements'
 import type { Board } from './board'
 import { createBoard, isSupportedSize } from './board'
 import { DEFAULT_CATEGORIES } from './categories'
@@ -154,13 +154,6 @@ function isStats(value: unknown): value is Stats {
     isStringRecord(s.clearsByDate)
   )
 }
-
-const ACHIEVEMENT_IDS: readonly AchievementId[] = [
-  'first-clear',
-  'large-grid',
-  'sustained-run',
-  'rare-combination',
-]
 
 function isAchievement(value: unknown): value is Achievement {
   if (!value || typeof value !== 'object') return false

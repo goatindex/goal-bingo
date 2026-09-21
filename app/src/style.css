@@ -107,6 +107,14 @@ body {
   outline-offset: -2px;
 }
 
+.achievement--locked {
+  opacity: 0.5;
+}
+
+.achievement--unlocked {
+  font-weight: 600;
+}
+
 .shell__thumb {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
