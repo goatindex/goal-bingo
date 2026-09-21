@@ -7,6 +7,8 @@ import {
   saveState,
 } from './storage'
 import { MemoryStorage } from './test-support'
+import { DEFAULT_CATEGORIES } from './categories'
+import { initialChallenges } from './challenges'
 
 describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
   it('creates a non-empty starter pool on first launch', () => {
@@ -35,6 +37,7 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.rewards).toEqual([{ id: 'rw-1', name: 'Takeaway', price: 20 }])
     expect(loaded.state.pool.length).toBe(state.pool.length)
     expect(loaded.state.categories).toEqual(state.categories)
+    expect(loaded.state.challenges).toEqual(state.challenges)
   })
 
   it('soft-resets to a playable starter pool when storage is corrupt', () => {
@@ -75,6 +78,9 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.board.size).toBe(5)
     expect(loaded.state.board.cells.length).toBe(25)
     expect(loaded.state.board.cells.every((c) => c.goal != null)).toBe(true)
+    // Pre-#93 saves never wrote challenges - migration must rebuild the always-active
+    // set rather than carry forward nothing.
+    expect(loaded.state.challenges).toEqual(initialChallenges(DEFAULT_CATEGORIES))
   })
 
   it('migrates a legacy save with malformed rewards to an empty reward list', () => {

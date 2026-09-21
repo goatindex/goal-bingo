@@ -19,7 +19,10 @@ repeat), not a time-based one. Flagging in case that's not what was intended.
 
 ## Next up
 
-- **File work items for WP-06** and pick up the challenges/board-income build.
+- **Build #94** (progress challenges and pay board balance on every mark) — blocked by
+  #93, now merged. `main.ts`'s `onMarkCell` needs to read the tapped cell's goal
+  *before* calling `markCellAndResolve` (that call may refill the very cell that was
+  tapped, if the mark completes a line through it).
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -41,7 +44,25 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **Resolved WP-06's two blocking TBDs** (this PR): `D-2026-09-21-6` — board balance
+- **#93 (challenge model) built** (this PR), first of WP-06's two sub-issues: new
+  `app/src/challenges.ts` — `Challenge` type (`id`/`kind`/`qualifier`/`progress`/
+  `target`), `initialChallenges(unlockedCategories)` builds the always-active set (one
+  universal, one per cadence tier, one per unlocked category), `addCategoryChallenge`
+  creates a category's challenge on unlock (GB-FUN-058), keyed by a stable id
+  (`category-<name>`, `cadence-<tier>`, `universal`) so "does this already exist" is a
+  lookup rather than a scan. `storage.ts`'s `GameState.challenges` follows the
+  `Reward`/`isReward` precedent (#85): `isGameState` validates it, and the legacy
+  migration path rebuilds `initialChallenges(DEFAULT_CATEGORIES)` for saves that never
+  wrote it. `main.ts`'s `onAddCategory` now also calls `addCategoryChallenge`. No UI
+  yet (not requested by GB-FUN-055/057/058/059; this issue is data modelling only —
+  #94 is what makes challenges progress and pay anything). 7 new tests, 85/85 passing.
+  Verified live via `localStorage`: a fresh game state has all 12 challenges at
+  progress 0; unlocking a custom category ("pets") immediately created
+  `category-pets`; no console errors.
+- **Filed WP-06's two sub-issues** ([#93](https://github.com/goatindex/goal-bingo/issues/93)
+  challenge model, [#94](https://github.com/goatindex/goal-bingo/issues/94) mark
+  integration + payment, #94 blocked by #93) via `ba-issue`, DoR-checked and clean.
+- **Resolved WP-06's two blocking TBDs** (PR #92): `D-2026-09-21-6` — board balance
   pays +1 per qualifying mark, flat regardless of how many challenges (universal,
   category, cadence) it also progresses — ported directly from `sim/jam_sim.py`'s own
   `self.balance += 1` per-mark assumption (its header notes completion bonuses are

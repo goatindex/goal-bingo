@@ -7,6 +7,7 @@ import { addReward, purchaseReward, removeReward } from './rewards'
 import {
   tryUnlockCustomCategory,
 } from './categories'
+import { addCategoryChallenge } from './challenges'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) {
@@ -78,7 +79,10 @@ function paint(): void {
     onAddCategory: (name) => {
       const result = tryUnlockCustomCategory(state.categories, state.score.lifetime, name)
       if (!result.ok) return result.error
+      const addedCategory = result.categories[result.categories.length - 1]!
       state.categories = result.categories
+      // GB-FUN-058: unlocking a category immediately creates its challenge.
+      state.challenges = addCategoryChallenge(state.challenges, addedCategory)
       saveState(state)
       paint()
       return null

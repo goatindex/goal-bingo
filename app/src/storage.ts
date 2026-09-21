@@ -3,6 +3,8 @@
 import type { Board } from './board'
 import { createBoard, isSupportedSize } from './board'
 import { DEFAULT_CATEGORIES } from './categories'
+import type { Challenge, ChallengeKind } from './challenges'
+import { initialChallenges } from './challenges'
 import type { Goal } from './pool'
 import type { Reward } from './rewards'
 
@@ -17,6 +19,7 @@ export type GameState = {
   board: Board
   score: { lifetime: number; rewardBalance: number; boardBalance: number }
   rewards: Reward[]
+  challenges: Challenge[]
 }
 
 export const STARTER_POOL: Goal[] = [
@@ -51,6 +54,7 @@ export function freshState(): GameState {
     board: board.board,
     score: { lifetime: 0, rewardBalance: 0, boardBalance: 0 },
     rewards: [],
+    challenges: initialChallenges(DEFAULT_CATEGORIES),
   }
 }
 
@@ -95,6 +99,21 @@ function isReward(value: unknown): value is Reward {
   )
 }
 
+const CHALLENGE_KINDS: readonly ChallengeKind[] = ['universal', 'category', 'cadence']
+
+function isChallenge(value: unknown): value is Challenge {
+  if (!value || typeof value !== 'object') return false
+  const c = value as Record<string, unknown>
+  return (
+    typeof c.id === 'string' &&
+    typeof c.kind === 'string' &&
+    (CHALLENGE_KINDS as readonly string[]).includes(c.kind) &&
+    (c.qualifier === undefined || typeof c.qualifier === 'string') &&
+    typeof c.progress === 'number' &&
+    typeof c.target === 'number'
+  )
+}
+
 function isGameState(value: unknown): value is GameState {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
@@ -108,7 +127,9 @@ function isGameState(value: unknown): value is GameState {
     v.score !== null &&
     typeof v.score === 'object' &&
     Array.isArray(v.rewards) &&
-    v.rewards.every(isReward)
+    v.rewards.every(isReward) &&
+    Array.isArray(v.challenges) &&
+    v.challenges.every(isChallenge)
   )
 }
 
@@ -170,6 +191,9 @@ export function loadState(storage: Storage = localStorage): {
           board,
           score: legacy.score,
           rewards,
+          // Pre-#93 saves never wrote challenges - rebuild the always-active set from
+          // the restored (default) categories rather than trust unvalidated data.
+          challenges: initialChallenges(DEFAULT_CATEGORIES),
         }
         saveState(state, storage)
         return { state, softReset: false }
