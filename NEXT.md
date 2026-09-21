@@ -4,26 +4,26 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — build WP-07 (economy actions).** WP-01 → WP-06 (#18–#23) are all closed.
-WP-07 is [#24](https://github.com/goatindex/goal-bingo/issues/24): grid expansion,
-recycle-allowance upgrade, swap, and recycle power-ups, all spending board balance
-(GB-FUN-036–039, 041, 042, GB-CON-008). Four TBDs resolved: `D-2026-09-21-8` (recycle
-cost 5 board balance, ported from `sim/jam_sim.py`'s own default — the A5 sensitivity
-sweep showed the recovery floor is insensitive to this value across [2, 10]),
-`D-2026-09-21-9` (grid expansion 5x5→7x7 costs 250 board balance — the only supported
-expansion step, per `board.ts`'s `SUPPORTED_SIZES`), `D-2026-09-21-10` (swap costs 10
-board balance — its price was never flagged as a TBD despite Q10 covering power-up
-pricing generally, a requirements-authoring gap), `D-2026-09-21-11` (recycle-allowance
-upgrade caps at 3, two purchasable steps at 100 board balance each). None of these four
-are safety-critical the way grid size or cadence split were — the recovery floor holds
-at every price tested — so they're pacing judgement calls, confirmed with the user
-where no simulation evidence existed (all but the recycle cost). Q10 and Q17 both
-resolved.
+**Link 5 — WP-07 closed; pick the next work package.** WP-01 → WP-07 (#18–#24) are
+all closed. Grid expansion, the recycle-allowance upgrade, swap, and recycle all
+spend board balance now (GB-FUN-036–039, 041, 042, GB-CON-008) — the release valve
+(recycle, unconditional even in a jam) and the main long-arc progression (grid
+expansion) both exist for the first time. Per `work-packages/cut.md`'s build order,
+**WP-08 (advanced tiles)** is now unblocked (needed WP-07); **WP-09 (record &
+discovery)** has been available since WP-05 closed and is still unstarted; **WP-10
+(floor constraints)** also needed WP-07. None started yet — pick one to begin.
+None of WP-07's four pricing TBDs (`D-2026-09-21-8/9/10/11`) were safety-critical the
+way grid size or cadence split were — the recovery floor holds at every price
+tested — so they were pacing judgement calls, confirmed with the user where no
+simulation evidence existed (all but the recycle cost, ported from
+`sim/jam_sim.py`'s own default). Q10 and Q17 both resolved. No UI wiring exists yet
+for any of WP-07's four power-ups (following #93/#94's data-model-first precedent) —
+worth flagging before WP-08, since advanced tiles will likely need at least the
+recycle/swap UI to be meaningfully playable.
 
 ## Next up
 
-- **Merge #106** (recycle-allowance upgrade, PR open) — the last of WP-07's four
-  sub-issues; #99/#101/#102 are all merged. Once #106 lands, close WP-07 (#24).
+- **Start WP-08, WP-09, or WP-10** (see Current focus for which are unblocked).
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -45,7 +45,22 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#102 (grid expansion power-up) built** (this PR), one of WP-07's four sub-issues,
+- **WP-07 (economy actions, #24) closed.** All four sub-issues merged: #99, #100,
+  #101, #102. Grid expansion, the recycle-allowance upgrade, swap, and recycle all
+  spend board balance now — the release valve (recycle) and the main long-arc
+  progression (grid expansion) both exist for the first time.
+- **#100 (recycle-allowance upgrade) built** (this PR), closing out the recycle
+  cluster of WP-07's four sub-issues: `recycle.ts` gains
+  `purchaseAllowanceUpgrade(recycleState, boardBalance)` — a thin, cap-gated purchase
+  identical in shape to `rewards.ts`'s `purchaseReward` (refuse-with-no-mutation on
+  insufficient balance), raising `allowanceLevel` by one step for 100 board balance
+  (`RECYCLE_ALLOWANCE_UPGRADE_COST`) up to a cap of 3
+  (`RECYCLE_ALLOWANCE_MAX_LEVEL`, `D-2026-09-21-11`); refuses at the cap with no
+  purchase possible. Deliberately does not touch the current window's `remaining`
+  count — an upgrade changes what restores at the *next* window reset, not a
+  retroactive credit mid-window. No UI wiring, following #93/#94/#99/#101's
+  precedent. 5 new tests, 94/94 passing; `tsc --noEmit` clean; no console errors.
+- **#102 (grid expansion power-up) built** (PR #105), one of WP-07's four sub-issues,
   independent of the recycle/allowance cluster and swap: new `app/src/expansion.ts` —
   `purchaseGridExpansion(board, pool, boardBalance, rng)` is a thin purchase gate
   around `board.ts`'s already-tested `resizeBoard`, deducting 250 board balance

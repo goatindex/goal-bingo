@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { createBoard } from './board'
 import type { Goal } from './pool'
 import {
+  RECYCLE_ALLOWANCE_MAX_LEVEL,
+  RECYCLE_ALLOWANCE_UPGRADE_COST,
   RECYCLE_ALLOWANCE_WINDOW_MS,
   RECYCLE_COST,
   effectiveRemaining,
+  purchaseAllowanceUpgrade,
   recycleCell,
   type RecycleState,
 } from './recycle'
@@ -141,5 +144,46 @@ describe('recycleCell (GB-FUN-039, GB-CON-008)', () => {
       ).length
       expect(longInCol0).toBeLessThanOrEqual(1)
     }
+  })
+})
+
+describe('purchaseAllowanceUpgrade (GB-FUN-037)', () => {
+  it('raises the allowance level from 1 to 2 and deducts board balance', () => {
+    const result = purchaseAllowanceUpgrade(FRESH, RECYCLE_ALLOWANCE_UPGRADE_COST)
+    expect(result).toEqual({
+      ok: true,
+      recycle: { ...FRESH, allowanceLevel: 2 },
+      boardBalance: 0,
+    })
+  })
+
+  it('raises the allowance level from 2 to 3 and deducts board balance again', () => {
+    const level2: RecycleState = { ...FRESH, allowanceLevel: 2 }
+    const result = purchaseAllowanceUpgrade(level2, RECYCLE_ALLOWANCE_UPGRADE_COST)
+    expect(result).toEqual({
+      ok: true,
+      recycle: { ...level2, allowanceLevel: 3 },
+      boardBalance: 0,
+    })
+  })
+
+  it('refuses at the cap, with no state change', () => {
+    const capped: RecycleState = { ...FRESH, allowanceLevel: RECYCLE_ALLOWANCE_MAX_LEVEL }
+    const result = purchaseAllowanceUpgrade(capped, 10_000)
+    expect(result).toEqual({ ok: false, reason: 'max-level' })
+  })
+
+  it('refuses with insufficient board balance, with no state change', () => {
+    const result = purchaseAllowanceUpgrade(FRESH, RECYCLE_ALLOWANCE_UPGRADE_COST - 1)
+    expect(result).toEqual({ ok: false, reason: 'insufficient-balance' })
+  })
+
+  it('persists the new level across a saveState/loadState round-trip', () => {
+    const upgraded = purchaseAllowanceUpgrade(FRESH, RECYCLE_ALLOWANCE_UPGRADE_COST)
+    expect(upgraded.ok).toBe(true)
+    if (!upgraded.ok) return
+    const restored = JSON.parse(JSON.stringify(upgraded.recycle)) as RecycleState
+    expect(restored).toEqual(upgraded.recycle)
+    expect(effectiveRemaining(restored, NOW)).toBe(2)
   })
 })
