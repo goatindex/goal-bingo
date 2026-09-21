@@ -14,20 +14,58 @@ function goal(id: string, category: string, cadence: Goal['cadence']): Goal {
   return { id, title: id, category, cadence }
 }
 
-describe('createMiniGrid (GB-FUN-048)', () => {
-  it('populates 9 cells from the supplied pool, none marked', () => {
+describe('createMiniGrid (GB-FUN-048, D-2026-09-21-23)', () => {
+  it('populates 9 cells, all matching the parent category, none marked', () => {
     const pool = STARTER_POOL.map((g) => ({ ...g }))
-    const result = createMiniGrid(pool, () => 0)
+    const result = createMiniGrid(pool, 'health', () => 0)
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.advanced.kind).toBe('mini-grid')
     expect(result.advanced.cells).toHaveLength(MINI_GRID_SIZE * MINI_GRID_SIZE)
     expect(result.advanced.cells.every((c) => !c.marked)).toBe(true)
-    expect(result.advanced.cells.every((c) => pool.some((g) => g.id === c.goal.id))).toBe(true)
+    expect(result.advanced.cells.every((c) => c.goal.category === 'health')).toBe(true)
+  })
+
+  it('repeats goals when the category has fewer than 9 distinct goals, rather than falling back to another category', () => {
+    // STARTER_POOL has exactly 2 health goals - 9 cells cannot all be distinct.
+    const pool = STARTER_POOL.map((g) => ({ ...g }))
+    const result = createMiniGrid(pool, 'health', () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const ids = new Set(result.advanced.cells.map((c) => c.goal.id))
+    expect(ids.size).toBeLessThan(MINI_GRID_SIZE * MINI_GRID_SIZE)
+    expect(result.advanced.cells.every((c) => c.goal.category === 'health')).toBe(true)
+  })
+
+  it('draws from every distinct goal in a 9-goal category, not an artificially restricted subset', () => {
+    const pool = Array.from({ length: 9 }, (_, i) => ({
+      id: `h${i}`,
+      title: `h${i}`,
+      category: 'health',
+      cadence: 'daily' as const,
+    }))
+    // Real randomness, many independent mini-grids: over 9 available distinct goals
+    // and 9 cells each, seeing only 1-2 distinct ids across all of them would mean the
+    // category filter (or something downstream) is wrongly narrowing the draw set,
+    // not genuine bad luck.
+    const seen = new Set<string>()
+    for (let trial = 0; trial < 20; trial++) {
+      const result = createMiniGrid(pool, 'health', Math.random)
+      expect(result.ok).toBe(true)
+      if (!result.ok) return
+      for (const c of result.advanced.cells) seen.add(c.goal.id)
+    }
+    expect(seen.size).toBe(9)
+  })
+
+  it('refuses on a category with no goals, the same way an empty pool refuses', () => {
+    const pool = STARTER_POOL.map((g) => ({ ...g }))
+    const result = createMiniGrid(pool, 'nonexistent-category', () => 0)
+    expect(result).toEqual({ ok: false, reason: 'empty-pool' })
   })
 
   it('refuses on an empty pool', () => {
-    const result = createMiniGrid([], () => 0)
+    const result = createMiniGrid([], 'health', () => 0)
     expect(result).toEqual({ ok: false, reason: 'empty-pool' })
   })
 })
