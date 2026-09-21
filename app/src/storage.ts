@@ -4,6 +4,7 @@ import type { Board } from './board'
 import { createBoard, isSupportedSize } from './board'
 import { DEFAULT_CATEGORIES } from './categories'
 import type { Goal } from './pool'
+import type { Reward } from './rewards'
 
 export const STORAGE_KEY = 'goal-bingo:v1'
 
@@ -15,7 +16,7 @@ export type GameState = {
   /** Never null once a game is playable — GB-FUN-001 has no end state to fall back to. */
   board: Board
   score: { lifetime: number; rewardBalance: number; boardBalance: number }
-  rewards: unknown[]
+  rewards: Reward[]
 }
 
 export const STARTER_POOL: Goal[] = [
@@ -82,6 +83,18 @@ function isBoard(value: unknown): value is Board {
   )
 }
 
+function isReward(value: unknown): value is Reward {
+  if (!value || typeof value !== 'object') return false
+  const r = value as Record<string, unknown>
+  return (
+    typeof r.id === 'string' &&
+    typeof r.name === 'string' &&
+    typeof r.price === 'number' &&
+    Number.isInteger(r.price) &&
+    r.price > 0
+  )
+}
+
 function isGameState(value: unknown): value is GameState {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
@@ -94,7 +107,8 @@ function isGameState(value: unknown): value is GameState {
     isBoard(v.board) &&
     v.score !== null &&
     typeof v.score === 'object' &&
-    Array.isArray(v.rewards)
+    Array.isArray(v.rewards) &&
+    v.rewards.every(isReward)
   )
 }
 
@@ -129,6 +143,11 @@ export function loadState(storage: Storage = localStorage): {
           score: GameState['score']
           rewards?: unknown[]
         }
+        // Pre-WP-05 saves never wrote a typed reward - fall back to empty rather than
+        // trust unvalidated data (same reasoning as the board fallback below).
+        const rewards = (legacy.rewards ?? []).every(isReward)
+          ? (legacy.rewards as Reward[])
+          : []
         // Pre-WP-03 saves never wrote a real board (the field was unknown | null and
         // nothing populated it) - build one from the restored pool rather than carry
         // forward a value that could never satisfy GB-FUN-007.
@@ -150,7 +169,7 @@ export function loadState(storage: Storage = localStorage): {
           categories: [...DEFAULT_CATEGORIES],
           board,
           score: legacy.score,
-          rewards: legacy.rewards ?? [],
+          rewards,
         }
         saveState(state, storage)
         return { state, softReset: false }

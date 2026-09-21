@@ -14,13 +14,14 @@ balance on clear, combos, adjacency config hook (GB-FUN-003, 028-035, 034b, 068,
 GB-CON-005/006/007) — the last package in the first shippable slice. Filed as four
 sub-issues: [#83](https://github.com/goatindex/goal-bingo/issues/83) clear scoring
 (PR #87), [#84](https://github.com/goatindex/goal-bingo/issues/84) counter display
-(this PR), [#85](https://github.com/goatindex/goal-bingo/issues/85) rewards CRUD,
-[#86](https://github.com/goatindex/goal-bingo/issues/86) reward purchase.
+(PR #88), [#85](https://github.com/goatindex/goal-bingo/issues/85) rewards CRUD
+(this PR), [#86](https://github.com/goatindex/goal-bingo/issues/86) reward purchase.
 
 ## Next up
 
-- **Pick up #85 (personal rewards CRUD)** — create, name, price, and delete a personal
-  reward; the domain `GameState.rewards` is still the WP-01-era `unknown[]` placeholder.
+- **Pick up #86 (purchase a personal reward)** — spend reward balance on a reward
+  created via #85; deduct only reward balance (GB-CON-005), lifetime and board balance
+  untouched.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); four of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -43,7 +44,18 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#84 (counter display) built** (this PR): `shell.ts`'s `renderHome()` now shows
+- **#85 (rewards CRUD) built** (this PR): `app/src/rewards.ts` — `Reward` type
+  (`id`/`name`/`price`), `validateReward` (blank name and non-positive/non-integer
+  price both rejected), `addReward`, `removeReward`, mirroring `pool.ts`'s CRUD
+  pattern. `storage.ts`'s `GameState.rewards` goes from the WP-01-era `unknown[]`
+  placeholder to a real, validated `Reward[]` — `isGameState` now actually checks
+  reward shape (previously unvalidated), and the legacy-migration path falls back to
+  an empty list rather than trusting unvalidated pre-WP-05 data. `shell.ts` gains a
+  new "Rewards" view (5th nav slot) with an add form and a delete button per reward,
+  mirroring the pool view. 6 new tests, 69/69 passing. Verified live in the browser:
+  created a reward, deleted it, confirmed persistence via `localStorage`, no console
+  errors.
+- **#84 (counter display) built** (PR #88): `shell.ts`'s `renderHome()` now shows
   reward balance and board balance alongside lifetime score, each a distinct labelled
   value (`data-testid="reward-balance"`/`"board-balance"`, matching the existing
   `"lifetime"` pattern). No DOM test harness exists in this codebase, so verified live

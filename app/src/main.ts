@@ -3,6 +3,7 @@ import { loadState, saveState } from './storage'
 import { renderShell, type ShellView } from './shell'
 import { markCellAndResolve } from './lines'
 import { addGoal, removeGoal, updateGoal } from './pool'
+import { addReward, removeReward } from './rewards'
 import {
   tryUnlockCustomCategory,
 } from './categories'
@@ -81,6 +82,19 @@ function paint(): void {
       saveState(state)
       paint()
       return null
+    },
+    onAddReward: (input) => {
+      const result = addReward(state.rewards, input)
+      if (!result.ok) return result.error
+      state.rewards = result.rewards
+      saveState(state)
+      paint()
+      return null
+    },
+    onRemoveReward: (id) => {
+      state.rewards = removeReward(state.rewards, id)
+      saveState(state)
+      paint()
     },
     onDismissEmptyPrompt: () => {
       emptyPoolPrompt = false
