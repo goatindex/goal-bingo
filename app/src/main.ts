@@ -3,7 +3,7 @@ import { loadState, saveState } from './storage'
 import { renderShell, type ShellView } from './shell'
 import { markCellAndResolve } from './lines'
 import { addGoal, removeGoal, updateGoal } from './pool'
-import { addReward, removeReward } from './rewards'
+import { addReward, purchaseReward, removeReward } from './rewards'
 import {
   tryUnlockCustomCategory,
 } from './categories'
@@ -93,6 +93,16 @@ function paint(): void {
     },
     onRemoveReward: (id) => {
       state.rewards = removeReward(state.rewards, id)
+      saveState(state)
+      paint()
+    },
+    onPurchaseReward: (id) => {
+      const result = purchaseReward(state.rewards, id, state.score.rewardBalance)
+      // 'not-found' cannot happen from a tap on a rendered reward; 'insufficient-
+      // balance' is already prevented by the disabled Buy button, but the state
+      // update stays server-side-checked regardless of the UI's own disabling.
+      if (!result.ok) return
+      state.score.rewardBalance = result.rewardBalance
       saveState(state)
       paint()
     },

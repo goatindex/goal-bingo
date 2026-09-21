@@ -4,25 +4,23 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — build WP-05 (scoring & ledgers).** WP-01 (platform shell, #18), WP-02 (goal
-pool, #19), WP-03 (board loop, #20), and WP-04 (draw engine,
-[#21](https://github.com/goatindex/goal-bingo/issues/21)) are all closed. WP-04's two
-sub-issues: [#77](https://github.com/goatindex/goal-bingo/issues/77) cadence-weighted
-draw (PR #79), [#78](https://github.com/goatindex/goal-bingo/issues/78) binding placement
-rules (PR #80). WP-05 is [#22](https://github.com/goatindex/goal-bingo/issues/22): reward
-balance on clear, combos, adjacency config hook (GB-FUN-003, 028-035, 034b, 068,
-GB-CON-005/006/007) — the last package in the first shippable slice. Filed as four
-sub-issues: [#83](https://github.com/goatindex/goal-bingo/issues/83) clear scoring
-(PR #87), [#84](https://github.com/goatindex/goal-bingo/issues/84) counter display
-(PR #88), [#85](https://github.com/goatindex/goal-bingo/issues/85) rewards CRUD
-(this PR), [#86](https://github.com/goatindex/goal-bingo/issues/86) reward purchase.
+**Link 5 — the first shippable slice is complete.** WP-01 (platform shell, #18),
+WP-02 (goal pool, #19), WP-03 (board loop, #20), WP-04 (draw engine, #21), and WP-05
+(scoring & ledgers, [#22](https://github.com/goatindex/goal-bingo/issues/22)) are all
+closed. WP-05's four sub-issues: [#83](https://github.com/goatindex/goal-bingo/issues/83)
+clear scoring (PR #87), [#84](https://github.com/goatindex/goal-bingo/issues/84) counter
+display (PR #88), [#85](https://github.com/goatindex/goal-bingo/issues/85) rewards CRUD
+(PR #89), [#86](https://github.com/goatindex/goal-bingo/issues/86) reward purchase
+(this PR). "WP-01 → WP-05 (playable bingo with scoring, no economy)" per
+`work-packages/cut.md` is now real and playable end to end.
 
 ## Next up
 
-- **Pick up #86 (purchase a personal reward)** — spend reward balance on a reward
-  created via #85; deduct only reward balance (GB-CON-005), lifetime and board balance
-  untouched.
-- **First shippable slice:** WP-01 → WP-05 (#18–#22); four of five packages closed.
+- **Close #22 (WP-05)** now that all four sub-issues are merged, and pick the next
+  package. WP-06 (challenges & board income, #23) and WP-09 (record & discovery, #26)
+  both only depend on WP-05 — neither depends on the other, so either is a reasonable
+  next pick (same parallel-safety reasoning as WP-04/WP-05 earlier this session).
+  WP-07 (economy actions) needs WP-06 first.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -44,7 +42,27 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#85 (rewards CRUD) built** (this PR): `app/src/rewards.ts` — `Reward` type
+- **WP-05 (scoring & ledgers, #22) closed — first shippable slice complete.** All
+  four sub-issues merged: #83 clear scoring (PR #87), #84 counter display (PR #88),
+  #85 rewards CRUD (PR #89), #86 reward purchase (this PR). WP-01 → WP-05 is now a
+  real, playable bingo loop with scoring, combos, adjacency, and a rewards economy —
+  no board-balance economy yet (WP-06/07).
+- **#86 (reward purchase) built** (this PR): `rewards.ts`'s `purchaseReward(rewards,
+  id, rewardBalance)` deducts a reward's price from reward balance only — its
+  signature has no access to lifetime score or board balance, so GB-CON-007 (lifetime
+  never decreases) holds by construction, not just by convention. Refuses on an
+  unknown reward id or insufficient balance without mutating anything. A reward is
+  not consumed by purchase — it stays in the list and can be bought again.
+  `shell.ts`'s rewards view now shows the reward balance counter (GB-CON-005: the only
+  payment source visible there) and a Buy button per reward, disabled client-side when
+  unaffordable but re-checked server-side in `main.ts` regardless. GB-CON-006 (the
+  board-balance purchase flow must exclude reward balance) has no flow to build
+  against yet — WP-07 — so it stays unimplemented, flagged rather than silently
+  dropped. 4 new tests, 73/73 passing. Verified live in the browser: bought a reward,
+  confirmed via `localStorage` that reward balance dropped by exactly the price while
+  lifetime and board balance were untouched, and that the Buy button disables once the
+  remaining balance can't afford the same reward again.
+- **#85 (rewards CRUD) built** (PR #89): `app/src/rewards.ts` — `Reward` type
   (`id`/`name`/`price`), `validateReward` (blank name and non-positive/non-integer
   price both rejected), `addReward`, `removeReward`, mirroring `pool.ts`'s CRUD
   pattern. `storage.ts`'s `GameState.rewards` goes from the WP-01-era `unknown[]`
