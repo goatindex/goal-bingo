@@ -22,8 +22,8 @@ resolved.
 
 ## Next up
 
-- **Build #100** (recycle-allowance upgrade) — blocked by #99, now merged.
-- **Build #102** (grid expansion) — independent, not started yet.
+- **Merge #106** (recycle-allowance upgrade, PR open) — the last of WP-07's four
+  sub-issues; #99/#101/#102 are all merged. Once #106 lands, close WP-07 (#24).
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -45,6 +45,15 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **#102 (grid expansion power-up) built** (this PR), one of WP-07's four sub-issues,
+  independent of the recycle/allowance cluster and swap: new `app/src/expansion.ts` —
+  `purchaseGridExpansion(board, pool, boardBalance, rng)` is a thin purchase gate
+  around `board.ts`'s already-tested `resizeBoard`, deducting 250 board balance
+  (`GRID_EXPANSION_COST`, `D-2026-09-21-9`) and growing to the next entry in
+  `SUPPORTED_SIZES` rather than a hard-coded 7, so a future third size needs no edit
+  here. Refuses with no state change on insufficient balance or when already at the
+  largest size. No UI wiring, following #93/#94/#99/#101's precedent. 4 new tests, all
+  passing; `tsc --noEmit` clean; no console errors.
 - **#101 (swap power-up) built** (PR #104), one of WP-07's four sub-issues,
   independent of the recycle/allowance cluster: new `app/src/swap.ts` —
   `swapCells(board, indexA, indexB, boardBalance)` exchanges the full `Cell` (goal and
