@@ -96,9 +96,38 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.achievements).toEqual([])
     // Pre-#117 saves never wrote advanced-tile progress - migration must start fresh.
     expect(loaded.state.advancedTileAccess).toEqual({
-      unlockedCategories: [],
+      unlockedCategories: { 'multi-completion': [], 'mini-grid': [] },
       marksByCategory: {},
     })
+  })
+
+  it('migrates a pre-#133 save whose advancedTileAccess predates the two-track split, preserving everything else', () => {
+    const storage = new MemoryStorage()
+    const state = freshState()
+    state.score.lifetime = 12
+    state.rewards = [{ id: 'rw-1', name: 'Takeaway', price: 20 }]
+    const legacy = {
+      ...state,
+      advancedTileAccess: {
+        unlockedCategories: ['health'],
+        marksByCategory: { health: 50, study: 3 },
+      },
+    }
+    storage.setItem(STORAGE_KEY, JSON.stringify(legacy))
+    const loaded = loadState(storage)
+    expect(loaded.softReset).toBe(false)
+    // A category already unlocked under the old flat shape earned advanced tiles
+    // generally - it migrates to both new tracks unlocked, not silently downgraded.
+    expect(loaded.state.advancedTileAccess).toEqual({
+      unlockedCategories: { 'multi-completion': ['health'], 'mini-grid': ['health'] },
+      marksByCategory: { health: 50, study: 3 },
+    })
+    // Everything else on the save must be preserved, not reset by the broader
+    // legacy-migration path this targeted check runs ahead of.
+    expect(loaded.state.score.lifetime).toBe(12)
+    expect(loaded.state.rewards).toEqual([{ id: 'rw-1', name: 'Takeaway', price: 20 }])
+    expect(loaded.state.challenges).toEqual(state.challenges)
+    expect(loaded.state.recycle).toEqual(state.recycle)
   })
 
   it('migrates a legacy save with malformed rewards to an empty reward list', () => {

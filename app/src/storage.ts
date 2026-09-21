@@ -169,14 +169,46 @@ function isAchievement(value: unknown): value is Achievement {
   )
 }
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((c) => typeof c === 'string')
+}
+
 function isAdvancedTileAccess(value: unknown): value is AdvancedTileAccess {
   if (!value || typeof value !== 'object') return false
   const a = value as Record<string, unknown>
+  const unlocked = a.unlockedCategories as Record<string, unknown> | undefined
   return (
-    Array.isArray(a.unlockedCategories) &&
-    a.unlockedCategories.every((c) => typeof c === 'string') &&
+    !!unlocked &&
+    typeof unlocked === 'object' &&
+    isStringArray(unlocked['multi-completion']) &&
+    isStringArray(unlocked['mini-grid']) &&
     isStringRecord(a.marksByCategory)
   )
+}
+
+/** Pre-#133 saves wrote a single flat `unlockedCategories: string[]` covering both
+ *  tracks at once. A category already unlocked under that shape had earned advanced
+ *  tiles generally, so it migrates to both new tracks unlocked - not silently
+ *  downgraded to neither. */
+function isPreSplitAdvancedTileAccess(
+  value: unknown,
+): value is { unlockedCategories: string[]; marksByCategory: Record<string, number> } {
+  if (!value || typeof value !== 'object') return false
+  const a = value as Record<string, unknown>
+  return isStringArray(a.unlockedCategories) && isStringRecord(a.marksByCategory)
+}
+
+function migratePreSplitAdvancedTileAccess(old: {
+  unlockedCategories: string[]
+  marksByCategory: Record<string, number>
+}): AdvancedTileAccess {
+  return {
+    unlockedCategories: {
+      'multi-completion': [...old.unlockedCategories],
+      'mini-grid': [...old.unlockedCategories],
+    },
+    marksByCategory: { ...old.marksByCategory },
+  }
 }
 
 function isGameState(value: unknown): value is GameState {
@@ -217,6 +249,24 @@ export function loadState(storage: Storage = localStorage): {
     }
     const parsed: unknown = JSON.parse(raw)
     if (!isGameState(parsed)) {
+      // Migrate #133-era saves whose advancedTileAccess predates the two-track split.
+      // Checked first, before the broader legacy-save reconstruction below: an
+      // otherwise-fully-valid recent save would also happen to satisfy that broader
+      // check's looser conditions (pool/board/score/rewards), which would needlessly
+      // reset challenges/recycle/stats/achievements for a save that never lost them.
+      if (parsed && typeof parsed === 'object') {
+        const p = parsed as Record<string, unknown>
+        if (isPreSplitAdvancedTileAccess(p.advancedTileAccess)) {
+          const candidate = {
+            ...p,
+            advancedTileAccess: migratePreSplitAdvancedTileAccess(p.advancedTileAccess),
+          }
+          if (isGameState(candidate)) {
+            saveState(candidate, storage)
+            return { state: candidate, softReset: false }
+          }
+        }
+      }
       // Migrate WP-01 saves that lack categories.
       if (
         parsed &&
