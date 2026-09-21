@@ -3,6 +3,34 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-20 — Mini-grid internal size is 3x3
+
+- **Status:** open
+- **Context:** GB-FUN-047/048 describe a mini-grid tile's internal grid but no
+  requirement or design-doc text sets its size — found while scoping the mini-grid
+  implementation issue. It needs its own size, distinct from the main board's
+  `SUPPORTED_SIZES` (`[5, 7]`, reserved for GB-CON-014's sim-validated expansion
+  path) — `isSupportedSize(3)` is already established as `false` for the main board
+  (`board.test.ts`), and that must stay true; a mini-grid is a structurally separate
+  concept, not a smaller step on the same growth ladder.
+- **Options considered:** 4x4 — rejected as a first cut, more cells and lines than
+  needed for what the design doc frames as a lightweight "small board," and no
+  diagonal-clarity advantage over 3x3 · **3x3 (chosen)** — the smallest square that
+  still has a real diagonal (8 lines total: 3 rows, 3 columns, 2 diagonals), clearly
+  distinct in scale from the 5x5 main board, and quick enough to complete that it
+  does not become a second long-term blocker layered inside the first.
+- **Why:** confirmed with the user directly — no requirement or simulation sets
+  this; achievements and advanced tiles sit entirely outside `sim/jam_sim.py`'s
+  scope. Reuses `lines.ts`'s existing line-enumeration and clear-resolution logic
+  directly (once its `BoardSize`-typed parameters are loosened to plain `number`,
+  since none of that logic actually depends on the literal 5/7 values) rather than
+  duplicating a second small-grid implementation.
+- **Expected outcome:** A mini-grid tile's internal grid is a 3x3 board (9 cells),
+  built and cleared with the same `lines.ts` functions the main board uses, just
+  called with size 3 instead of 5 or 7.
+- **Revisit:** After first playtest, if 3x3 feels too fast to clear to register as a
+  meaningful sub-goal.
+
 ## D-2026-09-21-19 — Mini-grid full-board bonus is +100% of the clear's value
 
 - **Status:** open
