@@ -85,7 +85,7 @@ function comboMultiplier(board: Board, line: number[]): number {
   return 1
 }
 
-function adjacentIndices(size: BoardSize, index: number): number[] {
+export function adjacentIndices(size: BoardSize, index: number): number[] {
   const row = Math.floor(index / size)
   const col = index % size
   const out: number[] = []
