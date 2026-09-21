@@ -77,11 +77,22 @@ function lineBaseValue(board: Board, line: number[]): number {
   return line.reduce((sum, i) => sum + CADENCE_BASE_VALUE[board.cells[i]!.goal.cadence], 0)
 }
 
+/** All 5 cells of the line have distinct categories (GB-FUN-030) - the "rare
+ *  combination" achievement reuses this exact check (D-2026-09-21-14) rather than a
+ *  second definition of rarity. */
+function isVarietyCombo(board: Board, line: number[]): boolean {
+  const categories = line.map((i) => board.cells[i]!.goal.category)
+  return new Set(categories).size === categories.length
+}
+
+function isMatchingCombo(board: Board, line: number[]): boolean {
+  const categories = line.map((i) => board.cells[i]!.goal.category)
+  return new Set(categories).size === 1
+}
+
 /** GB-FUN-029/030: 1 + COMBO_BONUS_RATIO for a matching or variety line, else 1. */
 function comboMultiplier(board: Board, line: number[]): number {
-  const categories = line.map((i) => board.cells[i]!.goal.category)
-  const distinct = new Set(categories).size
-  if (distinct === 1 || distinct === categories.length) return 1 + COMBO_BONUS_RATIO
+  if (isMatchingCombo(board, line) || isVarietyCombo(board, line)) return 1 + COMBO_BONUS_RATIO
   return 1
 }
 
@@ -137,6 +148,10 @@ export type ClearOutcome = {
    *  completing lines contributes once, matching how it is refilled once, not once
    *  per line it belongs to. Empty on a no-op. */
   clearedCategories: string[]
+  /** Whether any of the completing lines was a variety combo (all 5 cells distinct
+   *  categories) — the "rare combination" achievement's trigger condition
+   *  (GB-FUN-064, D-2026-09-21-14). False on a no-op. */
+  hadVarietyCombo: boolean
 }
 
 export type ClearResult = { ok: true; outcome: ClearOutcome } | { ok: false; reason: 'empty-pool' }
@@ -184,6 +199,7 @@ export function resolveLineClears(
         clearedLineCount: 0,
         intersectionCells: [],
         clearedCategories: [],
+        hadVarietyCombo: false,
       },
     }
   }
@@ -198,6 +214,7 @@ export function resolveLineClears(
   // Read against the pre-refill board, same as scoring - each distinct clearing cell
   // contributes its category once (D-2026-09-21-12), not once per line it belongs to.
   const clearedCategories = [...occurrences.keys()].map((i) => board.cells[i]!.goal.category)
+  const hadVarietyCombo = completing.some((line) => isVarietyCombo(board, line))
 
   // Value each line against the pre-refill board - adjacency asks what already sat
   // next to the line, not what replaces it.
@@ -231,6 +248,7 @@ export function resolveLineClears(
       clearedLineCount: completing.length,
       intersectionCells,
       clearedCategories,
+      hadVarietyCombo,
     },
   }
 }

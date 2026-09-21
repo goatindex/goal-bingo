@@ -8,7 +8,8 @@ import {
   tryUnlockCustomCategory,
 } from './categories'
 import { addCategoryChallenge, progressChallenges, BOARD_BALANCE_PER_MARK, CHALLENGE_TARGET } from './challenges'
-import { recordClear } from './stats'
+import { recordClear, totalClears } from './stats'
+import { evaluateAchievements } from './achievements'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) {
@@ -65,6 +66,17 @@ function paint(): void {
         state.challenges = progressed.challenges
         state.score.boardBalance +=
           BOARD_BALANCE_PER_MARK + progressed.completedCount * CHALLENGE_TARGET
+        // GB-FUN-063/064: evaluated after stats/challenges update, using the same
+        // no-op guard so a re-tap can't re-check (harmless but wasteful) conditions.
+        const newAchievements = evaluateAchievements(state.achievements, {
+          totalClears: totalClears(state.stats),
+          boardSize: state.board.size,
+          hadVarietyCombo: result.outcome.hadVarietyCombo,
+          clearsByDate: state.stats.clearsByDate,
+        })
+        if (newAchievements.length > 0) {
+          state.achievements = [...state.achievements, ...newAchievements]
+        }
       }
       lastIntersectionCells = result.outcome.intersectionCells
       emptyPoolPrompt = false

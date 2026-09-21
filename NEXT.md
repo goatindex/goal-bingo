@@ -23,8 +23,9 @@ and WP-10 (floor constraints) are also unblocked but not yet started.
 
 ## Next up
 
-- **Build #109** (achievement model, blocked by #108, now merged) and **#110**
-  (display view, blocked by #108 and #109) — the rest of WP-09's three sub-issues.
+- **Build #110** (statistics/achievements display view, blocked by #108 and #109,
+  both now merged) — the last of WP-09's three sub-issues. Once it lands, close
+  WP-09 (#26).
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -46,7 +47,26 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#108 (clear-statistics tracking) built** (this PR), first of WP-09's three
+- **#109 (achievement model and evaluation) built** (this PR), second of WP-09's
+  three sub-issues: `lines.ts` gains `isVarietyCombo`/`isMatchingCombo` (splitting
+  `comboMultiplier`'s combined check into two named predicates) and `ClearOutcome`
+  gains `hadVarietyCombo`, reusing the exact same category-distinctness check as the
+  WP-05 variety-combo bonus rather than a second rarity definition
+  (`D-2026-09-21-14`). New `app/src/achievements.ts` — `evaluateAchievements(unlocked,
+  context, now)` checks all four minimum-set conditions in one pass and returns only
+  newly-unlocked entries, deduplicated both against the existing list and within the
+  same call; `first-clear` fires at 1 total clear, `large-grid` at board size 7
+  (`D-2026-09-21-15`), `sustained-run` at 3 consecutive local-calendar days with a
+  clear each (`D-2026-09-21-13`, a day with zero clears resets the streak),
+  `rare-combination` on any variety-combo clear. `storage.ts`'s
+  `GameState.achievements` follows the established precedent; `main.ts`'s
+  `onMarkCell` evaluates achievements only on a genuine new mark (same `isNewMark`
+  guard `challenges.ts` already established), after stats/challenges update. 8 new
+  tests (`achievements.test.ts`) plus 3 new `lines.test.ts` assertions for
+  `hadVarietyCombo`, 127/127 passing. Verified live: cleared a row, confirmed
+  `first-clear` unlocked with exactly one entry; cleared a second row, confirmed no
+  duplicate was added; no console errors.
+- **#108 (clear-statistics tracking) built** (PR #111), first of WP-09's three
   sub-issues: `lines.ts`'s `ClearOutcome` gains `clearedCategories` — the category of
   every distinct cell that cleared, one entry per cell (GB-FUN-052, D-2026-09-21-12),
   read from the pre-refill board the same way scoring already does; an intersection

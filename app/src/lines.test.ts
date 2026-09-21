@@ -450,3 +450,39 @@ describe('clearedCategories reporting (GB-FUN-052)', () => {
     expect(result.outcome.clearedCategories).toHaveLength(9)
   })
 })
+
+describe('hadVarietyCombo reporting (GB-FUN-064, D-2026-09-21-14)', () => {
+  it('reports true when the clearing line has 5 distinct categories', () => {
+    const variety = ['a', 'b', 'c', 'd', 'e'].map((c, i) => goal(`v${i}`, c, 'daily'))
+    const { board, pool } = lineBoard(variety)
+    for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
+    const result = markCellAndResolve(board, 4, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outcome.hadVarietyCombo).toBe(true)
+  })
+
+  it('reports false for a matching or mixed clear', () => {
+    const matching = [0, 1, 2, 3, 4].map((i) => goal(`m${i}`, 'same', 'daily'))
+    const { board: matchBoard, pool: matchPool } = lineBoard(matching)
+    for (let i = 0; i < 4; i++) matchBoard.cells[i]!.marked = true
+    const matchResult = markCellAndResolve(matchBoard, 4, matchPool, () => 0)
+    expect(matchResult.ok).toBe(true)
+    if (matchResult.ok) expect(matchResult.outcome.hadVarietyCombo).toBe(false)
+
+    const mixed = MIXED_CATEGORIES.map((c, i) => goal(`x${i}`, c, 'daily'))
+    const { board: mixedBoard, pool: mixedPool } = lineBoard(mixed)
+    for (let i = 0; i < 4; i++) mixedBoard.cells[i]!.marked = true
+    const mixedResult = markCellAndResolve(mixedBoard, 4, mixedPool, () => 0)
+    expect(mixedResult.ok).toBe(true)
+    if (mixedResult.ok) expect(mixedResult.outcome.hadVarietyCombo).toBe(false)
+  })
+
+  it('reports false when the mark completes no line', () => {
+    const { board, pool } = freshBoard()
+    const result = markCellAndResolve(board, 0, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outcome.hadVarietyCombo).toBe(false)
+  })
+})

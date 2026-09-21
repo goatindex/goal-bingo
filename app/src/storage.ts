@@ -1,5 +1,6 @@
 /** Local-first persistence envelope (GB-DAT-001, GB-FUN-066). */
 
+import type { Achievement, AchievementId } from './achievements'
 import type { Board } from './board'
 import { createBoard, isSupportedSize } from './board'
 import { DEFAULT_CATEGORIES } from './categories'
@@ -25,6 +26,7 @@ export type GameState = {
   challenges: Challenge[]
   recycle: RecycleState
   stats: Stats
+  achievements: Achievement[]
 }
 
 export const FRESH_RECYCLE_STATE: RecycleState = {
@@ -68,6 +70,7 @@ export function freshState(): GameState {
     challenges: initialChallenges(DEFAULT_CATEGORIES),
     recycle: { ...FRESH_RECYCLE_STATE },
     stats: freshStats(),
+    achievements: [],
   }
 }
 
@@ -152,6 +155,23 @@ function isStats(value: unknown): value is Stats {
   )
 }
 
+const ACHIEVEMENT_IDS: readonly AchievementId[] = [
+  'first-clear',
+  'large-grid',
+  'sustained-run',
+  'rare-combination',
+]
+
+function isAchievement(value: unknown): value is Achievement {
+  if (!value || typeof value !== 'object') return false
+  const a = value as Record<string, unknown>
+  return (
+    typeof a.id === 'string' &&
+    (ACHIEVEMENT_IDS as readonly string[]).includes(a.id) &&
+    typeof a.unlockedAt === 'number'
+  )
+}
+
 function isGameState(value: unknown): value is GameState {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
@@ -169,7 +189,9 @@ function isGameState(value: unknown): value is GameState {
     Array.isArray(v.challenges) &&
     v.challenges.every(isChallenge) &&
     isRecycleState(v.recycle) &&
-    isStats(v.stats)
+    isStats(v.stats) &&
+    Array.isArray(v.achievements) &&
+    v.achievements.every(isAchievement)
   )
 }
 
@@ -241,6 +263,9 @@ export function loadState(storage: Storage = localStorage): {
           // returning player's true first-play date (no earlier timestamp exists to
           // recover), the same accepted loss as categories/challenges/recycle above.
           stats: freshStats(),
+          // Pre-#109 saves never wrote achievements - a returning player re-earns
+          // them rather than trusting unvalidated data.
+          achievements: [],
         }
         saveState(state, storage)
         return { state, softReset: false }
