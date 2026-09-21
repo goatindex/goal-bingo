@@ -8,6 +8,7 @@ import {
   tryUnlockCustomCategory,
 } from './categories'
 import { addCategoryChallenge, progressChallenges, BOARD_BALANCE_PER_MARK, CHALLENGE_TARGET } from './challenges'
+import { recordClear } from './stats'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) {
@@ -50,6 +51,12 @@ function paint(): void {
       // lifetime score as a permanent record, reward balance as spendable currency.
       state.score.lifetime += result.outcome.scoreDelta
       state.score.rewardBalance += result.outcome.scoreDelta
+      // GB-FUN-052/053/054: recordClear is itself a no-op when clearedLineCount is 0.
+      state.stats = recordClear(
+        state.stats,
+        result.outcome.clearedCategories,
+        result.outcome.clearedLineCount,
+      )
       // GB-FUN-004/056/060/061/062, GB-CON-012: re-tapping an already-marked cell is a
       // no-op (board.ts's markCell) and must not progress challenges or pay board
       // balance again - only a genuine unmarked-to-marked transition counts.

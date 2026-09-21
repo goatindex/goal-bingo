@@ -395,3 +395,58 @@ describe('clear scoring (GB-FUN-003, GB-FUN-028, GB-FUN-029, GB-FUN-030, GB-FUN-
     expect(result.outcome.scoreDelta).toBe(5 * CADENCE_BASE_VALUE.hourly)
   })
 })
+
+describe('clearedCategories reporting (GB-FUN-052)', () => {
+  it('reports one category per cleared cell, matching MIXED_CATEGORIES exactly', () => {
+    const mixed = MIXED_CATEGORIES.map((c, i) => goal(`c${i}`, c, 'daily'))
+    const { board, pool } = lineBoard(mixed)
+    for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
+    const result = markCellAndResolve(board, 4, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outcome.clearedCategories.sort()).toEqual([...MIXED_CATEGORIES].sort())
+  })
+
+  it('reports an empty list when the mark completes no line', () => {
+    const { board, pool } = freshBoard()
+    const result = markCellAndResolve(board, 0, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outcome.clearedCategories).toEqual([])
+  })
+
+  it('counts an intersection cell once, not once per completing line', () => {
+    // Build a board where marking the centre cell completes both its row and column
+    // simultaneously - the centre cell is the sole intersection, so it must appear
+    // exactly once in clearedCategories despite belonging to 2 completing lines.
+    const pool = STARTER_POOL.map((g) => ({ ...g }))
+    const built = createBoard(5, pool, () => 0)
+    if (!built.ok) throw new Error('unreachable')
+    const board = built.board
+    const cells = board.cells.slice()
+    const rowGoals = MIXED_CATEGORIES.map((c, i) => goal(`row${i}`, c, 'daily'))
+    const colGoals = ['d', 'd', 'e', 'e', 'f'].map((c, i) => goal(`col${i}`, c, 'daily'))
+    const centreGoal = goal('centre', 'centre-only', 'daily')
+    for (let col = 0; col < 5; col++) {
+      cells[2 * 5 + col] = { goal: rowGoals[col]!, marked: col !== 2 }
+    }
+    for (let row = 0; row < 5; row++) {
+      if (row === 2) continue
+      cells[row * 5 + 2] = { goal: colGoals[row]!, marked: true }
+    }
+    // Overwrite the centre last: it belongs to both the row and column arrays above,
+    // but must hold a category found nowhere else on the board to isolate the count.
+    cells[12] = { goal: centreGoal, marked: false }
+    const testBoard: Board = { ...board, cells }
+    const result = markCellAndResolve(testBoard, 12, pool, () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outcome.clearedLineCount).toBe(2)
+    expect(result.outcome.intersectionCells).toEqual([12])
+    const centreCount = result.outcome.clearedCategories.filter(
+      (c) => c === centreGoal.category,
+    ).length
+    expect(centreCount).toBe(1)
+    expect(result.outcome.clearedCategories).toHaveLength(9)
+  })
+})
