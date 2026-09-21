@@ -35,8 +35,11 @@ export const ADJACENCY_CONFIG: { name: string; value: number }[] = [
 export const MULTI_CLEAR_BONUS_RATIO = 0.5
 
 /** Every row, column, and main-diagonal line as an array of flat cell indices
- *  (GB-FUN-010). A square grid has exactly two main diagonals. */
-export function allLines(size: BoardSize): number[][] {
+ *  (GB-FUN-010). A square grid has exactly two main diagonals. Takes a plain
+ *  `number` rather than the main board's `BoardSize` — this is a general square-grid
+ *  algorithm with no dependency on the literal 5/7 values, so a mini-grid's own
+ *  (differently-sized) internal board reuses it directly (D-2026-09-21-20). */
+export function allLines(size: number): number[][] {
   const lines: number[][] = []
   for (let row = 0; row < size; row++) {
     lines.push(Array.from({ length: size }, (_, col) => row * size + col))
@@ -51,8 +54,9 @@ export function allLines(size: BoardSize): number[][] {
 
 /** The lines that pass through a cell index: always its row and column, plus the main
  *  diagonal when row === col and the anti-diagonal when row + col === size - 1 — both
- *  only meet at the centre cell of an odd-sized grid, so a cell touches at most 4. */
-export function linesThroughIndex(size: BoardSize, index: number): number[][] {
+ *  only meet at the centre cell of an odd-sized grid, so a cell touches at most 4.
+ *  Takes a plain `number` size for the same reason `allLines` does. */
+export function linesThroughIndex(size: number, index: number): number[][] {
   const row = Math.floor(index / size)
   const col = index % size
   const lines: number[][] = [
