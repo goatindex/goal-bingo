@@ -596,7 +596,7 @@ invented here reads as fact once it is a requirement.
   | ~~Q15~~ | ~~Whether consolidation is the intended swap mechanic, and whether adjacent-only swapping achieves it~~ — **resolved** by `D-2026-09-19-22`: consolidation confirmed; adjacent-only base; upgrades expand range | §6.2 |
   | ~~Q16~~ | ~~How advanced tiles are acquired, and whether the economy carries them~~ — **resolved** by `D-2026-09-19-23`: per-category progression primary; economy secondary; global unlocks additive later | §7 |
 | Q17 | How far the free recycle allowance can be upgraded, what each step costs, and whether it is capped | §6.2 |
-  | ~~Q18~~ | ~~Which mark-based challenges ship first, and what each pays per mark and on completion~~ — **resolved** by `D-2026-09-19-17`: universal + category + cadence, all parallel; rates are tuning | §8.2, §5.3 |
+  | ~~Q18~~ | ~~Which mark-based challenges ship first, and what each pays per mark and on completion~~ — **resolved** by `D-2026-09-19-17` (universal + category + cadence, all parallel) and, for the rates that decision left as tuning, `D-2026-09-21-6` (+1 board balance per mark, matching `sim/jam_sim.py`'s own assumption) and `D-2026-09-21-7` (target 10 marks, completion bonus 10) | §8.2, §5.3 |
 | Q19 | Whether one free recycle per 24 hours is fast enough against how quickly a board re-jams. The rate was chosen on daily rhythm, not on any showing that it outpaces re-jamming | §6.2, §10.3 |
 | ~~Q20~~ | ~~The floor's bound~~ — **resolved by measurement.** Simulated median time-to-unjam is same-day, p99 one to two days, zero trials still jammed after 180 days, at every setting tested. The reserved tightening is not needed to make the floor safe | §10.3, §4.4 |
   | ~~Q21~~ | ~~What share of the board counts as one category dominating it (§4.4 rule 2)~~ — **resolved** by `D-2026-09-21-2`: 40% of board cells | §4.4 |
@@ -611,9 +611,9 @@ yet — Q23 and Q24 are exactly that, and neither was visible before the numbers
 Resolved questions are struck through rather than deleted — the register is a record, and a
 question that was asked and answered is different from one nobody raised.
 
-**Nothing now blocks a prototype.** Q13 did; it is closed. Q18 must be answered before
-board balance can be tuned at all — it is the next most valuable open question. Q20 is
-measured and closed.
+**Nothing now blocks a prototype.** Q13 did; it is closed. Q18's rates are now settled
+(`D-2026-09-21-6`, `D-2026-09-21-7`), so board balance can be tuned. Q20 is measured
+and closed.
 
 ## 12 Decision index
 

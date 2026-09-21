@@ -949,7 +949,9 @@ verification-criteria: Board balance increases immediately after a qualifying ma
 verification-status: not-verified
 owner: k
 priority: must
-notes: Per-mark rate is TBD (owner: k, blocks: Q18 rates).
+notes: +1 board balance per qualifying mark, flat regardless of how many challenges it
+  also qualifies for (`D-2026-09-21-6`, matching `sim/jam_sim.py`'s own per-mark
+  assumption). Q18 (rate) resolved.
 
 ### GB-FUN-062 — Challenge pays completion bonus on reaching target
 statement: When a challenge progress counter reaches the challenge target, Goal Bingo shall
@@ -963,7 +965,9 @@ verification-criteria: When the challenge progress counter reaches the target, a
 verification-status: not-verified
 owner: k
 priority: must
-notes: Completion bonus amount is TBD (owner: k).
+notes: Target is 10 qualifying marks, uniform across universal, category, and cadence
+  challenges; completion bonus is 10 board balance (equal to the target), then the
+  counter resets and the same challenge continues (`D-2026-09-21-7`). Resolved.
 
 ---
 

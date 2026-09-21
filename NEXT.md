@@ -4,22 +4,22 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — the first shippable slice is complete.** WP-01 (platform shell, #18),
-WP-02 (goal pool, #19), WP-03 (board loop, #20), WP-04 (draw engine, #21), and WP-05
-(scoring & ledgers, [#22](https://github.com/goatindex/goal-bingo/issues/22)) are all
-closed. WP-05's four sub-issues: [#83](https://github.com/goatindex/goal-bingo/issues/83)
-clear scoring (PR #87), [#84](https://github.com/goatindex/goal-bingo/issues/84) counter
-display (PR #88), [#85](https://github.com/goatindex/goal-bingo/issues/85) rewards CRUD
-(PR #89), [#86](https://github.com/goatindex/goal-bingo/issues/86) reward purchase
-(PR #90). "WP-01 → WP-05 (playable bingo with scoring, no economy)" per
-`work-packages/cut.md` is now real and playable end to end.
+**Link 5 — build WP-06 (challenges & board income).** WP-01 → WP-05 (#18–#22) are all
+closed — the first shippable slice is complete and playable end to end. WP-06 is
+[#23](https://github.com/goatindex/goal-bingo/issues/23): board balance per qualifying
+mark, three parallel challenge types (universal/category/cadence), completion bonus
+(GB-FUN-004, 055-062, GB-CON-012). Its two TBDs are resolved: `D-2026-09-21-6`
+(+1 board balance per mark, matching `sim/jam_sim.py`'s own assumption) and
+`D-2026-09-21-7` (target 10 marks, completion bonus 10, counter resets and repeats).
+**Scope note found while resolving these:** none of WP-06's 10 requirements mention a
+calendar period or reset, unlike `docs/design-description.md`'s prose framing
+("targets counted over a period... this week") — `D-2026-09-21-7` reads the literal
+requirement text as a mark-count cycle instead (reach target, pay bonus, reset,
+repeat), not a time-based one. Flagging in case that's not what was intended.
 
 ## Next up
 
-- **Pick the next package.** WP-06 (challenges & board income, #23) and WP-09 (record
-  & discovery, #26) both only depend on WP-05 (now closed) — neither depends on the
-  other, so either is a reasonable next pick. WP-07 (economy actions) needs WP-06
-  first.
+- **File work items for WP-06** and pick up the challenges/board-income build.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -41,6 +41,16 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
+- **Resolved WP-06's two blocking TBDs** (this PR): `D-2026-09-21-6` — board balance
+  pays +1 per qualifying mark, flat regardless of how many challenges (universal,
+  category, cadence) it also progresses — ported directly from `sim/jam_sim.py`'s own
+  `self.balance += 1` per-mark assumption (its header notes completion bonuses are
+  ignored in that model, so the already-validated recovery floor holds on this rate
+  alone). `D-2026-09-21-7` — no simulation models challenges at all, so target (10
+  marks) and completion bonus (10 board balance) were proposed and confirmed rather
+  than invented silently; a completed challenge's counter resets and the same
+  challenge continues, since no requirement in GB-FUN-055–062 mentions a calendar
+  period despite the design doc's "this week" framing. Q18's rates fully resolved.
 - **WP-05 (scoring & ledgers, #22) closed — first shippable slice complete.** All
   four sub-issues merged: #83 clear scoring (PR #87), #84 counter display (PR #88),
   #85 rewards CRUD (PR #89), #86 reward purchase (PR #90). WP-01 → WP-05 is now a
