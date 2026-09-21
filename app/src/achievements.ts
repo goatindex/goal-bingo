@@ -5,6 +5,14 @@ import { localDateString } from './stats'
 
 export type AchievementId = 'first-clear' | 'large-grid' | 'sustained-run' | 'rare-combination'
 
+/** Canonical id order - the display order every view should follow. */
+export const ACHIEVEMENT_IDS: readonly AchievementId[] = [
+  'first-clear',
+  'large-grid',
+  'sustained-run',
+  'rare-combination',
+]
+
 export type Achievement = {
   id: AchievementId
   unlockedAt: number

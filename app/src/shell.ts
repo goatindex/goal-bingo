@@ -1,5 +1,7 @@
+import { ACHIEVEMENT_IDS, type AchievementId } from './achievements'
 import type { Board } from './board'
 import type { GameState } from './storage'
+import { averageClearsPerDay } from './stats'
 import {
   CADENCES,
   CUSTOM_CATEGORY_SCORE_GATE,
@@ -7,15 +9,23 @@ import {
   listCustomCategories,
 } from './categories'
 
-export type ShellView = 'home' | 'pool' | 'rewards'
+export type ShellView = 'home' | 'pool' | 'rewards' | 'stats'
 
 const PRIMARY_ACTIONS = [
   { id: 'mark', label: 'Mark' },
   { id: 'board', label: 'Board' },
   { id: 'pool', label: 'Pool' },
   { id: 'rewards', label: 'Rewards' },
+  { id: 'stats', label: 'Stats' },
   { id: 'recycle', label: 'Recycle' },
 ] as const
+
+const ACHIEVEMENT_LABELS: Record<AchievementId, string> = {
+  'first-clear': 'First Clear',
+  'large-grid': 'Large Grid',
+  'sustained-run': 'Sustained Run',
+  'rare-combination': 'Rare Combination',
+}
 
 export type ShellHandlers = {
   softReset: boolean
@@ -77,7 +87,9 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
             ? renderHome(state, h.lastIntersectionCells)
             : h.view === 'pool'
               ? renderPool(state, unlockReady, customCategories)
-              : renderRewards(state)
+              : h.view === 'rewards'
+                ? renderRewards(state)
+                : renderStats(state)
         }
       </main>
 
@@ -86,6 +98,7 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
           const active =
             (a.id === 'pool' && h.view === 'pool') ||
             (a.id === 'rewards' && h.view === 'rewards') ||
+            (a.id === 'stats' && h.view === 'stats') ||
             (a.id === 'board' && h.view === 'home')
           return `<button type="button" class="thumb-btn${active ? ' thumb-btn--active' : ''}" data-action="${a.id}" data-testid="action-${a.id}">${a.label}</button>`
         }).join('')}
@@ -246,12 +259,51 @@ function renderRewards(state: GameState): string {
   `
 }
 
+function renderStats(state: GameState): string {
+  const categoryRows = Object.entries(state.stats.clearsByCategory)
+    .sort((a, b) => b[1] - a[1])
+    .map(([category, count]) => `<li>${escapeHtml(category)}: <strong>${count}</strong></li>`)
+    .join('')
+
+  const dateRows = Object.entries(state.stats.clearsByDate)
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([date, count]) => `<li>${escapeHtml(date)}: <strong>${count}</strong></li>`)
+    .join('')
+
+  const unlockedIds = new Set(state.achievements.map((a) => a.id))
+  const achievementRows = ACHIEVEMENT_IDS.map((id) => {
+    const unlocked = unlockedIds.has(id)
+    return `<li class="${unlocked ? 'achievement--unlocked' : 'achievement--locked'}" data-testid="achievement-${id}">
+      ${escapeHtml(ACHIEVEMENT_LABELS[id])}${unlocked ? '' : ' (locked)'}
+    </li>`
+  }).join('')
+
+  return `
+    <section class="pool" aria-label="Statistics" data-testid="stats-view">
+      <h2 class="pool__heading">Statistics</h2>
+      <p>Lifetime score: <strong data-testid="stats-lifetime">${state.score.lifetime}</strong></p>
+      <p>Average clears per day: <strong data-testid="stats-average">${averageClearsPerDay(state.stats).toFixed(2)}</strong></p>
+
+      <h3>Clears by category</h3>
+      <ul class="pool__list" data-testid="stats-categories">${categoryRows || '<li class="shell__hint">No clears yet.</li>'}</ul>
+
+      <h3>Clear history</h3>
+      <ul class="pool__list" data-testid="stats-history">${dateRows || '<li class="shell__hint">No clears yet.</li>'}</ul>
+
+      <h3>Achievements</h3>
+      <ul class="pool__list" data-testid="stats-achievements">${achievementRows}</ul>
+    </section>
+  `
+}
+
 function bindNav(root: HTMLElement, h: ShellHandlers): void {
   root.querySelector('[data-action="board"]')?.addEventListener('click', () => h.onNavigate('home'))
   root.querySelector('[data-action="pool"]')?.addEventListener('click', () => h.onNavigate('pool'))
   root.querySelector('[data-action="rewards"]')?.addEventListener('click', () => h.onNavigate('rewards'))
+  root.querySelector('[data-action="stats"]')?.addEventListener('click', () => h.onNavigate('stats'))
   root.querySelector('[data-action="mark"]')?.addEventListener('click', () => h.onNavigate('home'))
-  // Recycle stays unwired until WP-07 — do not overload the label with a draw stub.
+  // Recycle's UI (WP-07's power-ups have no view yet, flagged in NEXT.md) stays
+  // unwired — do not overload the label with a draw stub.
 }
 
 function bindHome(root: HTMLElement, h: ShellHandlers): void {

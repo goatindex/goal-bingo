@@ -4,28 +4,19 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — build WP-09 (record & discovery).** WP-01 → WP-07 (#18–#24) are all
-closed. WP-09 is [#26](https://github.com/goatindex/goal-bingo/issues/26):
-statistics (lifetime score, clears by category, clears over time, average clears per
-day) plus a minimum achievement set (first clear, large grid, sustained run, rare
-combination) — GB-FUN-051–054, 063, 064. Four TBDs resolved: `D-2026-09-21-12`
-(category-clear counting is per cleared cell, not per line — confirmed with the
-user, since GB-FUN-052's own "which life areas the player is engaging" rationale is
-about individual goals, not lines), `D-2026-09-21-13` (sustained-run achievement is
-3 consecutive calendar days, the shorter of three proposed options), `D-2026-09-21-14`
-(rare-combination achievement reuses WP-05's existing variety-combo detection
-directly rather than a new concept), `D-2026-09-21-15` (large-grid achievement is
-board size 7 — the only size above the 5x5 start, no real ambiguity). None of these
-needed simulation evidence (achievements and statistics sit outside `sim/jam_sim.py`'s
-scope entirely) — three were genuinely novel judgement calls confirmed with the user,
-one (large grid) was a direct reading of an existing constant. WP-08 (advanced tiles)
-and WP-10 (floor constraints) are also unblocked but not yet started.
+**Link 5 — finishing WP-09 (record & discovery).** WP-01 → WP-07 (#18–#24) are all
+closed. WP-09 is [#26](https://github.com/goatindex/goal-bingo/issues/26). Its four
+TBDs resolved (`D-2026-09-21-12/13/14/15` — category-clear counting per cell,
+sustained-run 3 days, rare-combination reuses the variety-combo check, large-grid is
+size 7); none needed simulation evidence, since achievements and statistics sit
+outside `sim/jam_sim.py`'s scope entirely. Two of three sub-issues merged (#108
+stats tracking, #109 achievement model); #110 (the display view) is the last piece.
+WP-08 (advanced tiles) and WP-10 (floor constraints) are also unblocked but not yet
+started.
 
 ## Next up
 
-- **Build #110** (statistics/achievements display view, blocked by #108 and #109,
-  both now merged) — the last of WP-09's three sub-issues. Once it lands, close
-  WP-09 (#26).
+- **Merge #110's PR and close WP-09 (#26).**
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -47,7 +38,21 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#109 (achievement model and evaluation) built** (this PR), second of WP-09's
+- **#110 (statistics and achievements display view) built** (this PR), closing
+  WP-09's last sub-issue: `shell.ts` gains a 6th nav tab, "Stats" (`ShellView` union
+  extended to `'stats'`), and `renderStats(state)` shows the lifetime score (already
+  tracked since WP-05), the average-clears-per-day figure, a category breakdown
+  sorted by count, a clear-history list sorted most-recent-first, and all four
+  minimum-set achievements — unlocked ones bold, locked ones dimmed and labelled
+  "(locked)". Consolidated `AchievementId`'s canonical order into a single exported
+  `ACHIEVEMENT_IDS` in `achievements.ts` (`storage.ts`'s own copy for validation was
+  a second definition of the same list, now imported instead of duplicated). No new
+  unit tests — this codebase has no DOM test harness, consistent with every prior UI
+  issue's precedent (#73, #84, #85). Verified live: fresh state shows all four
+  achievements locked and empty stats; cleared a row, confirmed the Stats view
+  updated to lifetime 9, average 1.00, the correct category counts, today's clear
+  history entry, and "First Clear" now shown unlocked; no console errors.
+- **#109 (achievement model and evaluation) built** (PR #112), second of WP-09's
   three sub-issues: `lines.ts` gains `isVarietyCombo`/`isMatchingCombo` (splitting
   `comboMultiplier`'s combined check into two named predicates) and `ClearOutcome`
   gains `hadVarietyCombo`, reusing the exact same category-distinctness check as the
