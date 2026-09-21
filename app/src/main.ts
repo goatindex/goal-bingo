@@ -39,7 +39,10 @@ function paint(): void {
         return
       }
       state.board = result.outcome.board
+      // GB-FUN-003 / GB-FUN-033: a clear's value feeds both counters identically -
+      // lifetime score as a permanent record, reward balance as spendable currency.
       state.score.lifetime += result.outcome.scoreDelta
+      state.score.rewardBalance += result.outcome.scoreDelta
       lastIntersectionCells = result.outcome.intersectionCells
       emptyPoolPrompt = false
       saveState(state)

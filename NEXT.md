@@ -11,16 +11,16 @@ sub-issues: [#77](https://github.com/goatindex/goal-bingo/issues/77) cadence-wei
 draw (PR #79), [#78](https://github.com/goatindex/goal-bingo/issues/78) binding placement
 rules (PR #80). WP-05 is [#22](https://github.com/goatindex/goal-bingo/issues/22): reward
 balance on clear, combos, adjacency config hook (GB-FUN-003, 028-035, 034b, 068,
-GB-CON-005/006/007) — the last package in the first shippable slice.
+GB-CON-005/006/007) — the last package in the first shippable slice. Filed as four
+sub-issues: [#83](https://github.com/goatindex/goal-bingo/issues/83) clear scoring
+(this PR), [#84](https://github.com/goatindex/goal-bingo/issues/84) counter display,
+[#85](https://github.com/goatindex/goal-bingo/issues/85) rewards CRUD,
+[#86](https://github.com/goatindex/goal-bingo/issues/86) reward purchase.
 
 ## Next up
 
-- **File work items for WP-05** and pick up the scoring/ledgers build. Its three TBDs
-  are resolved: `D-2026-09-21-3` (base value 1/2/3/5 by cadence), `D-2026-09-21-4`
-  (+50% matching/variety combo bonuses), `D-2026-09-21-5` (adjacency seed rule,
-  `{ name: "adjacent-marked", value: 1 }`). Extends `lines.ts`'s `resolveLineClears`
-  (GB-FUN-003: reward balance on clear) — that interface is now settled by WP-04, so
-  this should build against it cleanly.
+- **Pick up #84 (display all three counters)** — reward balance now actually moves
+  (#83, this PR); the home view still only shows lifetime score.
 - **First shippable slice:** WP-01 → WP-05 (#18–#22); four of five packages closed.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
@@ -43,7 +43,19 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **Resolved WP-05's three blocking TBDs** (this PR): unlike the grid-size and
+- **#83 (clear scoring) built** (this PR): `lines.ts`'s `resolveLineClears` now scores
+  each completing line as its cadence-summed base (`CADENCE_BASE_VALUE`) times a
+  matching/variety combo multiplier (`COMBO_BONUS_RATIO`) plus an adjacency bonus read
+  from the pre-refill board (`ADJACENCY_CONFIG`) — the multi-clear bonus applies to
+  this new summed value, not the old flat constant. `main.ts`'s `onMarkCell` now adds
+  the clear value to reward balance as well as lifetime score (GB-FUN-003/GB-FUN-033),
+  leaving board balance untouched. Removed `BASE_SCORE_PER_LINE`; the WP-03/04-era
+  tests that asserted a flat per-line score were rewritten against explicit,
+  hand-built boards with known cadence/category composition so the expected value is
+  computed, not guessed. 5 new tests, 62/62 passing. Verified live in the browser via
+  `localStorage`: a cleared row moved lifetime and reward balance by the identical
+  amount, board balance stayed 0, no console errors.
+- **Resolved WP-05's three blocking TBDs** (PR #82): unlike the grid-size and
   cadence-split questions, none had simulation evidence to ground them —
   `docs/design-description.md` says outright that point values are "a tuning problem
   that needs a playable board." Proposed concrete numbers and confirmed with the user
