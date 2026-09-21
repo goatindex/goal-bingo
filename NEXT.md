@@ -4,8 +4,9 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 — build WP-08 (advanced tiles).** WP-01 → WP-07, WP-09 (#18–#26 except
-WP-08) are all closed. WP-08 is [#25](https://github.com/goatindex/goal-bingo/issues/25):
+**Link 5 — WP-08 and WP-10 both in progress.** WP-01 → WP-07, WP-09 (#18–#26 except
+WP-08) are all closed; WP-08 and WP-10 are being built in parallel (both only needed
+WP-07). WP-08 is [#25](https://github.com/goatindex/goal-bingo/issues/25):
 per-category advanced-tile eligibility, multi-completion tiles, and mini-grid tiles
 — GB-FUN-043–050. Six TBDs resolved: `D-2026-09-21-16` (draw/placement mechanism —
 how an eligible category's advanced tiles actually reach a board cell — is out of
@@ -22,13 +23,24 @@ expansion). None of these had simulation evidence — advanced tiles sit entirel
 outside `sim/jam_sim.py`'s scope. This WP ships eligibility + tile mechanics as
 fully-tested, directly-constructible domain logic; no code path causes an advanced
 tile to appear on a board through ordinary play yet (flagged, not silently
-resolved). WP-10 (floor constraints) is also
-unblocked but not started.
+resolved). Two of four sub-issues merged (#117, #118); #119 (mini-grid model,
+blocked by #118) and #120 (mini-grid integration, blocked by #119) remain.
+
+WP-10 is [#27](https://github.com/goatindex/goal-bingo/issues/27): verify GB-CON-013/
+GB-CON-014's recovery-floor property against `sim/jam_sim.py`. Unlike every other
+WP this session, it's analysis-only — no application code. `D-2026-09-21-21` verifies
+both directly from the existing `sim/results.md` (experiment A1 for the shipped
+5x5 config, A4's `grid = 7` table for the one size the board can expand to) rather
+than re-running the simulation: every later change (recycle-allowance upgrade,
+challenge completion bonuses, advanced tiles, swap, grid-expansion pricing) either
+doesn't touch what the simulation models, or can only improve on its numbers, argued
+explicitly rather than assumed.
 
 ## Next up
 
 - **Build #119** (mini-grid model, blocked by #118, now merged) and **#120**
   (mini-grid integration, blocked by #119) — the rest of WP-08's four sub-issues.
+- **Close WP-10 (#27)** once #123's PR merges — it's the package's only sub-issue.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -50,7 +62,24 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#118 (multi-completion tiles) built** (this PR), second of WP-08's four
+- **#123 (verify the recovery floor) built** (this PR), WP-10's only sub-issue,
+  built in parallel with WP-08: `sim/jam_sim.py`'s `DEFAULTS`/`SHORT_MIX` confirmed
+  to match `draw.ts`'s `LONG_TERM_DRAW_SHARE`/`SHORT_CADENCE_MIX` and `recycle.ts`'s
+  `RECYCLE_COST` exactly. `D-2026-09-21-21` verifies GB-CON-013 from the existing A1
+  table (grid 5, untightened — the shipped config, since the Q20 tightening was
+  never adopted: median 0.0 days, p99 ≤1.0 day, 0/300 capped, every player profile)
+  and GB-CON-014 from A4's `grid = 7` table (same thresholds met), rather than
+  re-running the simulation — every later change is argued explicitly, not silently
+  assumed unaffected: the recycle-allowance upgrade and challenge completion
+  bonuses both only ever *add* to what the simulation already assumes (more free
+  recycles, more income), advanced tiles have no draw/placement mechanism yet
+  (`D-2026-09-21-16`) so cannot affect jam dynamics, swap can only help, and
+  grid-expansion pricing is irrelevant to recovery dynamics once the expanded size
+  is reached (A4 already covers grid 7 directly). Both requirements'
+  `verification-status` updated from `not-verified` to `verified`. No application
+  code — both requirements are analysis-only constraints. Verified via
+  `decision_lint`/`partition_check`/`lint_requirements`/`standing_check`, all clean.
+- **#118 (multi-completion tiles) built** (PR #122), second of WP-08's four
   sub-issues: `board.ts`'s `Cell` gains an optional `advanced` field (a new
   `AdvancedTile` union, `{kind: 'multi-completion', completionsRequired,
   completionsSoFar}` so far) and `markCell` dispatches on it — a multi-completion

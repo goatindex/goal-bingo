@@ -3,6 +3,63 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-21-21 — Recovery floor verified from existing evidence, no fresh sim run
+
+- **Status:** open
+- **Context:** GB-CON-013/GB-CON-014 (WP-10) ask whether the recovery floor still
+  holds at the shipped configuration and at each grid size the main board can
+  expand to. Both sat at `verification-status: not-verified` despite `sim/results.md`
+  already containing exactly the evidence needed, generated during the original Q20
+  investigation. GB-CON-013's own notes assign a link-5 work package the job of
+  deciding "when and how the simulation is re-run" after later changes — this
+  decision is that determination.
+- **Options considered:** re-run `sim/jam_sim.py` fresh before verifying anything —
+  rejected: `sim/jam_sim.py`'s `DEFAULTS` (`grid=5, p_long=0.05, recycle_cost=5,
+  tightened=False`) and `SHORT_MIX` (`{hourly: 0.4, daily: 0.4, weekly: 0.2}`) match
+  `draw.ts`'s `LONG_TERM_DRAW_SHARE`/`SHORT_CADENCE_MIX` and `recycle.ts`'s
+  `RECYCLE_COST` exactly, so a fresh run would reproduce the same numbers already on
+  record, not add information · leave both requirements `not-verified` since later
+  work packages (recycle-allowance upgrade, challenge completion bonuses, advanced
+  tiles) postdate the simulation — rejected as too conservative: none of those
+  changes touch what the simulation actually models, each argued through below ·
+  **verify from the existing A1 (grid 5) and A4 (grid 7) tables, with the
+  post-simulation changes argued as non-invalidating rather than silently ignored
+  (chosen)**.
+- **Why (per later change):**
+  - Recycle-allowance upgrade (`D-2026-09-21-11`, cap 3, levels above the default of
+    1): the simulation's own free-recycle model grants exactly one per 24h and never
+    models a higher level. A player who upgrades has *more* free recycles per day
+    than the simulation assumes, which can only shorten time-to-unjam — the
+    simulation's numbers are a conservative bound for an upgraded player, not
+    invalidated by the upgrade existing.
+  - Challenge completion bonuses (`D-2026-09-21-6`/`D-2026-09-21-7`): the
+    simulation already pays +1 board balance per mark unconditionally and its own
+    header states completion bonuses are ignored in the model. The shipped game
+    pays that same +1 per mark *plus* completion bonuses on top — strictly more
+    income than the simulation assumes, again a conservative bound in the
+    simulation's favour.
+  - Advanced tiles (WP-08): `D-2026-09-21-16` recorded that no draw or placement
+    mechanism exists yet for multi-completion or mini-grid tiles — neither can
+    currently appear on a board through ordinary play, so they have no effect on
+    jam dynamics to simulate yet. Revisit this specific point once a draw/placement
+    mechanism is designed.
+  - Swap (WP-07): explicitly outside the simulation's model, but swap can only ever
+    help consolidate blockers, never create a jam — its absence makes the
+    simulation's numbers a worst-case estimate, not an invalidated one.
+  - Grid expansion pricing (`D-2026-09-21-9`): irrelevant to recovery dynamics once
+    the expanded size is reached — the A4 experiment already covers grid 7 directly,
+    independent of what it costs to get there.
+- **Expected outcome:** GB-CON-013 verified from experiment A1 (grid 5, untightened
+  — the shipped configuration, since the Q20 tightening was never adopted): median
+  time-to-unjam 0.0 days, p99 at most 1.0 day, 0/300 trials still capped at 180
+  days, across all four player profiles. GB-CON-014 verified from experiment A4's
+  `grid = 7` table with the same thresholds met. Both requirements'
+  `verification-status` updated to `verified`, citing these tables directly.
+- **Revisit:** When a draw/placement mechanism for advanced tiles is designed
+  (`D-2026-09-21-16`'s own revisit trigger), or if any future change alters what
+  `sim/jam_sim.py` actually models (grid size, long-term draw share, cadence split,
+  recycle cost, or the free-recycle rate) rather than adding something on top of it.
+
 ## D-2026-09-21-20 — Mini-grid internal size is 3x3
 
 - **Status:** open

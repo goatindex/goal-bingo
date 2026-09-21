@@ -245,11 +245,13 @@ verification-method: analysis
 verification-criteria: Running sim/jam_sim.py at the shipped long-term draw share reports
   median time-to-unjam of same-day and p99 of at most 2 days, with zero trials still jammed
   after 180 simulated days.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: Soft / analysis-only constraint. A link-5 work package owns when and how the
-  simulation is re-run after draw, recycle, allowance, or challenge-income changes.
+notes: Verified from `sim/results.md`'s experiment A1 (grid 5, untightened — the
+  shipped configuration, since the Q20 tightening was never adopted): median 0.0
+  days, p99 at most 1.0 day, 0/300 capped, across every player profile
+  (`D-2026-09-21-21`).
 
 ### GB-CON-014 — Expansion preserves the recovery floor
 statement: Goal Bingo shall set grid-expansion pricing and unlock rules so that the
@@ -264,9 +266,10 @@ verification-method: analysis
 verification-criteria: For each supported grid size, sim/jam_sim.py run at that static
   size meets the GB-CON-013 verification criteria. The sim does not model mid-game expansion
   transitions; static-size runs are the accepted proxy until an expansion-aware model exists.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: Soft / analysis-only constraint. Exact prices and unlock thresholds are deferred to
-  Q10 / link 4. sim/results.md records that grid expansion is not modelled; revisit when
-  the sim gains an expansion path.
+notes: Verified from `sim/results.md`'s experiment A4, `grid = 7` table: the same
+  thresholds as GB-CON-013 are met across every player profile (`D-2026-09-21-21`).
+  Grid-expansion pricing (`D-2026-09-21-9`) does not affect this — it is irrelevant
+  to recovery dynamics once the expanded size is reached.
