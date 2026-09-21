@@ -704,7 +704,9 @@ verification-criteria: After reaching the mark threshold for a category, the pla
 verification-status: not-verified
 owner: k
 priority: must
-notes: Specific thresholds are a link 4 decision.
+notes: Threshold is 50 lifetime marks in the category (`D-2026-09-21-17`). Scope note:
+  no requirement in this set specifies how an unlocked category's advanced tiles
+  actually reach a board cell — flagged and left unresolved (`D-2026-09-21-16`).
 
 ### GB-FUN-044 — Secondary advanced tile unlock via board balance
 statement: Goal Bingo shall provide a secondary path to unlock advanced tiles using board
@@ -718,7 +720,8 @@ verification-criteria: With sufficient board balance and without meeting the pro
 verification-status: not-verified
 owner: k
 priority: must
-notes: Prices are a link 4 decision.
+notes: Price is 150 board balance (`D-2026-09-21-17`). Either unlock path (this or
+  GB-FUN-043) sets the same per-category eligibility flag, not two independent grants.
 
 ---
 
@@ -737,7 +740,8 @@ verification-criteria: A multi-completion tile configured for N completions coun
 verification-status: not-verified
 owner: k
 priority: must
-notes: The configured number of completions is set at tile creation (link 4 decision).
+notes: Default is 3 completions (`D-2026-09-21-18`); the mechanism itself stays
+  parametric to whatever N a tile is created with.
 
 ### GB-FUN-046 — Multi-completion tile displays progress
 statement: Goal Bingo shall display the current completion count on a multi-completion tile.
@@ -779,6 +783,9 @@ verification-criteria: When a mini-grid tile is placed and no upgrade is active,
 verification-status: not-verified
 owner: k
 priority: must
+notes: "Placed" is read as constructible directly (e.g. by a future creation/draw
+  pathway) - how a mini-grid tile actually reaches a board cell during ordinary play
+  is unscoped (`D-2026-09-21-16`), same as GB-FUN-043's gap.
 
 ### GB-FUN-049 — Mini-grid clear scores as a normal clear
 statement: When a line completes inside a mini-grid tile, Goal Bingo shall score the clear
@@ -806,7 +813,8 @@ verification-criteria: When the internal mini-grid line completes and that cell 
 verification-status: not-verified
 owner: k
 priority: must
-notes: Bonus amount is TBD (owner: k, blocks: Q7).
+notes: Bonus is +100% of the clear's own value (`D-2026-09-21-19`). Q7 resolved for
+  this requirement.
 
 ---
 
