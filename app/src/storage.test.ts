@@ -98,6 +98,7 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.advancedTileAccess).toEqual({
       unlockedCategories: { 'multi-completion': [], 'mini-grid': [] },
       marksByCategory: {},
+      pendingPlacements: [],
     })
   })
 
@@ -121,6 +122,7 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     expect(loaded.state.advancedTileAccess).toEqual({
       unlockedCategories: { 'multi-completion': ['health'], 'mini-grid': ['health'] },
       marksByCategory: { health: 50, study: 3 },
+      pendingPlacements: [],
     })
     // Everything else on the save must be preserved, not reset by the broader
     // legacy-migration path this targeted check runs ahead of.

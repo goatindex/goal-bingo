@@ -53,6 +53,7 @@ describe('purchaseAdvancedTileUnlock (GB-FUN-044)', () => {
       access: {
         unlockedCategories: { 'multi-completion': ['health'], 'mini-grid': [] },
         marksByCategory: {},
+        pendingPlacements: [],
       },
       boardBalance: 0,
     })
@@ -71,6 +72,7 @@ describe('purchaseAdvancedTileUnlock (GB-FUN-044)', () => {
     const access: AdvancedTileAccess = {
       unlockedCategories: { 'multi-completion': ['health'], 'mini-grid': [] },
       marksByCategory: {},
+      pendingPlacements: [],
     }
     const result = purchaseAdvancedTileUnlock(access, 'multi-completion', 'health', ADVANCED_TILE_UNLOCK_COST)
     expect(result).toEqual({ ok: false, reason: 'already-unlocked' })

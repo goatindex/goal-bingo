@@ -10,7 +10,8 @@ import {
 import { addCategoryChallenge, progressChallenges, BOARD_BALANCE_PER_MARK, CHALLENGE_TARGET } from './challenges'
 import { recordClear, totalClears } from './stats'
 import { evaluateAchievements } from './achievements'
-import { recordAdvancedTileProgress } from './advancedUnlock'
+import { newlyUnlockedTracks, recordAdvancedTileProgress } from './advancedUnlock'
+import { applyPassivePlacement, placeOnUnlock } from './advancedPlacement'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) {
@@ -70,10 +71,24 @@ function paint(): void {
         // GB-FUN-043: lifetime per-category mark count, independent of the
         // challenge counters above (which reset) and stats.clearsByCategory (which
         // counts cleared cells, not marks).
+        const accessBefore = state.advancedTileAccess
         state.advancedTileAccess = recordAdvancedTileProgress(
           state.advancedTileAccess,
           tappedCell.goal.category,
         )
+        // D-2026-09-21-23: the moment a track newly unlocks, place one tile of that
+        // type immediately rather than waiting on the passive chance below.
+        for (const track of newlyUnlockedTracks(accessBefore, state.advancedTileAccess, tappedCell.goal.category)) {
+          const placed = placeOnUnlock(
+            state.board,
+            track,
+            tappedCell.goal.category,
+            state.advancedTileAccess,
+            state.pool,
+          )
+          state.board = placed.board
+          state.advancedTileAccess = placed.access
+        }
         // GB-FUN-063/064: evaluated after stats/challenges update, using the same
         // no-op guard so a re-tap can't re-check (harmless but wasteful) conditions.
         const newAchievements = evaluateAchievements(state.achievements, {
@@ -85,6 +100,21 @@ function paint(): void {
         if (newAchievements.length > 0) {
           state.achievements = [...state.achievements, ...newAchievements]
         }
+      }
+      // D-2026-09-21-23: cells this clear just legally refilled with a plain goal may
+      // become an advanced tile instead - a pending guarantee from the block above, or
+      // the passive chance for any track unlocked in that cell's category. Applied
+      // after the block above so a pending placement created by this same mark is
+      // available to be consumed immediately, not just on a later refill.
+      if (result.outcome.refilledCells.length > 0) {
+        const placement = applyPassivePlacement(
+          state.board,
+          result.outcome.refilledCells,
+          state.advancedTileAccess,
+          state.pool,
+        )
+        state.board = placement.board
+        state.advancedTileAccess = placement.access
       }
       lastIntersectionCells = result.outcome.intersectionCells
       emptyPoolPrompt = false

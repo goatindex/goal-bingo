@@ -173,6 +173,19 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((c) => typeof c === 'string')
 }
 
+function isPendingPlacements(value: unknown): value is AdvancedTileAccess['pendingPlacements'] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (p) =>
+        p &&
+        typeof p === 'object' &&
+        (p.track === 'multi-completion' || p.track === 'mini-grid') &&
+        typeof p.category === 'string',
+    )
+  )
+}
+
 function isAdvancedTileAccess(value: unknown): value is AdvancedTileAccess {
   if (!value || typeof value !== 'object') return false
   const a = value as Record<string, unknown>
@@ -182,7 +195,8 @@ function isAdvancedTileAccess(value: unknown): value is AdvancedTileAccess {
     typeof unlocked === 'object' &&
     isStringArray(unlocked['multi-completion']) &&
     isStringArray(unlocked['mini-grid']) &&
-    isStringRecord(a.marksByCategory)
+    isStringRecord(a.marksByCategory) &&
+    isPendingPlacements(a.pendingPlacements)
   )
 }
 
@@ -208,6 +222,7 @@ function migratePreSplitAdvancedTileAccess(old: {
       'mini-grid': [...old.unlockedCategories],
     },
     marksByCategory: { ...old.marksByCategory },
+    pendingPlacements: [],
   }
 }
 
