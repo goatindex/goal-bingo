@@ -6,6 +6,7 @@ import { DEFAULT_CATEGORIES } from './categories'
 import type { Challenge, ChallengeKind } from './challenges'
 import { initialChallenges } from './challenges'
 import type { Goal } from './pool'
+import type { RecycleState } from './recycle'
 import type { Reward } from './rewards'
 
 export const STORAGE_KEY = 'goal-bingo:v1'
@@ -20,6 +21,13 @@ export type GameState = {
   score: { lifetime: number; rewardBalance: number; boardBalance: number }
   rewards: Reward[]
   challenges: Challenge[]
+  recycle: RecycleState
+}
+
+export const FRESH_RECYCLE_STATE: RecycleState = {
+  allowanceLevel: 1,
+  remaining: 1,
+  windowStartedAt: null,
 }
 
 export const STARTER_POOL: Goal[] = [
@@ -55,6 +63,7 @@ export function freshState(): GameState {
     score: { lifetime: 0, rewardBalance: 0, boardBalance: 0 },
     rewards: [],
     challenges: initialChallenges(DEFAULT_CATEGORIES),
+    recycle: { ...FRESH_RECYCLE_STATE },
   }
 }
 
@@ -114,6 +123,16 @@ function isChallenge(value: unknown): value is Challenge {
   )
 }
 
+function isRecycleState(value: unknown): value is RecycleState {
+  if (!value || typeof value !== 'object') return false
+  const r = value as Record<string, unknown>
+  return (
+    typeof r.allowanceLevel === 'number' &&
+    typeof r.remaining === 'number' &&
+    (r.windowStartedAt === null || typeof r.windowStartedAt === 'number')
+  )
+}
+
 function isGameState(value: unknown): value is GameState {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
@@ -129,7 +148,8 @@ function isGameState(value: unknown): value is GameState {
     Array.isArray(v.rewards) &&
     v.rewards.every(isReward) &&
     Array.isArray(v.challenges) &&
-    v.challenges.every(isChallenge)
+    v.challenges.every(isChallenge) &&
+    isRecycleState(v.recycle)
   )
 }
 
@@ -194,6 +214,9 @@ export function loadState(storage: Storage = localStorage): {
           // Pre-#93 saves never wrote challenges - rebuild the always-active set from
           // the restored (default) categories rather than trust unvalidated data.
           challenges: initialChallenges(DEFAULT_CATEGORIES),
+          // Pre-#99 saves never wrote a recycle allowance - start a fresh one rather
+          // than trust unvalidated data.
+          recycle: { ...FRESH_RECYCLE_STATE },
         }
         saveState(state, storage)
         return { state, softReset: false }
