@@ -132,13 +132,18 @@ function renderBoard(board: Board, lastIntersectionCells: number[]): string {
       const classes = ['board-cell']
       if (cell.marked) classes.push('board-cell--marked')
       if (intersection.has(i)) classes.push('board-cell--intersection')
+      // GB-FUN-046: show a multi-completion tile's progress alongside its title.
+      const progress =
+        cell.advanced?.kind === 'multi-completion'
+          ? ` <span class="board-cell__progress" data-testid="board-cell-${i}-progress">${cell.advanced.completionsSoFar}/${cell.advanced.completionsRequired}</span>`
+          : ''
       return `<button
         type="button"
         class="${classes.join(' ')}"
         data-testid="board-cell-${i}"
         data-index="${i}"
         aria-pressed="${cell.marked}"
-      >${escapeHtml(cell.goal.title)}</button>`
+      >${escapeHtml(cell.goal.title)}${progress}</button>`
     })
     .join('')
 

@@ -13,7 +13,15 @@ export function isSupportedSize(size: number): size is BoardSize {
   return (SUPPORTED_SIZES as readonly number[]).includes(size)
 }
 
-export type Cell = { goal: Goal; marked: boolean }
+/** Advanced tile state a cell can carry on top of its ordinary goal/marked pair
+ *  (§3.2: "Ordinary tiles need one completion. Advanced tiles need more."). */
+export type AdvancedTile = {
+  kind: 'multi-completion'
+  completionsRequired: number
+  completionsSoFar: number
+}
+
+export type Cell = { goal: Goal; marked: boolean; advanced?: AdvancedTile }
 
 export type Board = {
   size: BoardSize
@@ -110,12 +118,26 @@ export type MarkResult = { ok: true; board: Board } | { ok: false; reason: 'inva
  * network call, no permission check, nothing beyond the index identifying which cell
  * was tapped. Marking an already-marked cell is a no-op — the same board reference is
  * returned rather than a new object, so callers can skip a re-render on no-op taps.
+ *
+ * A multi-completion tile (GB-FUN-045) increments its progress instead of marking
+ * immediately, only reaching `marked: true` on the tap that meets its required count
+ * — every other cell shape keeps today's one-tap behaviour unchanged.
  */
 export function markCell(board: Board, index: number): MarkResult {
   const cell = board.cells[index]
   if (!cell) return { ok: false, reason: 'invalid-cell' }
   if (cell.marked) return { ok: true, board }
   const cells = board.cells.slice()
+  if (cell.advanced?.kind === 'multi-completion') {
+    const completionsSoFar = cell.advanced.completionsSoFar + 1
+    const done = completionsSoFar >= cell.advanced.completionsRequired
+    cells[index] = {
+      ...cell,
+      marked: done,
+      advanced: { ...cell.advanced, completionsSoFar },
+    }
+    return { ok: true, board: { ...board, cells } }
+  }
   cells[index] = { ...cell, marked: true }
   return { ok: true, board: { ...board, cells } }
 }

@@ -153,3 +153,52 @@ describe('marking (GB-FUN-002, GB-FUN-009)', () => {
     expect(reloaded.state.board.cells[0]!.marked).toBe(true)
   })
 })
+
+describe('multi-completion tiles (GB-FUN-045)', () => {
+  function boardWithMultiCompletionAt0(completionsRequired: number) {
+    const pool = STARTER_POOL.map((g) => ({ ...g }))
+    const result = createBoard(5, pool, () => 0)
+    if (!result.ok) throw new Error('unreachable: STARTER_POOL is never empty')
+    const cells = result.board.cells.slice()
+    cells[0] = {
+      ...cells[0]!,
+      advanced: { kind: 'multi-completion', completionsRequired, completionsSoFar: 0 },
+    }
+    return { ...result.board, cells }
+  }
+
+  it('does not mark on a tap below the required count, and increments progress', () => {
+    const result = markCell(boardWithMultiCompletionAt0(3), 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.board.cells[0]!.marked).toBe(false)
+    expect(result.board.cells[0]!.advanced).toEqual({
+      kind: 'multi-completion',
+      completionsRequired: 3,
+      completionsSoFar: 1,
+    })
+  })
+
+  it('marks on the tap that reaches the required count, same as an ordinary tile', () => {
+    let board = boardWithMultiCompletionAt0(3)
+    for (let i = 0; i < 3; i++) {
+      const result = markCell(board, 0)
+      expect(result.ok).toBe(true)
+      if (!result.ok) return
+      board = result.board
+    }
+    expect(board.cells[0]!.marked).toBe(true)
+    expect(board.cells[0]!.advanced?.completionsSoFar).toBe(3)
+  })
+
+  it('tapping an already-marked multi-completion tile is a no-op, same board reference', () => {
+    let board = boardWithMultiCompletionAt0(1)
+    const first = markCell(board, 0)
+    expect(first.ok).toBe(true)
+    if (!first.ok) return
+    board = first.board
+    expect(board.cells[0]!.marked).toBe(true)
+    const second = markCell(board, 0)
+    expect(second).toEqual({ ok: true, board })
+  })
+})

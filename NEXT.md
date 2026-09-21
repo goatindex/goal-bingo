@@ -27,9 +27,8 @@ unblocked but not started.
 
 ## Next up
 
-- **Build #118** (multi-completion tiles), **#119** (mini-grid model, blocked by
-  #118), and **#120** (mini-grid integration, blocked by #119) — the rest of WP-08's
-  four sub-issues; #117 (advanced-tile eligibility) is merged.
+- **Build #119** (mini-grid model, blocked by #118, now merged) and **#120**
+  (mini-grid integration, blocked by #119) — the rest of WP-08's four sub-issues.
 - **Flip `standing_check` to blocking** in `.github/workflows/record-checks.yml` — its
   owner/verification-status gap is closed (verified: `record_index.py`/`standing_check.py`
   both report 0 problems). `decision_lint` is also clean now (34/34 entries conform,
@@ -51,7 +50,25 @@ continues with WP-04.
 
 ## Done (2026-09-21 session)
 
-- **#117 (advanced-tile eligibility) built** (this PR), first of WP-08's four
+- **#118 (multi-completion tiles) built** (this PR), second of WP-08's four
+  sub-issues: `board.ts`'s `Cell` gains an optional `advanced` field (a new
+  `AdvancedTile` union, `{kind: 'multi-completion', completionsRequired,
+  completionsSoFar}` so far) and `markCell` dispatches on it — a multi-completion
+  cell increments progress instead of marking immediately, only reaching `marked:
+  true` on the tap that meets its required count; every ordinary cell (no `advanced`
+  field) keeps its exact existing one-tap behaviour. New `app/src/multiCompletion.ts`
+  — `createMultiCompletionTile(completionsRequired?)` defaults to 3
+  (`D-2026-09-21-18`) but stays fully parametric. `shell.ts`'s board-cell button now
+  shows "k/N" progress text for a multi-completion cell (GB-FUN-046). No creation/
+  draw pathway — out of scope (`D-2026-09-21-16`); tests and live verification
+  construct a multi-completion cell directly via `localStorage`. 9 new tests (5
+  `board.test.ts`, 2 `multiCompletion.test.ts`), 132/132 passing. Verified live:
+  injected a 3-required multi-completion tile at cell 0, tapped it three times,
+  watched the display progress 0/3 → 1/3 → 2/3 → 3/3 with the cell visually marking
+  only on the third tap, confirmed board balance increased by 1 on each of the three
+  genuine taps (each one a real interaction, matching GB-FUN-004's "when the player
+  marks a cell") but not on a fourth, now-no-op tap; no console errors.
+- **#117 (advanced-tile eligibility) built** (PR #121), first of WP-08's four
   sub-issues: new `app/src/advancedUnlock.ts` — `recordAdvancedTileProgress(access,
   category)` tracks a lifetime per-category mark count (independent of WP-09's
   `stats.clearsByCategory`, which counts cleared cells, and WP-06's category
