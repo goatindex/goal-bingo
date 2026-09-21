@@ -60,3 +60,39 @@ export function addCategoryChallenge(
   if (challenges.some((c) => c.id === id)) return [...challenges]
   return [...challenges, makeChallenge(id, 'category', category)]
 }
+
+/** Flat board-balance payment per qualifying mark, regardless of challenge count (D-2026-09-21-6). */
+export const BOARD_BALANCE_PER_MARK = 1
+
+export type ProgressResult = {
+  challenges: Challenge[]
+  /** Number of challenges that reached target on this mark (each pays its own completion bonus). */
+  completedCount: number
+}
+
+/**
+ * Increment every active challenge the marked goal qualifies for — universal always,
+ * plus the matching category and cadence challenges (GB-FUN-056, 060). A challenge that
+ * reaches its target resets to 0 and continues, rather than carrying progress past it
+ * (GB-FUN-062, D-2026-09-21-7).
+ */
+export function progressChallenges(
+  challenges: readonly Challenge[],
+  goal: { category: string; cadence: Cadence },
+): ProgressResult {
+  let completedCount = 0
+  const updated = challenges.map((c) => {
+    const qualifies =
+      c.kind === 'universal' ||
+      (c.kind === 'category' && c.qualifier === goal.category) ||
+      (c.kind === 'cadence' && c.qualifier === goal.cadence)
+    if (!qualifies) return c
+    const progress = c.progress + 1
+    if (progress >= c.target) {
+      completedCount += 1
+      return { ...c, progress: 0 }
+    }
+    return { ...c, progress }
+  })
+  return { challenges: updated, completedCount }
+}

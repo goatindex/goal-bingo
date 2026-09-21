@@ -7,7 +7,7 @@ import { addReward, purchaseReward, removeReward } from './rewards'
 import {
   tryUnlockCustomCategory,
 } from './categories'
-import { addCategoryChallenge } from './challenges'
+import { addCategoryChallenge, progressChallenges, BOARD_BALANCE_PER_MARK, CHALLENGE_TARGET } from './challenges'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) {
@@ -29,6 +29,11 @@ function paint(): void {
     lastIntersectionCells,
     onMarkCell: (index) => {
       softReset = false
+      // Read before markCellAndResolve: if this mark completes a line through this very
+      // cell, the cell is refilled with a new goal as part of that same call, so the
+      // result's board no longer holds the goal that was actually marked.
+      const tappedCell = state.board.cells[index]
+      const isNewMark = tappedCell !== undefined && !tappedCell.marked
       const result = markCellAndResolve(state.board, index, state.pool)
       if (!result.ok) {
         // 'invalid-cell' cannot happen from a tap on a rendered cell; 'empty-pool'
@@ -45,6 +50,15 @@ function paint(): void {
       // lifetime score as a permanent record, reward balance as spendable currency.
       state.score.lifetime += result.outcome.scoreDelta
       state.score.rewardBalance += result.outcome.scoreDelta
+      // GB-FUN-004/056/060/061/062, GB-CON-012: re-tapping an already-marked cell is a
+      // no-op (board.ts's markCell) and must not progress challenges or pay board
+      // balance again - only a genuine unmarked-to-marked transition counts.
+      if (isNewMark && tappedCell) {
+        const progressed = progressChallenges(state.challenges, tappedCell.goal)
+        state.challenges = progressed.challenges
+        state.score.boardBalance +=
+          BOARD_BALANCE_PER_MARK + progressed.completedCount * CHALLENGE_TARGET
+      }
       lastIntersectionCells = result.outcome.intersectionCells
       emptyPoolPrompt = false
       saveState(state)
