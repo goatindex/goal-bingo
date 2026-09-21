@@ -35,6 +35,7 @@ export type ShellHandlers = {
   onAddCategory: (name: string) => string | null
   onAddReward: (input: { name: string; price: string }) => string | null
   onRemoveReward: (id: string) => void
+  onPurchaseReward: (id: string) => void
   onDismissEmptyPrompt: () => void
 }
 
@@ -213,21 +214,25 @@ function renderPool(
 }
 
 function renderRewards(state: GameState): string {
+  const balance = state.score.rewardBalance
   const rows = state.rewards
-    .map(
-      (r) => `
+    .map((r) => {
+      const affordable = r.price <= balance
+      return `
       <li class="pool-item" data-reward-id="${escapeHtml(r.id)}">
         <span>${escapeHtml(r.name)}</span>
         <span>${r.price}</span>
+        <button type="button" data-testid="purchase-reward" data-action="purchase" ${affordable ? '' : 'disabled'}>Buy</button>
         <button type="button" data-testid="remove-reward" data-action="remove">Remove</button>
-      </li>`,
-    )
+      </li>`
+    })
     .join('')
 
   return `
     <section class="pool" aria-label="Personal rewards" data-testid="rewards-view">
       <h2 class="pool__heading">Personal rewards</h2>
-      <p class="shell__hint">Your own rewards, priced in reward balance.</p>
+      <p>Reward balance: <strong data-testid="rewards-view-balance">${balance}</strong></p>
+      <p class="shell__hint">Your own rewards, priced in reward balance only.</p>
       <ul class="pool__list" data-testid="rewards-list">${rows || '<li class="shell__hint">No rewards yet.</li>'}</ul>
 
       <form class="pool__form" data-testid="add-reward-form">
@@ -342,6 +347,9 @@ function bindRewards(root: HTMLElement, h: ShellHandlers): void {
     if (!id) return
     item.querySelector('[data-action="remove"]')?.addEventListener('click', () => {
       h.onRemoveReward(id)
+    })
+    item.querySelector('[data-action="purchase"]')?.addEventListener('click', () => {
+      h.onPurchaseReward(id)
     })
   })
 }

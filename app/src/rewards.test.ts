@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addReward, removeReward, validateReward } from './rewards'
+import { addReward, purchaseReward, removeReward, validateReward } from './rewards'
 import { loadState, saveState } from './storage'
 import { MemoryStorage } from './test-support'
 
@@ -56,5 +56,41 @@ describe('personal rewards (GB-FUN-034, GB-FUN-034b)', () => {
     const remaining = removeReward(second.rewards, idToRemove)
     expect(remaining).toHaveLength(1)
     expect(remaining[0]!.name).toBe('Evening off')
+  })
+})
+
+describe('reward purchase (GB-FUN-035)', () => {
+  it('purchasing a reward at or under balance succeeds and deducts exactly its price', () => {
+    const created = addReward([], { name: 'Takeaway', price: 20 })
+    expect(created.ok).toBe(true)
+    if (!created.ok) return
+    const result = purchaseReward(created.rewards, created.rewards[0]!.id, 20)
+    expect(result).toEqual({ ok: true, rewardBalance: 0 })
+  })
+
+  it('purchasing a reward whose price exceeds the balance is refused', () => {
+    const created = addReward([], { name: 'Takeaway', price: 20 })
+    expect(created.ok).toBe(true)
+    if (!created.ok) return
+    const result = purchaseReward(created.rewards, created.rewards[0]!.id, 19)
+    expect(result).toEqual({ ok: false, reason: 'insufficient-balance' })
+  })
+
+  it('purchasing an unknown reward id is refused', () => {
+    const result = purchaseReward([], 'nonexistent', 100)
+    expect(result).toEqual({ ok: false, reason: 'not-found' })
+  })
+
+  it('a reward is not consumed by purchase and can be bought again', () => {
+    const created = addReward([], { name: 'Takeaway', price: 20 })
+    expect(created.ok).toBe(true)
+    if (!created.ok) return
+    const id = created.rewards[0]!.id
+    const first = purchaseReward(created.rewards, id, 50)
+    expect(first).toEqual({ ok: true, rewardBalance: 30 })
+    if (!first.ok) return
+    const second = purchaseReward(created.rewards, id, first.rewardBalance)
+    expect(second).toEqual({ ok: true, rewardBalance: 10 })
+    expect(created.rewards).toHaveLength(1)
   })
 })
