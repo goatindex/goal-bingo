@@ -40,10 +40,10 @@ do not update it by hand from memory.
 - **Package C residual (review process)** — mojibake CI wire + `decision_lint` blocking
   flip after its 5 field gaps; cited-path overlap may already be covered by
   `citation_check.py` (claude-workflow#40). Plan: session `package_c_determinize`.
-- **Build the global-unlock layer** (`D-2026-09-21-22`, scoped but not built): total
-  lifetime marks across all categories, or a bulk board-balance purchase, unlocks every
-  still-locked category at once, both priced at a 30% discount against buying them
-  individually.
+- **Build the global-unlock layer** (`D-2026-09-21-22`, `D-2026-09-22-1`, scoped but
+  not yet built): **per track** — multi-completion and mini-grid each have their own
+  global progression (total lifetime marks) and bulk board-balance purchase, priced at
+  a 30% discount against buying that track's still-locked categories individually.
 - **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`,
   "lifetime score ≥ 10 unlocks one custom category slot") — its own revisit trigger
   ("at first playtest or when category-unlock progression is designed properly for
