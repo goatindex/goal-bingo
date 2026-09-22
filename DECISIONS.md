@@ -3,6 +3,31 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-22-1 — Global advanced-tile unlock is per track
+
+- **Status:** open
+- **Context:** `D-2026-09-21-22` scoped the global unlock against a single per-category
+  eligibility flag. `D-2026-09-21-23` then split eligibility into two independent
+  tracks (multi-completion and mini-grid). Before building, that leaves an ambiguity:
+  does one global unlock clear both tracks for every still-locked category, or does
+  each track have its own global progression and bulk purchase?
+- **Options considered:** one global unlock that sets both tracks for every still-
+  locked category (rejected — collapses the track split; a player who only wants
+  mini-grids globally would be forced into multi-completion too, undoing
+  `D-2026-09-21-23`) · **per track: each track has its own global progression
+  threshold and its own bulk economy purchase, priced against that track's still-
+  locked categories only (chosen)**
+- **Why:** Keeps the track independence that `D-2026-09-21-23` exists for, and keeps
+  the global layer a mirror of the per-category layer rather than a third shape.
+- **Expected outcome:** Calling the global path for `mini-grid` unlocks mini-grid for
+  every category that track has not already unlocked, and leaves every
+  `multi-completion` flag untouched (and the reverse). `remainingCategories` in
+  `D-2026-09-21-22`'s formulas is counted per track.
+- **Revisit:** If playtest shows players always unlock both tracks together anyway,
+  reconsider collapsing to a single global unlock — that would be evidence the split
+  costs complexity without paying off at the global layer.
+- **Outcome:** _(filled at review)_
+
 ## D-2026-09-21-23 — Advanced-tile draw/placement: split eligibility, automatic + passive + paid placement
 
 - **Status:** open
@@ -86,17 +111,20 @@ source of requirements, so the reverse walk from a failing test ends here.
 - **Expected outcome:** Both paths price at a 30% discount against buying every
   still-locked category individually, where `remainingCategories` is the count not yet
   individually unlocked, evaluated dynamically (it shrinks as categories unlock and
-  grows if a new custom category unlocks via `D-2026-09-20-7`):
+  grows if a new custom category unlocks via `D-2026-09-20-7`). After
+  `D-2026-09-21-23` / `D-2026-09-22-1`, that count and both unlock paths are **per
+  track** — multi-completion and mini-grid each have their own remaining set and their
+  own global progression / bulk purchase:
   - Progression: total lifetime marks across all categories (unlocked or not) reaching
     `ceil(0.7 * remainingCategories * ADVANCED_TILE_MARK_THRESHOLD)` auto-unlocks every
-    still-locked category.
+    still-locked category **for that track**.
   - Economy: a single purchase costing
     `ceil(0.7 * remainingCategories * ADVANCED_TILE_UNLOCK_COST)` board balance unlocks
-    every still-locked category at once.
+    every still-locked category **for that track** at once.
 - **Scope:** thresholds and discount factor are locked here; the actual
   `advancedUnlock.ts` extension is implementation, not decided by this record — it
   lands whenever the advanced-tiles draw/placement integration work picks it up, not
-  required before then.
+  required before then. Track scope of the global layer is `D-2026-09-22-1`.
 - **Revisit:** If a playtest shows the per-category path is rarely reached individually
   (making `remainingCategories` always ~all of them, and the global unlock functionally
   identical to a slightly-discounted single-category purchase), reconsider the discount
