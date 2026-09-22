@@ -28,6 +28,12 @@ on:
       - "NEXT.md"
       - "README.md"
       - "STATE.md"
+      - "scripts/decision_lint.py"
+      - "scripts/record_index.py"
+      - "scripts/standing_check.py"
+      - "scripts/provenance_check.py"
+      - "scripts/disposal_check.py"
+      - "scripts/citation_check.py"
 
 permissions:
   contents: read

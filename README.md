@@ -37,9 +37,9 @@ python scripts/check_scope_exclusions.py
 
 ## Status
 
-Links 0–4 complete for the current cut. Link 5 is underway on WP-03 (board loop) —
-WP-01 (platform shell) and WP-02 (goal pool) are closed. Requirements are baselined at
-v1.0 (2026-09-20).
+Links 0–4 complete for the current cut. Link 5's build phase is complete: WP-01
+through WP-10 are closed, and the advanced-tile draw/placement gap those packages
+left open is closed too. Requirements are baselined at v1.0 (2026-09-20).
 
 An earlier Phaser 3.70 prototype of a different version of this idea lives at tag
 `v1-phaser-prototype`. It was superseded rather than evolved (`D-2026-09-19-5`) and is kept

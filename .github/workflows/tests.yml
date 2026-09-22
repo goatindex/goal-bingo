@@ -4,9 +4,10 @@
 # landed with "N/N tests pass" in their bodies and NEXT.md, and the adversarial
 # reviewer said twice that it could not verify any of them - it had no sandbox to run
 # the suite in and no workflow to point at. Every test claim rested on the author's
-# word, at the cost of agent turns spent trying. This is the mechanical gate under
-# those claims (D-2026-09-22-1): the reviewer workflow now refuses a deep-tier review
-# in a repository that has no such gate.
+# word, at the cost of agent turns spent trying. This workflow is the mechanical
+# gate under those claims. The reviewer's own refusal, when a deep-tier review has
+# no such gate, lands with the adversarial-review.yml refresh (claude-workflow#41).
+# That copy is not in this pull request.
 #
 # The suite-ran guard is deliberate. Vitest exits 0 when it collects nothing only if
 # passWithNoTests is set, but a misconfigured include glob could still collect a
