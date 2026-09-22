@@ -2,8 +2,8 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/workflows/adversarial-review.yml
-# Commit: f3020be
-# Copied: 2026-09-20
+# Commit: 9d60817
+# Copied: 2026-09-22
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
 # lost at the next refresh, and drift is reported by --check.
@@ -83,6 +83,21 @@ jobs:
             echo "failure mode this review exists to catch."
             exit 1
           fi
+
+      # D-2026-09-22-1: a deep-tier pull request needs a mechanical test gate under it
+      # before an agent reads the diff. goal-bingo ran 97 PRs with no workflow invoking
+      # vitest or tsc; every "N/N passing" was prose the reviewer could only repeat, and
+      # it said so twice. Same shape as the token check above: a failure, not a skip.
+      - name: Check a test gate exists
+        if: steps.classify.outputs.tier == 'deep' && steps.classify.outputs.test_gate == 'absent'
+        run: |
+          echo "No workflow in .github/workflows/ runs a test or typecheck command on pull_request."
+          echo "This pull request changed product, test or CI paths (deep tier) and nothing"
+          echo "mechanical proves the suite passes before the agent reads the diff."
+          echo "This is a failure, not a skip: a review that reads 'all tests pass' with no"
+          echo "gate behind it can only repeat the claim - the failure mode Part 1 item 4"
+          echo "exists to catch. Add a workflow that runs the suite on pull_request."
+          exit 1
 
       # Recorded before review so the verification step can require a comment
       # posted during *this* run, not a stale one from an earlier round.
@@ -172,6 +187,9 @@ jobs:
 
             Review tier: ${{ steps.classify.outputs.tier }}
             (Package B — intensity from changed paths. Do not reclassify.)
+            Test gate: ${{ steps.classify.outputs.test_gate }}
+            (present = a workflow in .github/workflows/ runs a test suite or typecheck
+            on pull_request; absent = nothing mechanical proves the suite passes.)
 
             Tier rules:
             - lite: only Part 1 item 4 (claims in prose) and Part 2 (documentation
@@ -181,6 +199,10 @@ jobs:
               Part 1 items 1–3 as written under Part 1.
             - deep: full review below, and run Part 1 items 1–3 even if the diff
               looks small — product/test/CI paths are in scope.
+            - any tier, Test gate absent: treat every claim that tests pass, that N
+              tests exist, or that a typecheck is clean as unverified. Report each
+              under Part 1 item 4 as issue (blocking), naming the claim and stating
+              that no workflow runs it. Do not try to run the suite yourself.
 
             Ground rules:
             - Advisory only. Never approve, request changes, push commits, or edit files.

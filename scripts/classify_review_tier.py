@@ -2,8 +2,8 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/scripts/classify_review_tier.py
-# Commit: f3020be
-# Copied: 2026-09-20
+# Commit: 9d60817
+# Copied: 2026-09-22
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
 # lost at the next refresh, and drift is reported by --check.
@@ -15,6 +15,11 @@ Package B: mechanical / lite / standard / deep from changed paths only (TB-20:
 no repository names). Pure heuristics so one master serves every consumer.
 
 Package B smoke stamp: docstring-only sync exercises the mechanical tier.
+
+Also reports `test_gate`: present when some workflow in .github/workflows/ runs a test
+suite or typecheck on pull_request, absent otherwise. The reviewer workflow fails a
+deep-tier review on absent - a review that reads "all tests pass" with no gate behind
+it can only repeat the claim (goal-bingo, 97 PRs, no CI ran vitest or tsc).
 
 ASCII only (PS 5.1 decodes non-ASCII as ANSI).
 """
@@ -149,6 +154,76 @@ def list_changed_files(repo, base, head):
     return [ln.strip() for ln in r.stdout.splitlines() if ln.strip()]
 
 
+# A test gate is a workflow that runs the suite or a typecheck on pull_request. It is
+# read from `run:` scalars only, so a step *named* "tests", a comment, or the string
+# `github.event.pull_request` in an expression never counts as one.
+TEST_RUNNER_RES = [re.compile(p) for p in (
+    r"\bvitest\b", r"\bjest\b", r"\bpytest\b", r"python3?\s+-m\s+unittest\b",
+    r"\b(?:npm|pnpm|yarn)\s+(?:run\s+)?test\b", r"\bgo\s+test\b", r"\bcargo\s+test\b",
+    r"\btsc\b", r"\bmake\s+test\b",
+)]
+PR_TRIGGER_RE = re.compile(
+    r"^\s*pull_request(?:_target)?\s*:|^\s*on\s*:\s*\[[^\]]*\bpull_request\b|"
+    r"^\s*on\s*:\s*pull_request\b", re.M)
+RUN_KEY = re.compile(r"^(\s*)(?:-\s+)?run\s*:\s*(.*)$")
+
+
+def strip_comments(text):
+    return "\n".join(ln for ln in text.split("\n") if not ln.lstrip().startswith("#"))
+
+
+def run_blocks(text):
+    """The text of every `run:` scalar, inline or block, comments removed."""
+    lines = strip_comments(text).split("\n")
+    out, i = [], 0
+    while i < len(lines):
+        m = RUN_KEY.match(lines[i])
+        if m is None:
+            i += 1
+            continue
+        indent, value = len(m.group(1)), m.group(2).strip()
+        i += 1
+        if value and not value.startswith(("|", ">")):
+            out.append(value)
+            continue
+        block = []
+        while i < len(lines):
+            ln = lines[i]
+            if ln.strip() and (len(ln) - len(ln.lstrip())) <= indent:
+                break
+            block.append(ln.strip())
+            i += 1
+        out.append("\n".join(block))
+    return out
+
+
+def workflow_has_test_gate(text):
+    """(True, 'runner') when the workflow runs on pull_request and a run: step invokes one."""
+    if not PR_TRIGGER_RE.search(strip_comments(text)):
+        return False, None
+    for block in run_blocks(text):
+        for rx in TEST_RUNNER_RES:
+            m = rx.search(block)
+            if m:
+                return True, m.group(0)
+    return False, None
+
+
+def detect_test_gate(repo_root):
+    """('present'|'absent', [evidence strings]) from .github/workflows/*.yml|*.yaml."""
+    wf_dir = os.path.join(repo_root, ".github", "workflows")
+    evidence = []
+    if os.path.isdir(wf_dir):
+        for name in sorted(os.listdir(wf_dir)):
+            if not name.endswith((".yml", ".yaml")):
+                continue
+            with open(os.path.join(wf_dir, name), "r", encoding="utf-8", errors="replace") as fh:
+                ok, runner = workflow_has_test_gate(fh.read())
+            if ok:
+                evidence.append("%s runs %s on pull_request" % (name, runner))
+    return ("present" if evidence else "absent"), evidence
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--base", help="git base ref/sha")
@@ -159,7 +234,7 @@ def main(argv=None):
     p.add_argument("--paths-file", help="read changed paths from a file (one per line); "
                    "skips git when set")
     p.add_argument("--github-output", action="store_true",
-                   help="also print tier=/max_turns= lines for $GITHUB_OUTPUT")
+                   help="also print tier=/max_turns=/test_gate= lines for $GITHUB_OUTPUT")
     p.add_argument("--json", action="store_true", dest="as_json",
                    help="print JSON result to stdout (default)")
     args = p.parse_args(argv)
@@ -177,11 +252,14 @@ def main(argv=None):
         paths = list_changed_files(repo, args.base, args.head)
 
     tier, reasons = classify_paths(paths, copy_dests)
+    test_gate, evidence = detect_test_gate(repo)
     result = {
         "tier": tier,
         "max_turns": MAX_TURNS[tier],
         "reasons": reasons,
         "paths": paths,
+        "test_gate": test_gate,
+        "test_gate_evidence": evidence,
     }
 
     # Always emit JSON on stdout for agents/CI consumers.
@@ -189,7 +267,7 @@ def main(argv=None):
 
     if args.github_output:
         out_path = os.environ.get("GITHUB_OUTPUT")
-        lines = "tier=%s\nmax_turns=%s\n" % (tier, MAX_TURNS[tier])
+        lines = "tier=%s\nmax_turns=%s\ntest_gate=%s\n" % (tier, MAX_TURNS[tier], test_gate)
         if out_path:
             with open(out_path, "a", encoding="utf-8") as fh:
                 fh.write(lines)
