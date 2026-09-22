@@ -10,6 +10,13 @@
 # values to paper over gaps the workflow didn't create. Both gaps are fixed and both
 # checks verified clean (55/55 decisions, 140/140 records) as of 2026-09-21 -
 # all five checks now block.
+#
+# citation_check.py (2026-09-22) is check 5 for prose: every #N in NEXT.md, DECISIONS.md,
+# README.md and STATE.md exists, and a sentence claiming merged / open / closed is judged
+# against the live state - outside `## Done (...)` and `## D-...` log sections, where the
+# claim was true on the day. Roughly half of the adversarial reviewer's blocking findings
+# over this repo's first 97 pull requests were exactly that shape, found by an agent
+# reading prose at turn cost.
 name: record-checks
 
 on:
@@ -18,9 +25,14 @@ on:
       - "DECISIONS.md"
       - "requirements/**"
       - "work-packages/**"
+      - "NEXT.md"
+      - "README.md"
+      - "STATE.md"
 
 permissions:
   contents: read
+  issues: read
+  pull-requests: read
 
 jobs:
   check:
@@ -45,3 +57,10 @@ jobs:
 
       - name: Disposal check (no record vanishes between base and head)
         run: python3 scripts/disposal_check.py --repo . --base origin/main --head WORKTREE
+
+      # GITHUB_TOKEN sees this repository only; a citation into a private sibling repo
+      # is reported as NOAUTH - named, unverified, not failed - rather than red.
+      - name: Citations resolve and state claims hold (#N in prose)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/citation_check.py --auth-errors-are-skips

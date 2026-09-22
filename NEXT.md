@@ -21,6 +21,11 @@ layered on top of the per-category foundation.
 **Nothing in `work-packages/cut.md` is left to build, and the flagged WP-08 gap is
 closed.** This is a stopping point to report to the user and ask what's next again.
 
+**172 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+no workflow ran either, and every test claim in this file rested on the author's word).
+That number is checked by `figures_check.py` against `vitest` on every pull request;
+do not update it by hand from memory.
+
 ## Next up
 
 - **Ask the user what's next** — the advanced-tiles gap that was the last queued item

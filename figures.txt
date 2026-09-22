@@ -1,0 +1,14 @@
+# Figures this repository states in prose as true *now*, and the command that measures
+# each. Checked by scripts/figures_check.py (a generated copy from goatindex/claude-workflow)
+# in .github/workflows/tests.yml. Format: [name], measure:, parse: (one group), then one
+# at: line per place the figure is repeated - path, `## ` section (or - for the whole
+# file), regex with one group - separated by two or more spaces.
+#
+# Only the sections named here are read. A `## Done` entry restates old counts by design
+# and is never corrected; only `## Current focus` states a figure as true now.
+
+[test count]
+measure: cd app && npx vitest run --reporter=json --outputFile=.vitest/figures.json && node -e "console.log(require('./.vitest/figures.json').numTotalTests)"
+parse:   (?m)^(\d+)\s*$
+at: README.md   -                (\d+) vitest unit tests
+at: NEXT.md     Current focus    \*\*(\d+) tests\*\*
