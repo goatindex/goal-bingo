@@ -25,6 +25,9 @@ closed.** This is a stopping point to report to the user and ask what's next aga
 
 - **Ask the user what's next** — the advanced-tiles gap that was the last queued item
   is closed; there is no further build-order item queued.
+- **Package C residual (review process)** — mojibake CI wire + `decision_lint` blocking
+  flip after its 5 field gaps; cited-path overlap may already be covered by
+  `citation_check.py` (claude-workflow#40). Plan: session `package_c_determinize`.
 - **Build the global-unlock layer** (`D-2026-09-21-22`, scoped but not built): total
   lifetime marks across all categories, or a bulk board-balance purchase, unlocks every
   still-locked category at once, both priced at a 30% discount against buying them
@@ -50,6 +53,20 @@ closed.** This is a stopping point to report to the user and ask what's next aga
 A work package is done when its acceptance criteria pass and the code is on `main`.
 As of this session, every package in `work-packages/cut.md` (WP-01 through WP-10) is
 done — link 5's build phase is complete.
+
+## Done (2026-09-22 session)
+
+- **Package D merged** ([claude-workflow#37](https://github.com/goatindex/claude-workflow/pull/37)):
+  session PreToolUse gate refuses `gh pr create` when NEXT.md is untouched or
+  path-triggered local scripts would fail. Junctioned hooks; no consumer `copies.txt`
+  sync. Merged with recorded `GUARD_ALLOW_UNREVIEWED=1` after post-rebase agent runs
+  failed `is_error:true` with no summary (skill tests green; pre-rebase review had
+  passed the same content).
+- **Owner/verification-status migration redone** after the first pass was lost
+  uncommitted (`scripts/materialize_defaults.py`): 172 fields across 86 records;
+  `standing_check` gap closed. `GB-FUN-034b` ID still malformed (warn A15) — rename
+  deferred. Authoring-side fix in `claude-workflow#38` (per-record mandatory fields
+  in Phase 3).
 
 ## Done (2026-09-21 session)
 
@@ -755,23 +772,4 @@ done — link 5's build phase is complete.
 
 ## Last updated
 
-2026-09-20
-
-- **Package A synced** (claude-workflow#31 / goal-bingo#47): adversarial review cancels superseded runs, re-reviews incrementally via `Reviewed-Commit:`, requires a this-run comment, and the merge gate keys off HEAD check SUCCESS. Smoke stamp: 2026-09-20 19:57.
-
-- Second smoke push (Package A concurrency): should cancel the in-flight review of the prior commit.
-
-- Third smoke push after jq verification fix (claude-workflow#32): expect green check and a delta re-review citing the prior Reviewed-Commit trailer.
-
-- **Reviewed-Commit SHA injection smoke** (21:02): first push — trailer must equal this commit's SHA.
-
-- **Reviewed-Commit SHA injection smoke (pass 2):** delta re-review; trailer must equal this second commit's SHA.
-
-- **Package B lite smoke:** NEXT.md-only should classify lite (max-turns 30).
-
-- **Package B landed** (claude-workflow#34 + #36; goal-bingo sync via direct main push then #56): path tiers mechanical/lite/standard/deep. Smokes: lite #54 green; mechanical #56 green in ~13s without Claude / without GUARD_ALLOW_UNREVIEWED; deep #57 green (closed without merging the app comment).
-
-- **The owner/verification-status data migration was lost and redone.** The in-progress work reported earlier today (adding explicit `verification-status`/`owner` to every requirement) was never committed — traced via `git reflog`: the branch it lived on (`requirements/materialize-verification-status`) sits at the same commit as `main` right after #39, with zero commits of its own. It existed only as uncommitted working-tree text and was lost when the shared tree moved to a different branch without a commit or stash. Confirmed unrecoverable: searched all 10,109 dangling git objects for any trace, none found — it was never even `git add`ed. Redone mechanically with a checked-in tool (`scripts/materialize_defaults.py`, additive-only, verified against the pre-change files byte-for-byte): 172 fields added across 86 records (`GB-FUN-034b`'s malformed ID meant `lint_requirements.py`'s own count read 85, not 86 — flagged separately below). `lint_requirements.py`, `record_index.py`, and `standing_check.py` now all agree: 0 errors, the original 85-problem discrepancy this thread started from is closed for real. Also removed `requirements/_meta.md`'s now-dead `## defaults` block (`author`/`verification-owner` were in it too — both optional under the `agent` profile, so dropping them creates no compliance gap; not materialized onto every record, since that would be metadata nobody's asked to track rather than closing an actual gap).
-- **Found in passing: `GB-FUN-034b`'s ID is malformed.** The linter already reports this (`warn A15`) — record IDs must be uppercase segments only (`GB-FUN-NNN`), and the trailing lowercase `b` fails that, which is also why the linter's own record count silently read 85 instead of 86. Not fixed here — renaming an ID that other records may already cite needs a moment's check first, not a mechanical pass.
-
-- **Closed the authoring-side gap, not just the checker.** The lost-and-redone migration above traced back one step further: the `incose-requirements` skill's Phase 3 (write the statements) never told an authoring agent to write every mandatory field per record before moving on — that was left to Phase 4's linter pass over the whole finished set, which is exactly how a systemic gap got drafted across 86 records before anything caught it. `claude-workflow#38` adds an explicit per-record "fill every remaining mandatory field now" step and recommends running the linter against the file in progress every few records instead of only once at the end, so the same failure mode is a one-line fix on record 1 next time, not a migration on record 86.
+2026-09-22
