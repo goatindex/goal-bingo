@@ -10,8 +10,8 @@ WP-10 (issues [#18](https://github.com/goatindex/goal-bingo/issues/18)–[#27](h
 are every package `work-packages/cut.md` cut from the requirement set, and every one
 is closed. Advanced tiles shipped as fully-tested, directly-constructible domain logic
 with no code path that placed one through ordinary play (`D-2026-09-21-16`); that gap
-is now closed by four follow-on issues (#133–#136, all merged or awaiting final merge —
-see Done below) under `D-2026-09-21-23`: eligibility splits into two independent
+is now closed by four follow-on issues (#133–#136, merged as #137–#140) under
+`D-2026-09-21-23`: eligibility splits into two independent
 per-category tracks (multi-completion, mini-grid), a tile places automatically the
 moment a track unlocks plus a 15% passive chance on later refills, a paid action places
 one on demand, and mini-grids draw only from the parent tile's own category. A related
@@ -19,7 +19,19 @@ decision, `D-2026-09-21-22`, separately scoped (not yet built) a future global u
 layered on top of the per-category foundation.
 
 **Nothing in `work-packages/cut.md` is left to build, and the flagged WP-08 gap is
-closed.** This is a stopping point to report to the user and ask what's next again.
+closed.** This is a stopping point: the next build is a choice, not the next package
+in the cut.
+
+The four chain gates from the 97-pull-request run are wired as of 2026-09-22.
+`tests.yml` runs the typecheck and vitest on every pull request, with a zero-tests
+guard. `partition_check.py --cut` refuses a package that still carries a TBD.
+`figures.txt` is checked by `figures_check.py`. `citation_check.py` checks every `#N`
+in this file, `README.md`, and `DECISIONS.md`. Masters: claude-workflow #40 and #41.
+
+**172 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+no workflow ran either, and every test claim in this file rested on the author's word).
+That number is checked by `figures_check.py` against `vitest` on every pull request;
+do not update it by hand from memory.
 
 ## Next up
 
@@ -32,8 +44,6 @@ closed.** This is a stopping point to report to the user and ask what's next aga
   lifetime marks across all categories, or a bulk board-balance purchase, unlocks every
   still-locked category at once, both priced at a 30% discount against buying them
   individually.
-- ~~Settle the advanced-tile-thresholds link-4 decision~~ **Done**: `D-2026-09-21-23`
-  and #133–#136 (above) resolve this.
 - **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`,
   "lifetime score ≥ 10 unlocks one custom category slot") — its own revisit trigger
   ("at first playtest or when category-unlock progression is designed properly for
@@ -51,8 +61,32 @@ closed.** This is a stopping point to report to the user and ask what's next aga
 ## Done means
 
 A work package is done when its acceptance criteria pass and the code is on `main`.
-As of this session, every package in `work-packages/cut.md` (WP-01 through WP-10) is
-done — link 5's build phase is complete.
+Every package in `work-packages/cut.md` (WP-01 through WP-10) is done. The chain
+gates are done when the four checks above run on pull requests and the test count in
+Current focus matches `vitest`.
+
+## Done (2026-09-22 session)
+
+- **Wired the four chain gates** (masters [claude-workflow#40](https://github.com/goatindex/claude-workflow/pull/40)
+  and [#41](https://github.com/goatindex/claude-workflow/pull/41), both merged). #40
+  reviewed clean on the second round. #41 edits the reviewer's own workflow, so
+  claude-code-action self-skipped and the check failed by design; merged with
+  `GUARD_ALLOW_UNREVIEWED=1`, as that pull request recorded. Consumer side: `tests.yml`,
+  `figures.txt` (172, measured), `partition_check.py` refreshed from the master and run
+  with `--cut` (84 live requirements, 10 packages, TBD gate on), `citation_check.py`
+  (232 citations, 0 failures). `classify_review_tier.py` reads the test gate as present
+  from `tests.yml`. The reviewer workflow itself is not in this pull request: editing
+  that file makes claude-code-action skip, so the refresh lands in a follow-up that
+  changes only the generated copy.
+- **Closed [#59](https://github.com/goatindex/goal-bingo/pull/59)** without merging.
+  It still named WP-03 as the current focus and conflicted with `main`. Package C's
+  items landed by other pull requests (`decision_lint` blocking in #129; the
+  verification-status migration in #60). Package D
+  ([claude-workflow#37](https://github.com/goatindex/claude-workflow/pull/37)) stays
+  open: two blocking review findings remain (exit-code docstring, stale "two parts"
+  heading).
+- Moved the 2026-09-20 notes that had been sitting under `Last updated` into that
+  session's log. The date line is bare again.
 
 ## Done (2026-09-22 session)
 
@@ -643,6 +677,25 @@ done — link 5's build phase is complete.
   - Both fixes synced into every consumer repo (`goal-bingo`, `project-tracking`); all
     three repos verified drift-clean afterward. Resolves the "sticky summary" item
     previously parked below.
+
+- **Package A synced** (claude-workflow#31 / goal-bingo#47): adversarial review cancels superseded runs, re-reviews incrementally via `Reviewed-Commit:`, requires a this-run comment, and the merge gate keys off HEAD check SUCCESS. Smoke stamp: 2026-09-20 19:57.
+
+- Second smoke push (Package A concurrency): should cancel the in-flight review of the prior commit.
+
+- Third smoke push after jq verification fix (claude-workflow#32): expect green check and a delta re-review citing the prior Reviewed-Commit trailer.
+
+- **Reviewed-Commit SHA injection smoke** (21:02): first push — trailer must equal this commit's SHA.
+
+- **Reviewed-Commit SHA injection smoke (pass 2):** delta re-review; trailer must equal this second commit's SHA.
+
+- **Package B lite smoke:** NEXT.md-only should classify lite (max-turns 30).
+
+- **Package B landed** (claude-workflow#34 + #36; goal-bingo sync via direct main push then #56): path tiers mechanical/lite/standard/deep. Smokes: lite #54 green; mechanical #56 green in ~13s without Claude / without GUARD_ALLOW_UNREVIEWED; deep #57 green (closed without merging the app comment).
+
+- **The owner/verification-status data migration was lost and redone.** The in-progress work reported earlier today (adding explicit `verification-status`/`owner` to every requirement) was never committed — traced via `git reflog`: the branch it lived on (`requirements/materialize-verification-status`) sits at the same commit as `main` right after #39, with zero commits of its own. It existed only as uncommitted working-tree text and was lost when the shared tree moved to a different branch without a commit or stash. Confirmed unrecoverable: searched all 10,109 dangling git objects for any trace, none found — it was never even `git add`ed. Redone mechanically with a checked-in tool (`scripts/materialize_defaults.py`, additive-only, verified against the pre-change files byte-for-byte): 172 fields added across 86 records (`GB-FUN-034b`'s malformed ID meant `lint_requirements.py`'s own count read 85, not 86 — flagged separately below). `lint_requirements.py`, `record_index.py`, and `standing_check.py` now all agree: 0 errors, the original 85-problem discrepancy this thread started from is closed for real. Also removed `requirements/_meta.md`'s now-dead `## defaults` block (`author`/`verification-owner` were in it too — both optional under the `agent` profile, so dropping them creates no compliance gap; not materialized onto every record, since that would be metadata nobody's asked to track rather than closing an actual gap).
+- **Found in passing: `GB-FUN-034b`'s ID is malformed.** The linter already reports this (`warn A15`) — record IDs must be uppercase segments only (`GB-FUN-NNN`), and the trailing lowercase `b` fails that, which is also why the linter's own record count silently read 85 instead of 86. Not fixed here — renaming an ID that other records may already cite needs a moment's check first, not a mechanical pass.
+
+- **Closed the authoring-side gap, not just the checker.** The lost-and-redone migration above traced back one step further: the `incose-requirements` skill's Phase 3 (write the statements) never told an authoring agent to write every mandatory field per record before moving on — that was left to Phase 4's linter pass over the whole finished set, which is exactly how a systemic gap got drafted across 86 records before anything caught it. `claude-workflow#38` adds an explicit per-record "fill every remaining mandatory field now" step and recommends running the linter against the file in progress every few records instead of only once at the end, so the same failure mode is a one-line fix on record 1 next time, not a migration on record 86.
 
 ## Parked
 

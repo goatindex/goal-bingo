@@ -6,10 +6,16 @@
 # eye (see NEXT.md, 2026-09-20). Audited and wired in the same day rather than left as
 # another capable-but-unenforced check.
 #
-# - backmap_check.py / lint_requirements.py are generic, vendored from
-#   goatindex/claude-workflow's incose-requirements skill (see copies.txt).
-# - partition_check.py / check_scope_exclusions.py are this repo's own, hand-written
-#   against its specific work-package and scope-exclusion shape.
+# - backmap_check.py / lint_requirements.py / partition_check.py are generated copies
+#   from goatindex/claude-workflow's incose-requirements skill (see copies.txt).
+#   partition_check.py was a hand-written fork until 2026-09-22; the master learned this
+#   repo's single-file cut.md layout (--cut) and gained the TBD gate, so the fork retired.
+# - check_scope_exclusions.py is this repo's own, hand-written against its specific
+#   scope-exclusion shape.
+#
+# The TBD gate: a requirement any package claims may not carry `is TBD (owner: ...)`.
+# Eight of this repo's ten packages opened with a "resolve blocking TBDs" pull request
+# because nothing stopped a cut around an undecided requirement. Resolve at link 3 first.
 name: requirement-checks
 
 on:
@@ -40,8 +46,8 @@ jobs:
       - name: Requirement lint (INCOSE GtWR conformance; fails only on error-level findings)
         run: python3 scripts/lint_requirements.py requirements/
 
-      - name: Partition check (every live requirement sits in exactly one work package)
-        run: python3 scripts/partition_check.py
+      - name: Partition check (every live requirement in exactly one package, none carrying a TBD)
+        run: python3 scripts/partition_check.py --requirements requirements --cut work-packages/cut.md
 
       - name: Scope exclusions (WP-01 forbidden integrations absent from app/src)
         run: python3 scripts/check_scope_exclusions.py
