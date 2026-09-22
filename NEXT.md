@@ -15,8 +15,8 @@ is now closed by four follow-on issues (#133–#136, merged as #137–#140) unde
 per-category tracks (multi-completion, mini-grid), a tile places automatically the
 moment a track unlocks plus a 15% passive chance on later refills, a paid action places
 one on demand, and mini-grids draw only from the parent tile's own category. A related
-decision, `D-2026-09-21-22`, separately scoped (not yet built) a future global unlock
-layered on top of the per-category foundation.
+decision, `D-2026-09-21-22` / `D-2026-09-22-1`, scoped and now built a per-track global
+unlock layered on top of the per-category foundation.
 
 **Nothing in `work-packages/cut.md` is left to build, and the flagged WP-08 gap is
 closed.** This is a stopping point: the next build is a choice, not the next package
@@ -28,22 +28,20 @@ guard. `partition_check.py --cut` refuses a package that still carries a TBD.
 `figures.txt` is checked by `figures_check.py`. `citation_check.py` checks every `#N`
 in this file, `README.md`, and `DECISIONS.md`. Masters: claude-workflow #40 and #41.
 
-**172 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**183 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
 
 ## Next up
 
-- **Ask the user what's next** — the advanced-tiles gap that was the last queued item
-  is closed; there is no further build-order item queued.
-- **Package C residual (review process)** — mojibake CI wire + `decision_lint` blocking
-  flip after its 5 field gaps; cited-path overlap may already be covered by
-  `citation_check.py` (claude-workflow#40). Plan: session `package_c_determinize`.
-- **Build the global-unlock layer** (`D-2026-09-21-22`, `D-2026-09-22-1`, scoped but
-  not yet built): **per track** — multi-completion and mini-grid each have their own
-  global progression (total lifetime marks) and bulk board-balance purchase, priced at
-  a 30% discount against buying that track's still-locked categories individually.
+- **Ask the user what's next** — the global-unlock layer that was the last scoped
+  build item is done; there is no further build-order item queued.
+- ~~**Build the global-unlock layer**~~ **Done**: `D-2026-09-21-22` / `D-2026-09-22-1`,
+  progression + bulk purchase per track in `advancedUnlock.ts`, wired on mark.
+- **Package C residual (review process)** — mainly wire `fix_mojibake` into CI.
+  `decision_lint` blocking already landed (#129); cited-path overlap may already be
+  covered by `citation_check.py` (claude-workflow#40).
 - **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`,
   "lifetime score ≥ 10 unlocks one custom category slot") — its own revisit trigger
   ("at first playtest or when category-unlock progression is designed properly for
@@ -67,6 +65,12 @@ Current focus matches `vitest`.
 
 ## Done (2026-09-22 session)
 
+- **Built the per-track global advanced-tile unlock** (`D-2026-09-21-22`,
+  `D-2026-09-22-1`): `applyGlobalAdvancedTileProgress` and
+  `purchaseGlobalAdvancedTileUnlock` in `advancedUnlock.ts`; progression wired on every
+  genuine mark in `main.ts` with automatic placement for each newly unlocked
+  category/track. Economy path is domain-only (no UI), matching prior WP-07 power-up
+  precedent. 11 new tests; suite 172 → 183.
 - **Wired the four chain gates** (masters [claude-workflow#40](https://github.com/goatindex/claude-workflow/pull/40)
   and [#41](https://github.com/goatindex/claude-workflow/pull/41), both merged). #40
   reviewed clean on the second round. #41 edits the reviewer's own workflow, so
