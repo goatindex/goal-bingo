@@ -26,7 +26,7 @@ cd app
 npm install
 npm run dev      # local shell
 npm run build    # installable PWA output in app/dist
-npm test         # 172 vitest unit tests, typecheck + suite gated in CI
+npm test         # 183 vitest unit tests, typecheck + suite gated in CI
 ```
 
 Scope-exclusion inspection from repo root:

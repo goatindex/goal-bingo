@@ -10,7 +10,13 @@ import {
 import { addCategoryChallenge, progressChallenges, BOARD_BALANCE_PER_MARK, CHALLENGE_TARGET } from './challenges'
 import { recordClear, totalClears } from './stats'
 import { evaluateAchievements } from './achievements'
-import { newlyUnlockedTracks, recordAdvancedTileProgress } from './advancedUnlock'
+import {
+  ADVANCED_TILE_TRACKS,
+  applyGlobalAdvancedTileProgress,
+  newlyUnlockedCategories,
+  newlyUnlockedTracks,
+  recordAdvancedTileProgress,
+} from './advancedUnlock'
 import { applyPassivePlacement, placeOnUnlock } from './advancedPlacement'
 
 const app = document.querySelector<HTMLDivElement>('#app')
@@ -88,6 +94,30 @@ function paint(): void {
           )
           state.board = placed.board
           state.advancedTileAccess = placed.access
+        }
+        // D-2026-09-21-22 / D-2026-09-22-1: per-track global progression — total
+        // lifetime marks may unlock every still-locked category for a track at once.
+        const accessBeforeGlobal = state.advancedTileAccess
+        state.advancedTileAccess = applyGlobalAdvancedTileProgress(
+          state.advancedTileAccess,
+          state.categories,
+        )
+        for (const track of ADVANCED_TILE_TRACKS) {
+          for (const category of newlyUnlockedCategories(
+            accessBeforeGlobal,
+            state.advancedTileAccess,
+            track,
+          )) {
+            const placed = placeOnUnlock(
+              state.board,
+              track,
+              category,
+              state.advancedTileAccess,
+              state.pool,
+            )
+            state.board = placed.board
+            state.advancedTileAccess = placed.access
+          }
         }
         // GB-FUN-063/064: evaluated after stats/challenges update, using the same
         // no-op guard so a re-tap can't re-check (harmless but wasteful) conditions.
