@@ -72,7 +72,9 @@ Current focus matches `vitest`.
   `figures.txt` (172, measured), `partition_check.py` refreshed from the master and run
   with `--cut` (84 live requirements, 10 packages, TBD gate on), `citation_check.py`
   (232 citations, 0 failures). `classify_review_tier.py` reads the test gate as present
-  from `tests.yml`.
+  from `tests.yml`. The reviewer workflow itself is not in this pull request: editing
+  that file makes claude-code-action skip, so the refresh lands in a follow-up that
+  changes only the generated copy.
 - **Closed [#59](https://github.com/goatindex/goal-bingo/pull/59)** without merging.
   It still named WP-03 as the current focus and conflicted with `main`. Package C's
   items landed by other pull requests (`decision_lint` blocking in #129; the
