@@ -75,21 +75,13 @@ Current focus matches `vitest`.
   `figures.txt` (172, measured), `partition_check.py` refreshed from the master and run
   with `--cut` (84 live requirements, 10 packages, TBD gate on), `citation_check.py`
   (232 citations, 0 failures). `classify_review_tier.py` reads the test gate as present
-  from `tests.yml`. The reviewer workflow itself is not in this pull request: editing
-  that file makes claude-code-action skip, so the refresh lands in a follow-up that
-  changes only the generated copy.
+  from `tests.yml`. The reviewer workflow refresh is [#144](https://github.com/goatindex/goal-bingo/pull/144).
 - **Closed [#59](https://github.com/goatindex/goal-bingo/pull/59)** without merging.
   It still named WP-03 as the current focus and conflicted with `main`. Package C's
   items landed by other pull requests (`decision_lint` blocking in #129; the
-  verification-status migration in #60). Package D
-  ([claude-workflow#37](https://github.com/goatindex/claude-workflow/pull/37)) stays
-  open: two blocking review findings remain (exit-code docstring, stale "two parts"
-  heading).
+  verification-status migration in #60).
 - Moved the 2026-09-20 notes that had been sitting under `Last updated` into that
   session's log. The date line is bare again.
-
-## Done (2026-09-22 session)
-
 - **Package D merged** ([claude-workflow#37](https://github.com/goatindex/claude-workflow/pull/37)):
   session PreToolUse gate refuses `gh pr create` when NEXT.md is untouched or
   path-triggered local scripts would fail. Junctioned hooks; no consumer `copies.txt`
