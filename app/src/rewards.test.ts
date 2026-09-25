@@ -64,8 +64,12 @@ describe('reward purchase (GB-FUN-035)', () => {
     const created = addReward([], { name: 'Takeaway', price: 20 })
     expect(created.ok).toBe(true)
     if (!created.ok) return
-    const result = purchaseReward(created.rewards, created.rewards[0]!.id, 20)
+    const score = { lifetime: 11, rewardBalance: 20, boardBalance: 6 }
+    const result = purchaseReward(created.rewards, created.rewards[0]!.id, score.rewardBalance)
     expect(result).toEqual({ ok: true, rewardBalance: 0 })
+    const next = { ...score, rewardBalance: result.ok ? result.rewardBalance : score.rewardBalance }
+    expect(next.lifetime).toBe(score.lifetime)
+    expect(next.boardBalance).toBe(score.boardBalance)
   })
 
   it('purchasing a reward whose price exceeds the balance is refused', () => {

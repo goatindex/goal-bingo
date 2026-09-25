@@ -28,7 +28,7 @@ guard. `partition_check.py --cut` refuses a package that still carries a TBD.
 `figures.txt` is checked by `figures_check.py`. `citation_check.py` checks every `#N`
 in this file, `README.md`, and `DECISIONS.md`. Masters: claude-workflow #40 and #41.
 
-**185 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**197 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
@@ -65,6 +65,11 @@ Current focus matches `vitest`.
 
 ## Done (2026-09-25 session)
 
+- **Intake:** change to existing work, entering at link 6. Impact: verification-criteria
+  narrowed on eight records (`D-2026-09-25-2`), work packages none.
+- **Remaining requirements:** 36 of the held requirements are now `verified`, from new
+  vitest assertions, MemoryStorage round-trips, and two shop inspections. GB-CON-001 and
+  GB-CON-002 stay `not-verified`.
 - **Intake:** change to existing work, entering at link 6. Impact: requirements none
   (verification-status only; statements unchanged), work packages none.
 - **Verification pass:** 41 requirements set to `verified` where a test or an inspection

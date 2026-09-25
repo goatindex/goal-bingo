@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { createBoard, everyCellHasOneTile, type Board } from './board'
+import { CATEGORY_DOMINATION_THRESHOLD } from './draw'
 import {
+  ADJACENCY_CONFIG,
   CADENCE_BASE_VALUE,
   COMBO_BONUS_RATIO,
   MULTI_CLEAR_BONUS_RATIO,
   allLines,
+  applyClearScore,
   countMarked,
   linesThroughIndex,
   markCellAndResolve,
@@ -182,6 +185,20 @@ describe('simultaneous multi-line clear (GB-FUN-012, GB-FUN-013, GB-FUN-014)', (
     const expectedBonus = Math.round(summedLineValue * MULTI_CLEAR_BONUS_RATIO)
     expect(result.outcome.scoreDelta).toBe(summedLineValue + expectedBonus)
     expect(result.outcome.scoreDelta).toBeGreaterThan(summedLineValue)
+
+    const rowOnly = lineBoard([10, 11, 12, 13, 14].map((i) => goals[i]!))
+    for (let i = 0; i < 4; i++) rowOnly.board.cells[i]!.marked = true
+    const rowClear = markCellAndResolve(rowOnly.board, 4, rowOnly.pool, () => 0)
+    const colGoals = [2, 7, 12, 17, 22].map((i) => goals[i]!)
+    const colOnly = lineBoard(colGoals)
+    for (let i = 0; i < 4; i++) colOnly.board.cells[i]!.marked = true
+    const colClear = markCellAndResolve(colOnly.board, 4, colOnly.pool, () => 0)
+    expect(rowClear.ok).toBe(true)
+    expect(colClear.ok).toBe(true)
+    if (!rowClear.ok || !colClear.ok) return
+    expect(result.outcome.scoreDelta).toBeGreaterThan(
+      rowClear.outcome.scoreDelta + colClear.outcome.scoreDelta,
+    )
   })
 
   it('a single-line clear earns no multi-clear bonus', () => {
@@ -279,6 +296,13 @@ describe('refill respects binding placement rules across a whole batch (GB-FUN-0
           (r) => refilled.cells[r * 5 + col]!.goal.cadence === 'long-term',
         ).length
         expect(longCount).toBeLessThanOrEqual(1)
+      }
+      const counts = new Map<string, number>()
+      for (const cell of refilled.cells) {
+        counts.set(cell.goal.category, (counts.get(cell.goal.category) ?? 0) + 1)
+      }
+      for (const n of counts.values()) {
+        expect(n / refilled.cells.length).toBeLessThanOrEqual(CATEGORY_DOMINATION_THRESHOLD)
       }
     }
   })
@@ -381,6 +405,39 @@ describe('clear scoring (GB-FUN-003, GB-FUN-028, GB-FUN-029, GB-FUN-030, GB-FUN-
 
     expect(adjResult.outcome.scoreDelta).toBeGreaterThan(plainResult.outcome.scoreDelta)
     expect(adjResult.outcome.scoreDelta - plainResult.outcome.scoreDelta).toBe(1)
+  })
+
+  it('scores the configured adjacency value, then the original value again (GB-FUN-068)', () => {
+    const entry = ADJACENCY_CONFIG.find((c) => c.name === 'adjacent-marked')!
+    const original = entry.value
+    entry.value = 4
+    try {
+      const rowGoals = MIXED_CATEGORIES.map((c, i) => goal(`cfg${i}`, c, 'hourly'))
+      const { board, pool } = lineBoard(rowGoals)
+      for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
+      board.cells[5]!.marked = true
+      const changed = markCellAndResolve(board, 4, pool, () => 0)
+      expect(changed.ok).toBe(true)
+      if (!changed.ok) return
+      expect(changed.outcome.scoreDelta).toBe(5 * CADENCE_BASE_VALUE.hourly + 4)
+    } finally {
+      entry.value = original
+    }
+    const rowGoals = MIXED_CATEGORIES.map((c, i) => goal(`cfg2${i}`, c, 'hourly'))
+    const { board, pool } = lineBoard(rowGoals)
+    for (let i = 0; i < 4; i++) board.cells[i]!.marked = true
+    board.cells[5]!.marked = true
+    const restored = markCellAndResolve(board, 4, pool, () => 0)
+    expect(restored.ok).toBe(true)
+    if (!restored.ok) return
+    expect(restored.outcome.scoreDelta).toBe(5 * CADENCE_BASE_VALUE.hourly + original)
+  })
+
+  it('applyClearScore adds the clear to lifetime and reward balance only (GB-FUN-003, GB-FUN-033)', () => {
+    const start = { lifetime: 10, rewardBalance: 3, boardBalance: 7 }
+    const paid = applyClearScore(start, 4)
+    expect(paid).toEqual({ lifetime: 14, rewardBalance: 7, boardBalance: 7 })
+    expect(applyClearScore(start, 0)).toEqual(start)
   })
 
   it('produces zero adjacency bonus when no cell outside the line is marked', () => {

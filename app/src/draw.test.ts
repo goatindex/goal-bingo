@@ -40,6 +40,7 @@ describe('cadence-weighted draw (GB-FUN-022, GB-FUN-027)', () => {
     const share = counts['long-term']! / SAMPLE_SIZE
     expect(share).toBeGreaterThan(0)
     expect(share).toBeLessThan(0.1)
+    expect(counts['long-term']!).toBeLessThan(counts.daily!)
     expect(LONG_TERM_DRAW_SHARE).toBe(0.05)
   })
 

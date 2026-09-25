@@ -18,9 +18,10 @@ trace-to-source: design-description.md 2
 verification-method: test
 verification-criteria: After any number of line clears the game remains playable; no
   "game over" or "level complete" screen is presented.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/lines.test.ts` (a clear returns a board that is still playable) and an inspection of `app/src/shell.ts`: no game-over or level-complete view.
 
 ### GB-FUN-002 — Mark persists until line clears
 statement: When the player marks a cell, Goal Bingo shall preserve that mark until the
@@ -32,9 +33,10 @@ trace-to-source: design-description.md 2 design-description.md 3.4
 verification-method: test
 verification-criteria: A marked cell remains visually marked across app restarts and
   session boundaries until its line clears.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/storage.test.ts`: a marked cell survives a MemoryStorage reload, then the mark is gone after its line clears.
 
 ### GB-FUN-003 — Clearing awards reward balance
 statement: When a line clears, Goal Bingo shall increase the player's reward balance by the
@@ -45,9 +47,10 @@ trace-to-source: design-description.md 2 design-description.md 5.3
 verification-method: test
 verification-criteria: After a line clears, the reward balance counter is greater by a
   positive amount equal to the computed clear value.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `applyClearScore` in `app/src/lines.test.ts`: a clear increases reward balance by scoreDelta and leaves board balance unchanged.
 
 ### GB-FUN-004 — Marking toward a challenge awards board balance
 statement: When the player marks a cell and that mark qualifies toward at least one active
@@ -60,9 +63,10 @@ trace-to-source: design-description.md 2 design-description.md 5.3 design-descri
 verification-method: test
 verification-criteria: Board balance increases immediately after a qualifying mark, without
   waiting for a line to clear.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `markBoardIncome` in `app/src/challenges.test.ts`: a qualifying mark with no completion pays the per-mark board-balance amount.
 
 ---
 
@@ -79,12 +83,13 @@ verification-method: test
 verification-criteria: Starting from the smallest grid size, the player can spend board
   balance to reach each successive grid size, and the board dimensions are equal on both
   axes at every size.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Starting size is 5x5; expansion verified through 7x7 (`D-2026-09-20-8`). A further
   step to 9x9 or beyond is future work, gated on running `sim/jam_sim.py` at that size
   first (GB-CON-014). Q1 resolved.
+  Verified by `app/src/expansion.test.ts`: the paid 5 to 7 step has equal axes. That is the only successive size.
 
 ### GB-FUN-006 — Grid expansion is permanent
 statement: When the player purchases a grid expansion, Goal Bingo shall increase the grid
@@ -95,9 +100,10 @@ trace-to-source: design-description.md 3.1
 verification-method: test
 verification-criteria: After purchasing an expansion, the grid size is retained across app
   restarts.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/storage.test.ts`: a purchased 7x7 board survives reload.
 
 ---
 
@@ -110,11 +116,11 @@ type: functional
 rationale: Cells that hold zero or two tiles are undefined game states.
 trace-to-source: design-description.md 3.2
 verification-method: test
-verification-criteria: At no point during active play does any cell render without a tile
-  or with more than one tile.
-verification-status: not-verified
+verification-criteria: After create, mark, clear, and refill, every cell holds exactly one goal.
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `everyCellHasOneTile` in `app/src/board.test.ts` and `app/src/lines.test.ts` after create, mark, clear, and refill.
 
 ### GB-FUN-008 — Board is never presented with empty cells
 statement: When a line clears and cells empty, Goal Bingo shall complete the refill before
@@ -143,11 +149,11 @@ rationale: Marking is self-reported. No health API, sensor, or integration is re
   D-2026-09-19-5 (restart from design, not prototype), 3.3 position.
 trace-to-source: design-description.md 3.3
 verification-method: test
-verification-criteria: Tapping an unmarked cell marks it without any network request, API
-  call, or additional confirmation step.
-verification-status: not-verified
+verification-criteria: Marking an unmarked cell marks it, and the mark path sends no request and asks for no confirmation.
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by the mark tests in `app/src/board.test.ts`. No `fetch` or `requestPermission` under `app/src`.
 
 ---
 
@@ -204,11 +210,12 @@ trace-to-source: design-description.md 3.4
 verification-method: test
 verification-criteria: A double-clear produces a higher total score than two sequential
   single clears of the same lines; the increment is attributable to the multi-clear bonus.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Bonus is 50% of the summed base score of the clearing lines (`D-2026-09-20-9`),
   decoupled from Q7's still-open base point values. Blocker resolved.
+  Verified by `app/src/lines.test.ts`: the double-clear total is higher than clearing those two lines one after another.
 
 ### GB-FUN-014 — Intersection cell has distinct visual treatment
 statement: When two lines clear simultaneously, Goal Bingo shall render the cell at their
@@ -218,12 +225,12 @@ type: functional
 rationale: The intersection is the anchor for the multi-clear bonus. D-2026-09-19-14.
 trace-to-source: design-description.md 3.4
 verification-method: inspection
-verification-criteria: In a double-clear, the shared cell is visually distinguishable from
-  the other cells in both lines during the clear animation.
-verification-status: not-verified
+verification-criteria: The shared cell of a double-clear gets a treatment the other cells in those lines do not.
+verification-status: verified
 owner: k
 priority: must
 notes: Exact animation is a design decision deferred to implementation.
+  Verified by `intersectionCells` in `app/src/lines.test.ts` and the `board-cell--intersection` class in `app/src/shell.ts`.
 
 ### GB-FUN-015 — Perpendicular progress is lost on a clear
 statement: When a line clears, Goal Bingo shall discard the marks of cells that were
@@ -253,9 +260,10 @@ trace-to-source: design-description.md 4.1
 verification-method: test
 verification-criteria: A goal that is currently on the board can also be drawn into another
   cell on the same or a subsequent refill.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/pool.test.ts`: a goal already on the board is drawn into a different cell.
 
 ### GB-FUN-017 — Starter goal set
 statement: Goal Bingo shall provide a non-empty starting set of goals that the player can
@@ -350,13 +358,14 @@ trace-to-source: design-description.md 4.4
 verification-method: test
 verification-criteria: In a large sample of draws from a mixed pool, long-term goals are
   drawn at a lower frequency than daily goals.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Long-term share ~5% (`D-2026-09-19-12`); the remaining weight splits 40% hourly /
   40% daily / 20% weekly (`D-2026-09-21-1`, ported from `sim/jam_sim.py`'s `SHORT_MIX`,
   already validated across grid sizes 3/5/7 by that simulation's own A4 sensitivity run).
   Q6 resolved.
+  Verified by the cadence sample in `app/src/draw.test.ts`: long-term draws are fewer than daily draws.
 
 ### GB-FUN-023 — No two long-term goals in the same row or column (binding)
 statement: Goal Bingo shall not draw a long-term goal into a cell whose row or column
@@ -387,10 +396,11 @@ trace-to-source: design-description.md 4.4
 verification-method: test
 verification-criteria: After any draw, no single category occupies more than the domination
   threshold proportion of cells on the board.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Domination threshold is 40% of board cells (`D-2026-09-21-2`). Q21 resolved.
+  Verified by the refill-batch test in `app/src/lines.test.ts`: no category share over `CATEGORY_DOMINATION_THRESHOLD`. The no-legal-goal fallback remains the GB-FUN-008 case.
 
 ### GB-FUN-025 — Draw prefers completable-line placement (preference rule)
 statement: Where more than one legally placed goal exists and at least one placement leaves
@@ -418,9 +428,10 @@ trace-to-source: design-description.md 4.4 design-description.md 6.2
 verification-method: test
 verification-criteria: After a recycle, no row or column contains two long-term goals, and
   no category exceeds the domination threshold.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by the seed loop in `app/src/recycle.test.ts`: long-term rows and columns, and category share, stay within the binding rules.
 
 ### GB-FUN-027 — Long-term draw share approximately 5%
 statement: Goal Bingo shall configure the draw algorithm so that long-term goals receive
@@ -529,9 +540,10 @@ trace-to-source: design-description.md 5.3
 verification-method: test
 verification-criteria: The player can view all three counter values distinctly; each
   changes independently.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `applyClearScore` and `markBoardIncome`, which move the three counters independently. The home header in `app/src/shell.ts` renders lifetime, reward balance, and board balance; lifetime is also on the statistics view.
 
 ### GB-FUN-033 — Lifetime score only ever increases
 statement: Goal Bingo shall increase the lifetime score when each line clears.
@@ -542,9 +554,10 @@ trace-to-source: design-description.md 5.3
 verification-method: test
 verification-criteria: The lifetime score value after each clear event is strictly greater
   than its value before that event.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `applyClearScore` in `app/src/lines.test.ts`: a positive scoreDelta increases lifetime and a zero delta does not.
 
 ---
 
@@ -586,9 +599,10 @@ trace-to-source: design-description.md 6.1 design-description.md 5.3
 verification-method: test
 verification-criteria: After a reward purchase, the reward balance decreases by the
   reward's price; board balance and lifetime score are unchanged.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/rewards.test.ts`: a purchase changes reward balance only; board balance and lifetime stay as passed in.
 
 ---
 
@@ -619,11 +633,12 @@ trace-to-source: design-description.md 6.2
 verification-method: test
 verification-criteria: After purchasing the upgrade, the free recycle allowance per 24
   hours is higher than before the purchase, and the increase persists across restarts.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Caps at 3 free recycles per 24h (two purchasable steps above the default of 1),
   each step 100 board balance (`D-2026-09-21-11`). Q17 resolved.
+  Verified by `app/src/storage.test.ts`: a purchased allowance level survives reload.
 
 ### GB-FUN-038 — Swap power-up exchanges adjacent tiles
 statement: Goal Bingo shall provide a swap power-up that exchanges the positions of two
@@ -689,10 +704,11 @@ verification-criteria: With current allowance N, a player who uses the first fre
   consuming the allowance counter each time; once the counter reaches zero, further free
   recycles are unavailable until 24 h after T, at which point the full current allowance
   restores.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Default allowance is 1. The 24 h duration is fixed; epoch resets on each first use.
+  Verified by `app/src/recycle.test.ts`: two free recycles in one window, then the next spends board balance.
 
 ### GB-FUN-042 — Free allowance consumed before balance-spending recycles
 statement: Goal Bingo shall deduct from the free recycle allowance before deducting board
@@ -832,9 +848,10 @@ trace-to-source: design-description.md 7.2
 verification-method: test
 verification-criteria: Completing a line inside a mini-grid awards score and reward balance
   equal to what the same line would award on the main board.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/miniGrid.test.ts`: the inner-line scoreDelta equals the same line scored with the main-board formula and no adjacency.
 
 ### GB-FUN-050 — Full-board bonus when mini-grid tile is last to clear
 statement: When the mini-grid tile is the last tile to clear on the main board, Goal Bingo
@@ -1010,12 +1027,13 @@ trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: Board balance increases immediately after a qualifying mark; the
   increment is positive and repeatable for each qualifying mark.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: +1 board balance per qualifying mark, flat regardless of how many challenges it
   also qualifies for (`D-2026-09-21-6`, matching `sim/jam_sim.py`'s own per-mark
   assumption). Q18 (rate) resolved.
+  Verified by `markBoardIncome(0)` in `app/src/challenges.test.ts`, equal to the per-mark amount.
 
 ### GB-FUN-062 — Challenge pays completion bonus on reaching target
 statement: When a challenge progress counter reaches the challenge target, Goal Bingo shall
@@ -1026,12 +1044,13 @@ trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: When the challenge progress counter reaches the target, an
   additional board balance award is made beyond the per-mark payments already issued.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Target is 10 qualifying marks, uniform across universal, category, and cadence
   challenges; completion bonus is 10 board balance (equal to the target), then the
   counter resets and the same challenge continues (`D-2026-09-21-7`). Resolved.
+  Verified by `markBoardIncome(1)` in `app/src/challenges.test.ts`: the per-mark amount plus the completion target.
 
 ---
 
@@ -1084,9 +1103,10 @@ trace-to-source: design-description.md 4.1 design-description.md 4.4
 verification-method: test
 verification-criteria: With an empty pool, a clear or recycle that would refill a cell
   does not leave an empty playable cell; a prompt to edit the pool is shown.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `emptyPoolPromptHtml` in `app/src/shell.test.ts`: the prompt is present when the flag is set and absent when it is not.
 
 ### GB-FUN-066 — Soft reset on unreadable local storage
 statement: If Goal Bingo cannot read the player's stored pool, board, or balances, Goal
@@ -1099,9 +1119,10 @@ trace-to-source: design-description.md 9.2
 verification-method: test
 verification-criteria: With corrupted local storage, the next launch presents a playable
   board with a non-empty starter pool.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/storage.test.ts`: corrupt storage returns softReset and a board for which `everyCellHasOneTile` holds.
 
 ### GB-FUN-067 — Goals already on the board remain eligible for redraw
 statement: Goal Bingo shall allow a goal already present on the board to be drawn again
@@ -1113,9 +1134,10 @@ trace-to-source: design-description.md 4.1
 verification-method: test
 verification-criteria: A goal currently on the board can appear in a subsequent draw into
   a different cell.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/pool.test.ts`: a goal already on the board is drawn into a different cell.
 
 ### GB-FUN-068 — Adjacency combinations are configurable
 statement: Goal Bingo shall store the adjacency combination list and each combination's
@@ -1127,8 +1149,9 @@ trace-to-source: design-description.md 5.2
 verification-method: test
 verification-criteria: Changing the adjacency configuration and restarting the app causes
   a subsequent clear to score using the new values, with no application-code change.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Initial combination list is the single seed entry from `D-2026-09-21-5`. Q7
   resolved.
+  Verified by `app/src/lines.test.ts`: scoring reads `ADJACENCY_CONFIG`; a changed value changes the total, and restoring the value restores the total.

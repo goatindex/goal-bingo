@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_CATEGORIES, canUnlockCustomCategory, tryUnlockCustomCategory } from './categories'
+import { drawForCell } from './draw'
 import {
   addGoal,
   drawGoal,
@@ -89,6 +90,15 @@ describe('draw rules (GB-FUN-016, GB-FUN-065, GB-FUN-067)', () => {
     if (result.ok) {
       expect(pool.some((g) => g.id === result.goal.id)).toBe(true)
     }
+  })
+
+  it('draws a goal already on the board into a different cell (GB-FUN-016, GB-FUN-067)', () => {
+    const onBoard = STARTER_POOL[0]!
+    const cells = Array.from({ length: 25 }, () => ({ goal: onBoard, marked: false }))
+    const board = { size: 5 as const, cells }
+    const drawn = drawForCell([onBoard], board, 1, () => 0.5)
+    expect(drawn).toEqual({ ok: true, goal: onBoard })
+    expect(drawn.ok && drawn.goal.id).toBe(board.cells[0]!.goal.id)
   })
 
   it('may draw a goal that is already on the board', () => {

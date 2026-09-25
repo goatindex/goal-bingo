@@ -111,6 +111,15 @@ function escapeHtml(value: string): string {
     .replaceAll('"', '&quot;')
 }
 
+/** Shown when a draw is refused because the pool has nothing to draw (GB-FUN-065). */
+export function emptyPoolPromptHtml(show: boolean): string {
+  if (!show) return ''
+  return `<p class="shell__banner shell__banner--warn" role="alert" data-testid="empty-pool-prompt">
+                The pool is empty — add a goal before drawing.
+                <button type="button" data-testid="dismiss-empty-prompt">OK</button>
+              </p>`
+}
+
 export function renderShell(root: HTMLElement, state: GameState, h: ShellHandlers): void {
   const unlockReady = canUnlockCustomCategory(state.score.lifetime)
   const customCategories = listCustomCategories(state.categories)
@@ -128,14 +137,7 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
             ? `<p class="shell__banner" role="status">Saved data could not be read. Starting fresh with a starter pool.</p>`
             : ''
         }
-        ${
-          h.emptyPoolPrompt
-            ? `<p class="shell__banner shell__banner--warn" role="alert" data-testid="empty-pool-prompt">
-                The pool is empty — add a goal before drawing.
-                <button type="button" data-testid="dismiss-empty-prompt">OK</button>
-              </p>`
-            : ''
-        }
+        ${emptyPoolPromptHtml(h.emptyPoolPrompt)}
         ${
           h.actionNotice
             ? `<p class="shell__banner shell__banner--warn" role="alert" data-testid="action-notice">

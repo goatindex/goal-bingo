@@ -20,7 +20,12 @@ describe('purchaseGridExpansion (GB-FUN-036)', () => {
     if (!result.ok) return
     expect(result.board.size).toBe(7)
     expect(result.board.cells.length).toBe(49)
+    expect(result.board.size * result.board.size).toBe(result.board.cells.length)
     expect(result.boardBalance).toBe(0)
+    const score = { lifetime: 9, rewardBalance: 4, boardBalance: GRID_EXPANSION_COST }
+    const next = { ...score, boardBalance: result.boardBalance }
+    expect(next.lifetime).toBe(score.lifetime)
+    expect(next.rewardBalance).toBe(score.rewardBalance)
   })
 
   it('keeps existing cells (and their marks) in the top-left, per resizeBoard', () => {

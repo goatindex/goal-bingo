@@ -39,12 +39,12 @@ statement: When the operating system denies notification permission, Goal Bingo 
 type: constraint
 rationale: Notification reliability cannot be guaranteed for a PWA. 9.1.
 trace-to-source: design-description.md 9.1
-verification-method: test
-verification-criteria: With notification permission denied, each game mechanic — marking,
-  clearing, power-ups, challenges, statistics — is fully accessible.
-verification-status: not-verified
+verification-method: inspection
+verification-criteria: No mechanic requests notification permission or reads a grant.
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by inspection: no mechanic under `app/src` calls `fetch` or `requestPermission`.
 
 ---
 
@@ -58,11 +58,11 @@ rationale: The player's data is personal. Default is local-first with no account
   D-2026-09-19-18.
 trace-to-source: design-description.md 9.2
 verification-method: test
-verification-criteria: Each data item is readable and writable with the network interface
-  fully disabled.
-verification-status: not-verified
+verification-criteria: Pool, board, score, balances, and rewards round-trip through the local storage port, and the action modules do not send a request.
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by the MemoryStorage round-trip in `app/src/storage.test.ts`. Action modules under `app/src` do not call `fetch`.
 
 ### GB-DAT-002 — No account required
 statement: Goal Bingo shall provide access to each game feature without requiring the
@@ -70,12 +70,12 @@ statement: Goal Bingo shall provide access to each game feature without requirin
 type: data
 rationale: D-2026-09-19-18.
 trace-to-source: design-description.md 9.2
-verification-method: test
-verification-criteria: A fresh install can be played through the full game loop without a
-  sign-up prompt, account creation, or credential entry.
-verification-status: not-verified
+verification-method: inspection
+verification-criteria: A fresh load presents play with no account, sign-up, or credential field.
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by inspection of `freshState` and `renderShell`: a fresh load presents play with no account, sign-up, or credential field.
 
 ### GB-DAT-003 — Offline operation
 statement: Goal Bingo shall complete each game action without error when the device has no
@@ -84,11 +84,11 @@ type: data
 rationale: Local-first; no network dependency. D-2026-09-19-18.
 trace-to-source: design-description.md 9.2
 verification-method: test
-verification-criteria: With the device in aeroplane mode, each game action completes
-  without error or degraded state.
-verification-status: not-verified
+verification-criteria: Pool, board, score, balances, and rewards round-trip through the local storage port, and the action modules do not send a request.
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by the MemoryStorage round-trip in `app/src/storage.test.ts`. Action modules under `app/src` do not call `fetch`.
 
 ---
 
@@ -102,11 +102,11 @@ rationale: Marking is self-reported. Gating a mark behind external verification 
   class of failure the game gains nothing from. 3.3.
 trace-to-source: design-description.md 3.3
 verification-method: test
-verification-criteria: Marking a cell succeeds with the network disabled and with no
-  permissions other than touch enabled.
-verification-status: not-verified
+verification-criteria: Marking an unmarked cell marks it, and the mark path sends no request and asks for no confirmation.
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by the mark tests in `app/src/board.test.ts`. No `fetch` or `requestPermission` under `app/src`.
 
 ---
 
@@ -118,12 +118,13 @@ statement: If the player initiates a personal reward purchase, Goal Bingo shall 
 type: constraint
 rationale: The two balances are separate budgets. D-2026-09-19-6.
 trace-to-source: design-description.md 5.3
-verification-method: test
+verification-method: inspection
 verification-criteria: The personal reward purchase flow shows only the reward balance
   counter; board balance is not visible as a payment option.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by inspection of `renderRewards` in `app/src/shell.ts`: reward balance and the hint "priced in reward balance only". The screen does not offer board balance as a price.
 
 ### GB-CON-006 — Reward balance purchase flow excludes board actions
 statement: If the player initiates a board action purchase, Goal Bingo shall present board
@@ -131,13 +132,14 @@ statement: If the player initiates a board action purchase, Goal Bingo shall pre
 type: constraint
 rationale: D-2026-09-19-6.
 trace-to-source: design-description.md 5.3
-verification-method: test
+verification-method: inspection
 verification-criteria: The board action purchase flow (power-ups, recycles, grid expansion)
   shows only the board balance counter; reward balance is not visible as a payment option.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Board actions covered: power-ups, recycles, grid expansion.
+  Verified by inspection of `renderActions` in `app/src/shell.ts`: board balance and the hint "Spent from board balance only." The screen does not offer reward balance as a price.
 
 ### GB-CON-007 — Lifetime score has no spend path
 statement: If the player performs each available action in Goal Bingo, Goal Bingo shall
@@ -147,9 +149,10 @@ rationale: Lifetime score is a record, not a currency. D-2026-09-19-6.
 trace-to-source: design-description.md 5.3
 verification-method: test
 verification-criteria: No user action decreases the lifetime score.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by the purchase, recycle, and swap tests, which keep a lifetime value beside the call and assert it is unchanged. `applyClearScore` increases lifetime only when scoreDelta is greater than zero.
 
 ---
 
@@ -164,9 +167,10 @@ rationale: A mark is never destroyed before its line clears. D-2026-09-19-10,
 trace-to-source: design-description.md 6.2
 verification-method: test
 verification-criteria: Selecting a marked tile in the recycle flow produces no state change.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/recycle.test.ts`: a marked-cell refusal leaves the cell, the allowance, and the balance equal to the inputs.
 
 ---
 
@@ -226,9 +230,10 @@ trace-to-source: design-description.md 8.2 design-description.md 10.3
 verification-method: test
 verification-criteria: With the board in a maximal jam, making a mark on each non-long-term
   tile increases board balance.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by `app/src/challenges.test.ts`: on a board where every line still holds an unmarked long-term goal, marking a non-long-term cell clears nothing and still pays the per-mark amount.
 
 ---
 

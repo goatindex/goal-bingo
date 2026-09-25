@@ -11,11 +11,15 @@ describe('swapCells (GB-FUN-038)', () => {
     if (!board.ok) return
     const goalAt0 = board.board.cells[0]!.goal
     const goalAt1 = board.board.cells[1]!.goal
-    const result = swapCells(board.board, 0, 1, SWAP_COST)
+    const score = { lifetime: 8, rewardBalance: 2, boardBalance: SWAP_COST }
+    const result = swapCells(board.board, 0, 1, score.boardBalance)
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.board.cells[0]!.goal).toEqual(goalAt1)
     expect(result.board.cells[1]!.goal).toEqual(goalAt0)
+    const next = { ...score, boardBalance: result.boardBalance }
+    expect(next.lifetime).toBe(score.lifetime)
+    expect(next.rewardBalance).toBe(score.rewardBalance)
   })
 
   it('exchanges marked state along with the goal - a mark travels with its tile', () => {

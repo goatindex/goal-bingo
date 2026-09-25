@@ -29,6 +29,22 @@ export const ADJACENCY_CONFIG: { name: string; value: number }[] = [
   { name: 'adjacent-marked', value: 1 },
 ]
 
+export type ScoreCounters = {
+  lifetime: number
+  rewardBalance: number
+  boardBalance: number
+}
+
+/** A clear's scoreDelta feeds lifetime and reward balance identically and leaves
+ *  board balance alone (GB-FUN-003, GB-FUN-033). A zero delta does not move lifetime. */
+export function applyClearScore<T extends ScoreCounters>(score: T, scoreDelta: number): T {
+  return {
+    ...score,
+    lifetime: score.lifetime + scoreDelta,
+    rewardBalance: score.rewardBalance + scoreDelta,
+  }
+}
+
 /** 50% of the summed value of the clearing lines, on top of that value
  *  (D-2026-09-20-9). Only applies when more than one line clears on the same mark
  *  (GB-FUN-013's own trigger condition) — a single-line clear earns no bonus. */
