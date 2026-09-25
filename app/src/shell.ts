@@ -18,6 +18,7 @@ import {
 } from './recycle'
 import type { GameState } from './storage'
 import { SWAP_COST } from './swap'
+import type { Challenge } from './challenges'
 import { averageClearsPerDay } from './stats'
 import {
   CADENCES,
@@ -26,7 +27,7 @@ import {
   listCustomCategories,
 } from './categories'
 
-export type ShellView = 'home' | 'pool' | 'rewards' | 'stats' | 'actions'
+export type ShellView = 'home' | 'pool' | 'rewards' | 'stats' | 'actions' | 'challenges'
 
 /** Cell-targeting mode. Not persisted. 'mark' is ordinary play. */
 export type BoardTarget =
@@ -42,6 +43,7 @@ const PRIMARY_ACTIONS = [
   { id: 'rewards', label: 'Rewards' },
   { id: 'stats', label: 'Stats' },
   { id: 'actions', label: 'Actions' },
+  { id: 'challenges', label: 'Challenges' },
 ] as const
 
 function trackLabel(track: AdvancedTileTrack): string {
@@ -73,6 +75,8 @@ export type ShellHandlers = {
   boardTarget: BoardTarget
   /** Shown when a board-balance action is refused. */
   actionNotice: string | null
+  /** Shown when a mark finishes one or more challenges. */
+  completionNotice: string | null
   onMarkCell: (index: number) => void
   /** Tap one cell inside a mini-grid tile. The parent index is not itself a mark. */
   onMarkMiniCell: (parentIndex: number, innerIndex: number) => void
@@ -89,6 +93,7 @@ export type ShellHandlers = {
   onPurchaseReward: (id: string) => void
   onDismissEmptyPrompt: () => void
   onDismissActionNotice: () => void
+  onDismissCompletionNotice: () => void
   onStartRecycle: () => void
   onStartSwap: () => void
   onStartPlace: (track: AdvancedTileTrack) => void
@@ -140,6 +145,14 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
             : ''
         }
         ${
+          h.completionNotice
+            ? `<p class="shell__banner" role="status" data-testid="completion-notice">
+                ${escapeHtml(h.completionNotice)}
+                <button type="button" data-testid="dismiss-completion-notice">OK</button>
+              </p>`
+            : ''
+        }
+        ${
           h.view === 'home'
             ? renderHome(state, h.lastIntersectionCells, h.boardTarget)
             : h.view === 'pool'
@@ -148,7 +161,9 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
                 ? renderRewards(state)
                 : h.view === 'actions'
                   ? renderActions(state)
-                  : renderStats(state)
+                  : h.view === 'challenges'
+                    ? renderChallenges(state)
+                    : renderStats(state)
         }
       </main>
 
@@ -159,6 +174,7 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
             (a.id === 'rewards' && h.view === 'rewards') ||
             (a.id === 'stats' && h.view === 'stats') ||
             (a.id === 'actions' && h.view === 'actions') ||
+            (a.id === 'challenges' && h.view === 'challenges') ||
             (a.id === 'board' && h.view === 'home')
           return `<button type="button" class="thumb-btn${active ? ' thumb-btn--active' : ''}" data-action="${a.id}" data-testid="action-${a.id}">${a.label}</button>`
         }).join('')}
@@ -173,6 +189,9 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
   bindNav(root, h)
   root.querySelector('[data-testid="dismiss-action-notice"]')?.addEventListener('click', () => {
     h.onDismissActionNotice()
+  })
+  root.querySelector('[data-testid="dismiss-completion-notice"]')?.addEventListener('click', () => {
+    h.onDismissCompletionNotice()
   })
 }
 
@@ -447,6 +466,32 @@ function renderRewards(state: GameState): string {
   `
 }
 
+function challengeName(challenge: Challenge): string {
+  if (challenge.kind === 'universal') return 'Universal'
+  const qualifier = challenge.qualifier ?? ''
+  if (challenge.kind === 'cadence') return qualifier.charAt(0).toUpperCase() + qualifier.slice(1)
+  return qualifier
+}
+
+function renderChallenges(state: GameState): string {
+  const rows = state.challenges
+    .map(
+      (challenge) => `<li class="pool-item" data-testid="challenge-${escapeHtml(challenge.id)}">
+        <span>${escapeHtml(challengeName(challenge))}</span>
+        <strong data-testid="challenge-${escapeHtml(challenge.id)}-progress">${challenge.progress} / ${challenge.target}</strong>
+      </li>`,
+    )
+    .join('')
+
+  return `
+    <section class="pool" aria-label="Challenges" data-testid="challenges-view">
+      <h2 class="pool__heading">Challenges</h2>
+      <p class="shell__hint">A mark counts toward every challenge it qualifies for.</p>
+      <ul class="pool__list" data-testid="challenge-list">${rows}</ul>
+    </section>
+  `
+}
+
 function renderStats(state: GameState): string {
   const categoryRows = Object.entries(state.stats.clearsByCategory)
     .sort((a, b) => b[1] - a[1])
@@ -491,6 +536,7 @@ function bindNav(root: HTMLElement, h: ShellHandlers): void {
   root.querySelector('[data-action="stats"]')?.addEventListener('click', () => h.onNavigate('stats'))
   root.querySelector('[data-action="mark"]')?.addEventListener('click', () => h.onNavigate('home'))
   root.querySelector('[data-action="actions"]')?.addEventListener('click', () => h.onNavigate('actions'))
+  root.querySelector('[data-action="challenges"]')?.addEventListener('click', () => h.onNavigate('challenges'))
 }
 
 function bindHome(root: HTMLElement, h: ShellHandlers): void {

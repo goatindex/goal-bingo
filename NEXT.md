@@ -70,6 +70,11 @@ Current focus matches `vitest`.
   actions), work packages none.
 - **Board actions screen:** recycle, allowance upgrade, swap, grid expansion, per-category
   unlock, paid placement, and bulk unlock, all spending board balance only.
+- **Intake:** change to existing work, entering at link 6. Impact: requirements none
+  (GB-FUN-055–062 already require the always-active challenges and their payments),
+  work packages none.
+- **Challenges screen:** the counters a mark already moves, plus a notice when one
+  finishes and pays its completion bonus.
 
 ## Done (2026-09-23 session)
 
