@@ -72,14 +72,14 @@ function consumeFreeRecycle(state: RecycleState, now: number): RecycleState {
 
 export type RecycleResult =
   | { ok: true; board: Board; recycle: RecycleState; boardBalance: number; paidWithBalance: boolean }
-  | { ok: false; reason: 'invalid-cell' | 'marked' | 'empty-pool' | 'insufficient-balance' }
+  | { ok: false; reason: 'invalid-cell' | 'marked' | 'advanced' | 'empty-pool' | 'insufficient-balance' }
 
 /**
  * Recycle an unmarked tile: draw a replacement goal (obeying the same placement rules
  * as any refill, GB-FUN-039) and pay for it from the free allowance before board
- * balance (GB-FUN-042). Refuses on a marked tile (GB-CON-008) without touching the
- * allowance or balance, and refuses on an empty pool or insufficient balance before
- * committing any state change.
+ * balance (GB-FUN-042). Refuses on a marked tile (GB-CON-008) and on an advanced
+ * tile (D-2026-09-25-1) without touching the allowance or balance, and refuses on
+ * an empty pool or insufficient balance before committing any state change.
  */
 export function recycleCell(
   board: Board,
@@ -93,6 +93,7 @@ export function recycleCell(
   const cell = board.cells[index]
   if (!cell) return { ok: false, reason: 'invalid-cell' }
   if (cell.marked) return { ok: false, reason: 'marked' }
+  if (cell.advanced) return { ok: false, reason: 'advanced' }
   const drawn = drawForCell(pool, board, index, rng, new Set([index]))
   if (!drawn.ok) return { ok: false, reason: 'empty-pool' }
 

@@ -28,7 +28,7 @@ guard. `partition_check.py --cut` refuses a package that still carries a TBD.
 `figures.txt` is checked by `figures_check.py`. `citation_check.py` checks every `#N`
 in this file, `README.md`, and `DECISIONS.md`. Masters: claude-workflow #40 and #41.
 
-**185 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**186 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
@@ -70,6 +70,11 @@ Current focus matches `vitest`.
   actions), work packages none.
 - **Board actions screen:** recycle, allowance upgrade, swap, grid expansion, per-category
   unlock, paid placement, and bulk unlock, all spending board balance only.
+- **Intake:** change to existing work, entering at link 6. Impact: GB-FUN-039 narrowed
+  (an advanced tile is rejected, and the cell, allowance, and board balance stay as
+  they were), work packages none.
+- **Recycle guard** (`D-2026-09-25-1`): an unmarked mini-grid or multi-completion tile
+  is refused instead of being replaced by a plain goal.
 
 ## Done (2026-09-23 session)
 
