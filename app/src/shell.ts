@@ -476,9 +476,9 @@ function challengeName(challenge: Challenge): string {
 function renderChallenges(state: GameState): string {
   const rows = state.challenges
     .map(
-      (challenge) => `<li class="pool-item" data-testid="challenge-${challenge.id}">
+      (challenge) => `<li class="pool-item" data-testid="challenge-${escapeHtml(challenge.id)}">
         <span>${escapeHtml(challengeName(challenge))}</span>
-        <strong data-testid="challenge-${challenge.id}-progress">${challenge.progress} / ${challenge.target}</strong>
+        <strong data-testid="challenge-${escapeHtml(challenge.id)}-progress">${challenge.progress} / ${challenge.target}</strong>
       </li>`,
     )
     .join('')
