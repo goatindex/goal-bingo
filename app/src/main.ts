@@ -39,6 +39,7 @@ let emptyPoolPrompt = false
 let lastIntersectionCells: number[] = []
 let boardTarget: BoardTarget = { kind: 'mark' }
 let actionNotice: string | null = null
+let completionNotice: string | null = null
 
 function placeTrack(track: AdvancedTileTrack, category: string): void {
   const placed = placeOnUnlock(state.board, track, category, state.advancedTileAccess, state.pool)
@@ -163,6 +164,11 @@ function noteGenuineMark(goal: Goal, hadVarietyCombo: boolean): void {
   state.challenges = progressed.challenges
   state.score.boardBalance +=
     BOARD_BALANCE_PER_MARK + progressed.completedCount * CHALLENGE_TARGET
+  if (progressed.completedCount > 0) {
+    const finished = progressed.completedCount
+    const challenges = finished === 1 ? 'Challenge' : `${finished} challenges`
+    completionNotice = `${challenges} finished. Each paid ${CHALLENGE_TARGET} board balance.`
+  }
   const accessBefore = state.advancedTileAccess
   state.advancedTileAccess = recordAdvancedTileProgress(
     state.advancedTileAccess,
@@ -220,6 +226,7 @@ function paint(): void {
     lastIntersectionCells,
     boardTarget,
     actionNotice,
+    completionNotice,
     onMarkCell: (index) => {
       softReset = false
       if (boardTarget.kind !== 'mark') {
@@ -330,6 +337,10 @@ function paint(): void {
     },
     onDismissActionNotice: () => {
       actionNotice = null
+      paint()
+    },
+    onDismissCompletionNotice: () => {
+      completionNotice = null
       paint()
     },
     onStartRecycle: () => {
