@@ -1,8 +1,8 @@
 import './style.css'
 import { loadState, saveState } from './storage'
-import { renderShell, type ShellView } from './shell'
+import { renderShell, type BoardTarget, type ShellView } from './shell'
 import { markCellAndResolve } from './lines'
-import { addGoal, removeGoal, updateGoal } from './pool'
+import { addGoal, removeGoal, updateGoal, type Goal } from './pool'
 import { addReward, purchaseReward, removeReward } from './rewards'
 import {
   tryUnlockCustomCategory,
@@ -15,9 +15,16 @@ import {
   applyGlobalAdvancedTileProgress,
   newlyUnlockedCategories,
   newlyUnlockedTracks,
+  purchaseAdvancedTileUnlock,
+  purchaseGlobalAdvancedTileUnlock,
   recordAdvancedTileProgress,
+  type AdvancedTileTrack,
 } from './advancedUnlock'
-import { applyPassivePlacement, placeOnUnlock } from './advancedPlacement'
+import { applyPassivePlacement, placeAdvancedTile, placeOnUnlock } from './advancedPlacement'
+import { applyPassivePlacementToExposed, purchaseGridExpansion } from './expansion'
+import { purchaseAllowanceUpgrade, recycleCell } from './recycle'
+import { swapCells } from './swap'
+import { markMiniGridCellOnBoard } from './miniGrid'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) {
@@ -30,6 +37,180 @@ let softReset = loaded.softReset
 let view: ShellView = 'home'
 let emptyPoolPrompt = false
 let lastIntersectionCells: number[] = []
+let boardTarget: BoardTarget = { kind: 'mark' }
+let actionNotice: string | null = null
+
+function placeTrack(track: AdvancedTileTrack, category: string): void {
+  const placed = placeOnUnlock(state.board, track, category, state.advancedTileAccess, state.pool)
+  state.board = placed.board
+  state.advancedTileAccess = placed.access
+}
+
+function refuseAction(message: string): void {
+  actionNotice = message
+  boardTarget = { kind: 'mark' }
+  paint()
+}
+
+function handleTargetTap(index: number): void {
+  const cell = state.board.cells[index]
+  if (!cell) return
+  if (boardTarget.kind === 'recycle') {
+    const result = recycleCell(
+      state.board,
+      state.pool,
+      index,
+      state.recycle,
+      state.score.boardBalance,
+    )
+    if (!result.ok) {
+      if (result.reason === 'empty-pool') {
+        emptyPoolPrompt = true
+        view = 'pool'
+        boardTarget = { kind: 'mark' }
+        paint()
+        return
+      }
+      refuseAction(
+        result.reason === 'marked'
+          ? 'Marked cells cannot be recycled.'
+          : 'Not enough board balance.',
+      )
+      return
+    }
+    state.board = result.board
+    state.recycle = result.recycle
+    state.score.boardBalance = result.boardBalance
+    boardTarget = { kind: 'mark' }
+    actionNotice = null
+    saveState(state)
+    paint()
+    return
+  }
+  if (boardTarget.kind === 'swap') {
+    if (boardTarget.first === null) {
+      boardTarget = { kind: 'swap', first: index }
+      paint()
+      return
+    }
+    const first = boardTarget.first
+    if (first === index) {
+      boardTarget = { kind: 'swap', first: null }
+      paint()
+      return
+    }
+    const result = swapCells(state.board, first, index, state.score.boardBalance)
+    if (!result.ok) {
+      refuseAction(
+        result.reason === 'not-adjacent'
+          ? 'Those cells are not next to each other.'
+          : 'Not enough board balance.',
+      )
+      return
+    }
+    state.board = result.board
+    state.score.boardBalance = result.boardBalance
+    boardTarget = { kind: 'mark' }
+    actionNotice = null
+    saveState(state)
+    paint()
+    return
+  }
+  if (boardTarget.kind === 'place') {
+    const result = placeAdvancedTile(
+      state.board,
+      index,
+      boardTarget.track,
+      state.advancedTileAccess,
+      state.score.boardBalance,
+      state.pool,
+    )
+    if (!result.ok) {
+      const message =
+        result.reason === 'marked'
+          ? 'Marked cells cannot become an advanced tile.'
+          : result.reason === 'already-advanced'
+            ? 'That cell is already an advanced tile.'
+            : result.reason === 'not-unlocked'
+              ? 'That category is not unlocked for this tile type.'
+              : result.reason === 'empty-pool'
+                ? 'The pool is empty — add a goal before drawing.'
+                : 'Not enough board balance.'
+      if (result.reason === 'empty-pool') {
+        emptyPoolPrompt = true
+        view = 'pool'
+        boardTarget = { kind: 'mark' }
+        paint()
+        return
+      }
+      refuseAction(message)
+      return
+    }
+    state.board = result.board
+    state.score.boardBalance = result.boardBalance
+    boardTarget = { kind: 'mark' }
+    actionNotice = null
+    saveState(state)
+    paint()
+  }
+}
+
+/** Side effects shared by a main-board mark and an unmarked mini-grid inner tap
+ *  (D-2026-09-23-1). One genuine mark pays 1 board balance, progresses challenges,
+ *  and counts toward advanced-tile unlocks. A repeat tap must not call this. */
+function noteGenuineMark(goal: Goal, hadVarietyCombo: boolean): void {
+  const progressed = progressChallenges(state.challenges, goal)
+  state.challenges = progressed.challenges
+  state.score.boardBalance +=
+    BOARD_BALANCE_PER_MARK + progressed.completedCount * CHALLENGE_TARGET
+  const accessBefore = state.advancedTileAccess
+  state.advancedTileAccess = recordAdvancedTileProgress(
+    state.advancedTileAccess,
+    goal.category,
+  )
+  for (const track of newlyUnlockedTracks(accessBefore, state.advancedTileAccess, goal.category)) {
+    const placed = placeOnUnlock(
+      state.board,
+      track,
+      goal.category,
+      state.advancedTileAccess,
+      state.pool,
+    )
+    state.board = placed.board
+    state.advancedTileAccess = placed.access
+  }
+  const accessBeforeGlobal = state.advancedTileAccess
+  state.advancedTileAccess = applyGlobalAdvancedTileProgress(
+    state.advancedTileAccess,
+    state.categories,
+  )
+  for (const track of ADVANCED_TILE_TRACKS) {
+    for (const category of newlyUnlockedCategories(
+      accessBeforeGlobal,
+      state.advancedTileAccess,
+      track,
+    )) {
+      const placed = placeOnUnlock(
+        state.board,
+        track,
+        category,
+        state.advancedTileAccess,
+        state.pool,
+      )
+      state.board = placed.board
+      state.advancedTileAccess = placed.access
+    }
+  }
+  const newAchievements = evaluateAchievements(state.achievements, {
+    totalClears: totalClears(state.stats),
+    boardSize: state.board.size,
+    hadVarietyCombo,
+    clearsByDate: state.stats.clearsByDate,
+  })
+  if (newAchievements.length > 0) {
+    state.achievements = [...state.achievements, ...newAchievements]
+  }
+}
 
 function paint(): void {
   renderShell(app!, state, {
@@ -37,8 +218,14 @@ function paint(): void {
     view,
     emptyPoolPrompt,
     lastIntersectionCells,
+    boardTarget,
+    actionNotice,
     onMarkCell: (index) => {
       softReset = false
+      if (boardTarget.kind !== 'mark') {
+        handleTargetTap(index)
+        return
+      }
       // Read before markCellAndResolve: if this mark completes a line through this very
       // cell, the cell is refilled with a new goal as part of that same call, so the
       // result's board no longer holds the goal that was actually marked.
@@ -69,67 +256,8 @@ function paint(): void {
       // GB-FUN-004/056/060/061/062, GB-CON-012: re-tapping an already-marked cell is a
       // no-op (board.ts's markCell) and must not progress challenges or pay board
       // balance again - only a genuine unmarked-to-marked transition counts.
-      if (isNewMark && tappedCell) {
-        const progressed = progressChallenges(state.challenges, tappedCell.goal)
-        state.challenges = progressed.challenges
-        state.score.boardBalance +=
-          BOARD_BALANCE_PER_MARK + progressed.completedCount * CHALLENGE_TARGET
-        // GB-FUN-043: lifetime per-category mark count, independent of the
-        // challenge counters above (which reset) and stats.clearsByCategory (which
-        // counts cleared cells, not marks).
-        const accessBefore = state.advancedTileAccess
-        state.advancedTileAccess = recordAdvancedTileProgress(
-          state.advancedTileAccess,
-          tappedCell.goal.category,
-        )
-        // D-2026-09-21-23: the moment a track newly unlocks, place one tile of that
-        // type immediately rather than waiting on the passive chance below.
-        for (const track of newlyUnlockedTracks(accessBefore, state.advancedTileAccess, tappedCell.goal.category)) {
-          const placed = placeOnUnlock(
-            state.board,
-            track,
-            tappedCell.goal.category,
-            state.advancedTileAccess,
-            state.pool,
-          )
-          state.board = placed.board
-          state.advancedTileAccess = placed.access
-        }
-        // D-2026-09-21-22 / D-2026-09-22-1: per-track global progression — total
-        // lifetime marks may unlock every still-locked category for a track at once.
-        const accessBeforeGlobal = state.advancedTileAccess
-        state.advancedTileAccess = applyGlobalAdvancedTileProgress(
-          state.advancedTileAccess,
-          state.categories,
-        )
-        for (const track of ADVANCED_TILE_TRACKS) {
-          for (const category of newlyUnlockedCategories(
-            accessBeforeGlobal,
-            state.advancedTileAccess,
-            track,
-          )) {
-            const placed = placeOnUnlock(
-              state.board,
-              track,
-              category,
-              state.advancedTileAccess,
-              state.pool,
-            )
-            state.board = placed.board
-            state.advancedTileAccess = placed.access
-          }
-        }
-        // GB-FUN-063/064: evaluated after stats/challenges update, using the same
-        // no-op guard so a re-tap can't re-check (harmless but wasteful) conditions.
-        const newAchievements = evaluateAchievements(state.achievements, {
-          totalClears: totalClears(state.stats),
-          boardSize: state.board.size,
-          hadVarietyCombo: result.outcome.hadVarietyCombo,
-          clearsByDate: state.stats.clearsByDate,
-        })
-        if (newAchievements.length > 0) {
-          state.achievements = [...state.achievements, ...newAchievements]
-        }
+      if (isNewMark && tappedCell && tappedCell.advanced?.kind !== 'mini-grid') {
+        noteGenuineMark(tappedCell.goal, result.outcome.hadVarietyCombo)
       }
       // D-2026-09-21-23: cells this clear just legally refilled with a plain goal may
       // become an advanced tile instead - a pending guarantee from the block above, or
@@ -151,8 +279,176 @@ function paint(): void {
       saveState(state)
       paint()
     },
+    onMarkMiniCell: (parentIndex, innerIndex) => {
+      softReset = false
+      const parent = state.board.cells[parentIndex]
+      const inner =
+        parent?.advanced?.kind === 'mini-grid' ? parent.advanced.cells[innerIndex] : undefined
+      // D-2026-09-23-1: one point per unmarked inner tap. The parent itself is not a
+      // mark, and a second tap of an already-marked inner cell pays nothing.
+      const isNewInnerMark = inner !== undefined && !inner.marked
+      const result = markMiniGridCellOnBoard(state.board, parentIndex, innerIndex, state.pool)
+      if (!result.ok) {
+        if (result.reason === 'empty-pool') {
+          emptyPoolPrompt = true
+          view = 'pool'
+        }
+        paint()
+        return
+      }
+      state.board = result.board
+      state.score.lifetime += result.scoreDelta
+      state.score.rewardBalance += result.scoreDelta
+      const mainClear = result.mainClear
+      state.stats = recordClear(
+        state.stats,
+        mainClear?.clearedCategories ?? [],
+        mainClear?.clearedLineCount ?? 0,
+      )
+      if (isNewInnerMark && inner) {
+        noteGenuineMark(inner.goal, mainClear?.hadVarietyCombo ?? false)
+      }
+      if (mainClear && mainClear.refilledCells.length > 0) {
+        const placement = applyPassivePlacement(
+          state.board,
+          mainClear.refilledCells,
+          state.advancedTileAccess,
+          state.pool,
+        )
+        state.board = placement.board
+        state.advancedTileAccess = placement.access
+      }
+      lastIntersectionCells = mainClear?.intersectionCells ?? []
+      emptyPoolPrompt = false
+      saveState(state)
+      paint()
+    },
     onNavigate: (next) => {
       view = next
+      boardTarget = { kind: 'mark' }
+      paint()
+    },
+    onDismissActionNotice: () => {
+      actionNotice = null
+      paint()
+    },
+    onStartRecycle: () => {
+      boardTarget = { kind: 'recycle' }
+      view = 'home'
+      actionNotice = null
+      paint()
+    },
+    onStartSwap: () => {
+      boardTarget = { kind: 'swap', first: null }
+      view = 'home'
+      actionNotice = null
+      paint()
+    },
+    onStartPlace: (track) => {
+      boardTarget = { kind: 'place', track }
+      view = 'home'
+      actionNotice = null
+      paint()
+    },
+    onUpgradeAllowance: () => {
+      const result = purchaseAllowanceUpgrade(state.recycle, state.score.boardBalance)
+      if (!result.ok) {
+        actionNotice =
+          result.reason === 'max-level'
+            ? 'Free recycles are already at the maximum.'
+            : 'Not enough board balance.'
+        paint()
+        return
+      }
+      state.recycle = result.recycle
+      state.score.boardBalance = result.boardBalance
+      actionNotice = null
+      saveState(state)
+      paint()
+    },
+    onExpand: () => {
+      const oldSize = state.board.size
+      const result = purchaseGridExpansion(state.board, state.pool, state.score.boardBalance)
+      if (!result.ok) {
+        if (result.reason === 'empty-pool') {
+          emptyPoolPrompt = true
+          view = 'pool'
+          paint()
+          return
+        }
+        actionNotice =
+          result.reason === 'max-size'
+            ? 'The board is already as large as it can be.'
+            : 'Not enough board balance.'
+        paint()
+        return
+      }
+      state.board = result.board
+      state.score.boardBalance = result.boardBalance
+      const placed = applyPassivePlacementToExposed(
+        state.board,
+        oldSize,
+        state.advancedTileAccess,
+        state.pool,
+      )
+      state.board = placed.board
+      state.advancedTileAccess = placed.access
+      const earned = evaluateAchievements(state.achievements, {
+        totalClears: totalClears(state.stats),
+        boardSize: state.board.size,
+        hadVarietyCombo: false,
+        clearsByDate: state.stats.clearsByDate,
+      })
+      if (earned.length > 0) state.achievements = [...state.achievements, ...earned]
+      actionNotice = null
+      saveState(state)
+      paint()
+    },
+    onPurchaseUnlock: (track, category) => {
+      const result = purchaseAdvancedTileUnlock(
+        state.advancedTileAccess,
+        track,
+        category,
+        state.score.boardBalance,
+      )
+      if (!result.ok) {
+        actionNotice =
+          result.reason === 'already-unlocked'
+            ? 'That tile type is already unlocked for this category.'
+            : 'Not enough board balance.'
+        paint()
+        return
+      }
+      state.advancedTileAccess = result.access
+      state.score.boardBalance = result.boardBalance
+      placeTrack(track, category)
+      actionNotice = null
+      saveState(state)
+      paint()
+    },
+    onPurchaseGlobal: (track) => {
+      const before = state.advancedTileAccess
+      const result = purchaseGlobalAdvancedTileUnlock(
+        before,
+        track,
+        state.categories,
+        state.score.boardBalance,
+      )
+      if (!result.ok) {
+        actionNotice =
+          result.reason === 'nothing-to-unlock'
+            ? 'Every category already has this tile type.'
+            : 'Not enough board balance.'
+        paint()
+        return
+      }
+      state.advancedTileAccess = result.access
+      state.score.boardBalance = result.boardBalance
+      for (const category of newlyUnlockedCategories(before, result.access, track)) {
+        placeTrack(track, category)
+      }
+      actionNotice = null
+      saveState(state)
       paint()
     },
     onAddGoal: (input) => {

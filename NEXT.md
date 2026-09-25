@@ -28,7 +28,7 @@ guard. `partition_check.py --cut` refuses a package that still carries a TBD.
 `figures.txt` is checked by `figures_check.py`. `citation_check.py` checks every `#N`
 in this file, `README.md`, and `DECISIONS.md`. Masters: claude-workflow #40 and #41.
 
-**183 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**185 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
@@ -62,6 +62,22 @@ A work package is done when its acceptance criteria pass and the code is on `mai
 Every package in `work-packages/cut.md` (WP-01 through WP-10) is done. The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
+
+## Done (2026-09-25 session)
+
+- **Intake:** change to existing work, entering at link 6. Impact: requirements none
+  (GB-FUN-036–039, 041, 042, 044 and GB-CON-006 already require the board-balance
+  actions), work packages none.
+- **Board actions screen:** recycle, allowance upgrade, swap, grid expansion, per-category
+  unlock, paid placement, and bulk unlock, all spending board balance only.
+
+## Done (2026-09-23 session)
+
+- **Intake:** change to existing work, entering at link 6. Impact: requirements none
+  (GB-FUN-004's per-mark board balance and GB-FUN-047–050's clear already cover an
+  inner tap), work packages none.
+- **Mini-grid shell** (`D-2026-09-23-1`): the board draws a mini-grid's inner 3×3 and
+  each unmarked inner tap pays 1 board balance, then runs the existing clear.
 
 ## Done (2026-09-22 session)
 
@@ -821,4 +837,4 @@ Current focus matches `vitest`.
 
 ## Last updated
 
-2026-09-22
+2026-09-25

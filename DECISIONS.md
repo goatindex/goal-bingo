@@ -3,6 +3,16 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-23-1 — Mini-grid is playable, and each new inner tap pays 1 board balance
+
+- **Status:** open
+- **Context:** Ordinary play already places mini-grids (`D-2026-09-21-23`), but the shell never drew the inner 3×3 or called `markMiniGridCellOnBoard`. A tap on the parent was a no-op that still paid 1 board balance, because the payment check only asked whether the parent was marked, and a parent stays unmarked until an inner line completes.
+- **Options considered:** stop placing mini-grids until a screen exists (rejected — the tiles are already on boards) · leave the parent tap paying with no way to clear (rejected — that is the bug) · inner taps pay nothing and only a completed inner line scores (rejected) · **draw the 3×3, route each inner tap through the existing clear, and pay 1 board balance for an unmarked inner cell, with a repeat tap of that same cell paying nothing (chosen)**
+- **Why:** The user set the payment: each tap on a mini-grid is worth 1 point. That matches `GB-FUN-004` / `BOARD_BALANCE_PER_MARK` for a main-board mark, including the existing rule that an already-marked cell does not pay again. The parent becoming marked is a consequence of the inner line, not a second tap.
+- **Expected outcome:** An unmarked inner tap increases board balance by exactly 1 when no challenge completes on that tap, and a second tap of that same still-marked inner cell increases it by 0. Completing an inner line still adds that clear's score to lifetime and reward balance on top of the 1.
+- **Revisit:** At first playtest, if mini-grid income (a cell can be tapped again after its line refills) makes the board-balance prices trivial next to main-board marks.
+- **Outcome:** _(filled at review)_
+
 ## D-2026-09-22-1 — Global advanced-tile unlock is per track
 
 - **Status:** open
