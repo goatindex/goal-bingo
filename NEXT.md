@@ -39,9 +39,9 @@ do not update it by hand from memory.
   build item is done; there is no further build-order item queued.
 - ~~**Build the global-unlock layer**~~ **Done**: `D-2026-09-21-22` / `D-2026-09-22-1`,
   progression + bulk purchase per track in `advancedUnlock.ts`, wired on mark.
-- **Package C residual (review process)** — mainly wire `fix_mojibake` into CI.
-  `decision_lint` blocking already landed (#129); cited-path overlap may already be
-  covered by `citation_check.py` (claude-workflow#40).
+- **Package C residual (review process)** — `fix_mojibake` now runs on every pull
+  request (`mojibake-check.yml`). `decision_lint` blocking already landed (#129);
+  cited-path overlap may already be covered by `citation_check.py` (claude-workflow#40).
 - **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`,
   "lifetime score ≥ 10 unlocks one custom category slot") — its own revisit trigger
   ("at first playtest or when category-unlock progression is designed properly for
@@ -65,6 +65,8 @@ Current focus matches `vitest`.
 
 ## Done (2026-09-25 session)
 
+- **Mojibake gate:** `mojibake-check.yml` runs `fix_mojibake.py` in check mode on
+  README, NEXT, DECISIONS, docs, requirements, and work-packages for every pull request.
 - **Intake:** change to existing work, entering at link 6. Impact: requirements none
   (GB-FUN-036–039, 041, 042, 044 and GB-CON-006 already require the board-balance
   actions), work packages none.
