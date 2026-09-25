@@ -66,6 +66,10 @@ Current focus matches `vitest`.
 ## Done (2026-09-25 session)
 
 - **Intake:** change to existing work, entering at link 6. Impact: requirements none
+  (verification-status only; statements unchanged), work packages none.
+- **Verification pass:** 41 requirements set to `verified` where a test or an inspection
+  matches the criteria. The rest stay `not-verified`.
+- **Intake:** change to existing work, entering at link 6. Impact: requirements none
   (GB-FUN-036–039, 041, 042, 044 and GB-CON-006 already require the board-balance
   actions), work packages none.
 - **Board actions screen:** recycle, allowance upgrade, swap, grid expansion, per-category

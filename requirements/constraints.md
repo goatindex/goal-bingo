@@ -181,9 +181,10 @@ trace-to-source: design-description.md 10.2
 verification-method: inspection
 verification-criteria: No feature transmits or displays game state belonging to another
   player.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by inspection of `app/src`: game state stays in local storage, and no path sends another player's state.
 
 ### GB-CON-010 — No goal-verification integration
 statement: Goal Bingo shall accept each mark using only player input, without connecting to
@@ -193,9 +194,10 @@ rationale: 10.2, 3.3.
 trace-to-source: design-description.md 10.2 design-description.md 3.3
 verification-method: inspection
 verification-criteria: No goal-verification integration exists in the codebase.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by inspection of `app/src`: a mark is a tap, with no health, sensor, or external verification call.
 
 ### GB-CON-011 — No real-money balance purchase
 statement: Goal Bingo shall provide each balance exclusively through in-game play, with no
@@ -205,9 +207,10 @@ rationale: Both balances are earned through play only. 10.2.
 trace-to-source: design-description.md 10.2
 verification-method: inspection
 verification-criteria: No in-app purchase flow exists for either balance.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
+notes: Verified by inspection of `app/src/rewards.ts` and the board-balance actions: purchases spend in-game balances only.
 
 ---
 
