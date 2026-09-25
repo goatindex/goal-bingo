@@ -121,8 +121,18 @@ export function markMiniGridCell(
  *  whole main board (GB-FUN-050, D-2026-09-21-19). */
 export const FULL_BOARD_BONUS_RATIO = 1.0
 
+/** Main-board clear caused by marking the parent, when an inner line completed.
+ *  Null when the tap did not mark the parent. */
+export type MainClearReport = {
+  clearedLineCount: number
+  clearedCategories: string[]
+  hadVarietyCombo: boolean
+  intersectionCells: number[]
+  refilledCells: number[]
+}
+
 export type MiniGridBoardResult =
-  | { ok: true; board: Board; scoreDelta: number }
+  | { ok: true; board: Board; scoreDelta: number; mainClear: MainClearReport | null }
   | { ok: false; reason: 'invalid-cell' | 'not-mini-grid' | 'empty-pool' }
 
 /**
@@ -159,7 +169,7 @@ export function markMiniGridCellOnBoard(
   const boardWithUpdatedGrid: Board = { ...board, cells: cellsWithUpdatedGrid }
 
   if (!tapped.parentShouldMark) {
-    return { ok: true, board: boardWithUpdatedGrid, scoreDelta: tapped.scoreDelta }
+    return { ok: true, board: boardWithUpdatedGrid, scoreDelta: tapped.scoreDelta, mainClear: null }
   }
 
   // Checked before marking: the parent cell itself counts as the one still-unmarked
@@ -178,5 +188,16 @@ export function markMiniGridCellOnBoard(
   const fullBoardBonus = wasLastUnmarked ? Math.round(tapped.scoreDelta * FULL_BOARD_BONUS_RATIO) : 0
   const scoreDelta = tapped.scoreDelta + resolved.outcome.scoreDelta + fullBoardBonus
 
-  return { ok: true, board: resolved.outcome.board, scoreDelta }
+  return {
+    ok: true,
+    board: resolved.outcome.board,
+    scoreDelta,
+    mainClear: {
+      clearedLineCount: resolved.outcome.clearedLineCount,
+      clearedCategories: resolved.outcome.clearedCategories,
+      hadVarietyCombo: resolved.outcome.hadVarietyCombo,
+      intersectionCells: resolved.outcome.intersectionCells,
+      refilledCells: resolved.outcome.refilledCells,
+    },
+  }
 }

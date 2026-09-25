@@ -191,6 +191,7 @@ describe('markMiniGridCellOnBoard (GB-FUN-049, GB-FUN-050)', () => {
     if (!result.ok) return
     expect(result.board.cells[0]!.marked).toBe(false)
     expect(result.scoreDelta).toBe(0)
+    expect(result.mainClear).toBeNull()
     const advanced = result.board.cells[0]!.advanced
     expect(advanced?.kind === 'mini-grid' && advanced.cells[8]!.marked).toBe(true)
   })
@@ -202,6 +203,13 @@ describe('markMiniGridCellOnBoard (GB-FUN-049, GB-FUN-050)', () => {
     if (!result.ok) return
     expect(result.board.cells[0]!.marked).toBe(true)
     expect(result.scoreDelta).toBe(MINI_GRID_CLEAR_VALUE)
+    expect(result.mainClear).toEqual({
+      clearedLineCount: 0,
+      clearedCategories: [],
+      hadVarietyCombo: false,
+      intersectionCells: [],
+      refilledCells: [],
+    })
   })
 
   it('adds a cascading main-board clear to the mini-grid clear when marking completes a line', () => {
@@ -222,6 +230,8 @@ describe('markMiniGridCellOnBoard (GB-FUN-049, GB-FUN-050)', () => {
     const rowValue = 5 * CADENCE_BASE_VALUE.daily // mixed categories, no combo bonus
     expect(result.scoreDelta).toBe(MINI_GRID_CLEAR_VALUE + rowValue)
     expect(result.board.cells[0]!.marked).toBe(false) // refilled by the row clear
+    expect(result.mainClear?.clearedLineCount).toBeGreaterThan(0)
+    expect(result.mainClear?.refilledCells).toContain(0)
   })
 
   it('adds the full-board bonus only when the parent cell was the last one unmarked', () => {

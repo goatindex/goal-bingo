@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { createBoard } from './board'
-import { GRID_EXPANSION_COST, purchaseGridExpansion } from './expansion'
+import { freshAdvancedTileAccess } from './advancedUnlock'
+import {
+  GRID_EXPANSION_COST,
+  applyPassivePlacementToExposed,
+  exposedCellIndices,
+  purchaseGridExpansion,
+} from './expansion'
 import { STARTER_POOL } from './storage'
 
 describe('purchaseGridExpansion (GB-FUN-036)', () => {
@@ -49,5 +55,37 @@ describe('purchaseGridExpansion (GB-FUN-036)', () => {
     if (!board.ok) return
     const result = purchaseGridExpansion(board.board, pool, 10_000, () => 0)
     expect(result).toEqual({ ok: false, reason: 'max-size' })
+  })
+})
+
+describe('exposed expansion placement (D-2026-09-21-23)', () => {
+  it('lists only cells whose row or column is past the old size', () => {
+    const indices = exposedCellIndices(5, 7)
+    expect(indices).toHaveLength(49 - 25)
+    expect(indices).toContain(6)
+    expect(indices).not.toContain(0)
+  })
+
+  it('offers the passive advanced-tile chance only on cells the expansion just drew', () => {
+    const pool = STARTER_POOL.map((g) => ({ ...g }))
+    const built = createBoard(7, pool, () => 0)
+    expect(built.ok).toBe(true)
+    if (!built.ok) return
+    const health = pool.find((g) => g.category === 'health')
+    if (!health) throw new Error('starter pool has a health goal')
+    const cells = built.board.cells.slice()
+    cells[0] = { goal: health, marked: false }
+    cells[6] = { goal: health, marked: false }
+    const access = freshAdvancedTileAccess()
+    access.unlockedCategories['multi-completion'] = ['health']
+    const result = applyPassivePlacementToExposed(
+      { ...built.board, cells },
+      5,
+      access,
+      pool,
+      () => 0,
+    )
+    expect(result.board.cells[6]!.advanced?.kind).toBe('multi-completion')
+    expect(result.board.cells[0]!.advanced).toBeUndefined()
   })
 })

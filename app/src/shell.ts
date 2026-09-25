@@ -1,6 +1,23 @@
 import { ACHIEVEMENT_IDS, type AchievementId } from './achievements'
-import type { Board } from './board'
+import { ADVANCED_TILE_PLACEMENT_COST } from './advancedPlacement'
+import {
+  ADVANCED_TILE_TRACKS,
+  ADVANCED_TILE_UNLOCK_COST,
+  globalUnlockCost,
+  isAdvancedTileUnlocked,
+  remainingCategoriesForTrack,
+  type AdvancedTileTrack,
+} from './advancedUnlock'
+import { SUPPORTED_SIZES, type Board, type Cell } from './board'
+import { GRID_EXPANSION_COST } from './expansion'
+import {
+  RECYCLE_ALLOWANCE_MAX_LEVEL,
+  RECYCLE_ALLOWANCE_UPGRADE_COST,
+  RECYCLE_COST,
+  effectiveRemaining,
+} from './recycle'
 import type { GameState } from './storage'
+import { SWAP_COST } from './swap'
 import { averageClearsPerDay } from './stats'
 import {
   CADENCES,
@@ -9,7 +26,14 @@ import {
   listCustomCategories,
 } from './categories'
 
-export type ShellView = 'home' | 'pool' | 'rewards' | 'stats'
+export type ShellView = 'home' | 'pool' | 'rewards' | 'stats' | 'actions'
+
+/** Cell-targeting mode. Not persisted. 'mark' is ordinary play. */
+export type BoardTarget =
+  | { kind: 'mark' }
+  | { kind: 'recycle' }
+  | { kind: 'swap'; first: number | null }
+  | { kind: 'place'; track: AdvancedTileTrack }
 
 const PRIMARY_ACTIONS = [
   { id: 'mark', label: 'Mark' },
@@ -17,8 +41,20 @@ const PRIMARY_ACTIONS = [
   { id: 'pool', label: 'Pool' },
   { id: 'rewards', label: 'Rewards' },
   { id: 'stats', label: 'Stats' },
-  { id: 'recycle', label: 'Recycle' },
+  { id: 'actions', label: 'Actions' },
 ] as const
+
+function trackLabel(track: AdvancedTileTrack): string {
+  return track === 'multi-completion' ? 'Multi-completion' : 'Mini-grid'
+}
+
+function targetHint(target: BoardTarget): string | null {
+  if (target.kind === 'recycle') return 'Tap an unmarked cell to recycle it.'
+  if (target.kind === 'swap' && target.first === null) return 'Tap the first cell to swap.'
+  if (target.kind === 'swap') return 'Tap an adjacent cell to finish the swap.'
+  if (target.kind === 'place') return `Tap an unmarked cell to place a ${trackLabel(target.track)} tile.`
+  return null
+}
 
 const ACHIEVEMENT_LABELS: Record<AchievementId, string> = {
   'first-clear': 'First Clear',
@@ -34,7 +70,12 @@ export type ShellHandlers = {
   /** Cells reported as the intersection of the lines cleared by the most recent mark
    *  (GB-FUN-014) - empty when the last mark cleared zero or one line. */
   lastIntersectionCells: number[]
+  boardTarget: BoardTarget
+  /** Shown when a board-balance action is refused. */
+  actionNotice: string | null
   onMarkCell: (index: number) => void
+  /** Tap one cell inside a mini-grid tile. The parent index is not itself a mark. */
+  onMarkMiniCell: (parentIndex: number, innerIndex: number) => void
   onNavigate: (view: ShellView) => void
   onAddGoal: (input: { title: string; category: string; cadence: string }) => string | null
   onUpdateGoal: (
@@ -47,6 +88,14 @@ export type ShellHandlers = {
   onRemoveReward: (id: string) => void
   onPurchaseReward: (id: string) => void
   onDismissEmptyPrompt: () => void
+  onDismissActionNotice: () => void
+  onStartRecycle: () => void
+  onStartSwap: () => void
+  onStartPlace: (track: AdvancedTileTrack) => void
+  onUpgradeAllowance: () => void
+  onExpand: () => void
+  onPurchaseUnlock: (track: AdvancedTileTrack, category: string) => void
+  onPurchaseGlobal: (track: AdvancedTileTrack) => void
 }
 
 function escapeHtml(value: string): string {
@@ -83,13 +132,23 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
             : ''
         }
         ${
+          h.actionNotice
+            ? `<p class="shell__banner shell__banner--warn" role="alert" data-testid="action-notice">
+                ${escapeHtml(h.actionNotice)}
+                <button type="button" data-testid="dismiss-action-notice">OK</button>
+              </p>`
+            : ''
+        }
+        ${
           h.view === 'home'
-            ? renderHome(state, h.lastIntersectionCells)
+            ? renderHome(state, h.lastIntersectionCells, h.boardTarget)
             : h.view === 'pool'
               ? renderPool(state, unlockReady, customCategories)
               : h.view === 'rewards'
                 ? renderRewards(state)
-                : renderStats(state)
+                : h.view === 'actions'
+                  ? renderActions(state)
+                  : renderStats(state)
         }
       </main>
 
@@ -99,6 +158,7 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
             (a.id === 'pool' && h.view === 'pool') ||
             (a.id === 'rewards' && h.view === 'rewards') ||
             (a.id === 'stats' && h.view === 'stats') ||
+            (a.id === 'actions' && h.view === 'actions') ||
             (a.id === 'board' && h.view === 'home')
           return `<button type="button" class="thumb-btn${active ? ' thumb-btn--active' : ''}" data-action="${a.id}" data-testid="action-${a.id}">${a.label}</button>`
         }).join('')}
@@ -109,11 +169,21 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
   bindHome(root, h)
   bindPool(root, h)
   bindRewards(root, h)
+  bindActions(root, h)
   bindNav(root, h)
+  root.querySelector('[data-testid="dismiss-action-notice"]')?.addEventListener('click', () => {
+    h.onDismissActionNotice()
+  })
 }
 
-function renderHome(state: GameState, lastIntersectionCells: number[]): string {
+function renderHome(
+  state: GameState,
+  lastIntersectionCells: number[],
+  target: BoardTarget,
+): string {
+  const hint = targetHint(target)
   return `
+    ${hint ? `<p class="shell__banner" role="status" data-testid="target-hint">${escapeHtml(hint)}</p>` : ''}
     <section class="shell__status" aria-label="Local status">
       <p>Pool: <strong data-testid="pool-count">${state.pool.length}</strong> goals</p>
       <p>Lifetime: <strong data-testid="lifetime">${state.score.lifetime}</strong></p>
@@ -121,18 +191,48 @@ function renderHome(state: GameState, lastIntersectionCells: number[]): string {
       <p>Board balance: <strong data-testid="board-balance">${state.score.boardBalance}</strong></p>
       <p class="shell__hint">No account. Works offline. Data stays on this device.</p>
     </section>
-    ${renderBoard(state.board, lastIntersectionCells)}
+    ${renderBoard(state.board, lastIntersectionCells, target)}
   `
 }
 
-function renderBoard(board: Board, lastIntersectionCells: number[]): string {
+function renderMiniSquares(parentIndex: number, cells: Cell[]): string {
+  return cells
+    .map((innerCell, innerIndex) => {
+      const innerClasses = ['mini-cell']
+      if (innerCell.marked) innerClasses.push('mini-cell--marked')
+      const title = escapeHtml(innerCell.goal.title)
+      return `<button
+        type="button"
+        class="${innerClasses.join(' ')}"
+        data-testid="mini-cell-${parentIndex}-${innerIndex}"
+        data-parent-index="${parentIndex}"
+        data-inner-index="${innerIndex}"
+        aria-pressed="${innerCell.marked}"
+        aria-label="${title}"
+        title="${title}"
+      >${title}</button>`
+    })
+    .join('')
+}
+
+function renderBoard(board: Board, lastIntersectionCells: number[], target: BoardTarget): string {
   const intersection = new Set(lastIntersectionCells)
+  const swapFirst = target.kind === 'swap' ? target.first : null
   const cells = board.cells
     .map((cell, i) => {
       const classes = ['board-cell']
       if (cell.marked) classes.push('board-cell--marked')
       if (intersection.has(i)) classes.push('board-cell--intersection')
+      if (swapFirst === i) classes.push('board-cell--selected')
       // GB-FUN-046: show a multi-completion tile's progress alongside its title.
+      if (cell.advanced?.kind === 'mini-grid') {
+        return `<div
+          class="${classes.join(' ')} board-cell--mini"
+          data-testid="board-cell-${i}"
+          role="group"
+          aria-label="${escapeHtml(cell.goal.title)}"
+        ><div class="mini-grid">${renderMiniSquares(i, cell.advanced.cells)}</div></div>`
+      }
       const progress =
         cell.advanced?.kind === 'multi-completion'
           ? ` <span class="board-cell__progress" data-testid="board-cell-${i}-progress">${cell.advanced.completionsSoFar}/${cell.advanced.completionsRequired}</span>`
@@ -151,6 +251,89 @@ function renderBoard(board: Board, lastIntersectionCells: number[]): string {
     <section class="board" aria-label="Board" data-testid="board">
       <div class="board__grid" style="grid-template-columns: repeat(${board.size}, 1fr)">
         ${cells}
+      </div>
+    </section>
+  `
+}
+
+function renderActions(state: GameState): string {
+  const balance = state.score.boardBalance
+  const freeRecycles = effectiveRemaining(state.recycle, Date.now())
+  const atAllowanceCap = state.recycle.allowanceLevel >= RECYCLE_ALLOWANCE_MAX_LEVEL
+  const atMaxSize = state.board.size === SUPPORTED_SIZES[SUPPORTED_SIZES.length - 1]
+  const canPay = (cost: number) => balance >= cost
+
+  const unlockRows = state.categories.flatMap((category) =>
+    ADVANCED_TILE_TRACKS.filter(
+      (track) => !isAdvancedTileUnlocked(state.advancedTileAccess, track, category),
+    ).map((track) => {
+      const affordable = canPay(ADVANCED_TILE_UNLOCK_COST)
+      return `<li class="pool-item">
+        <span>${escapeHtml(trackLabel(track))} · ${escapeHtml(category)}</span>
+        <span>${ADVANCED_TILE_UNLOCK_COST}</span>
+        <button type="button" data-testid="purchase-unlock" data-track="${track}" data-category="${escapeHtml(category)}" ${affordable ? '' : 'disabled'}>Unlock</button>
+      </li>`
+    }),
+  )
+
+  const placeButtons = ADVANCED_TILE_TRACKS.map((track) => {
+    const unlocked = state.categories.some((category) =>
+      isAdvancedTileUnlocked(state.advancedTileAccess, track, category),
+    )
+    const affordable = canPay(ADVANCED_TILE_PLACEMENT_COST) && unlocked
+    return `<button type="button" data-testid="start-place" data-track="${track}" ${affordable ? '' : 'disabled'}>Place ${escapeHtml(trackLabel(track))} (${ADVANCED_TILE_PLACEMENT_COST})</button>`
+  }).join('')
+
+  const globalButtons = ADVANCED_TILE_TRACKS.map((track) => {
+    const remaining = remainingCategoriesForTrack(
+      state.advancedTileAccess,
+      track,
+      state.categories,
+    )
+    const cost = remaining.length === 0 ? 0 : globalUnlockCost(remaining.length)
+    const affordable = remaining.length > 0 && canPay(cost)
+    const label =
+      remaining.length === 0
+        ? `${trackLabel(track)} already unlocked`
+        : `All ${trackLabel(track)} (${cost})`
+    return `<button type="button" data-testid="purchase-global" data-track="${track}" ${affordable ? '' : 'disabled'}>${escapeHtml(label)}</button>`
+  }).join('')
+
+  return `
+    <section class="pool" aria-label="Board actions" data-testid="actions-view">
+      <h2 class="pool__heading">Board actions</h2>
+      <p>Board balance: <strong data-testid="actions-balance">${balance}</strong></p>
+      <p class="shell__hint">Spent from board balance only.</p>
+
+      <div class="pool__form">
+        <h3>Recycle</h3>
+        <p>Free recycles left: <strong data-testid="free-recycles">${freeRecycles}</strong></p>
+        <button type="button" data-testid="start-recycle" ${freeRecycles > 0 || canPay(RECYCLE_COST) ? '' : 'disabled'}>Recycle a cell</button>
+        <p class="shell__hint">Free while any remain, then ${RECYCLE_COST} board balance.</p>
+        <button type="button" data-testid="upgrade-allowance" ${!atAllowanceCap && canPay(RECYCLE_ALLOWANCE_UPGRADE_COST) ? '' : 'disabled'}>${atAllowanceCap ? 'Free recycles at maximum' : `More free recycles (${RECYCLE_ALLOWANCE_UPGRADE_COST})`}</button>
+      </div>
+
+      <div class="pool__form">
+        <h3>Swap</h3>
+        <button type="button" data-testid="start-swap" ${canPay(SWAP_COST) ? '' : 'disabled'}>Swap adjacent cells (${SWAP_COST})</button>
+      </div>
+
+      <div class="pool__form">
+        <h3>Expand</h3>
+        <button type="button" data-testid="expand-grid" ${!atMaxSize && canPay(GRID_EXPANSION_COST) ? '' : 'disabled'}>${atMaxSize ? 'Board is full size' : `Expand the grid (${GRID_EXPANSION_COST})`}</button>
+      </div>
+
+      <h3>Unlock a tile type</h3>
+      <ul class="pool__list" data-testid="unlock-list">${unlockRows.join('') || '<li class="shell__hint">Every category already has both tile types.</li>'}</ul>
+
+      <div class="pool__form">
+        <h3>Place a tile</h3>
+        ${placeButtons}
+      </div>
+
+      <div class="pool__form">
+        <h3>Unlock a type for every category</h3>
+        ${globalButtons}
       </div>
     </section>
   `
@@ -307,19 +490,55 @@ function bindNav(root: HTMLElement, h: ShellHandlers): void {
   root.querySelector('[data-action="rewards"]')?.addEventListener('click', () => h.onNavigate('rewards'))
   root.querySelector('[data-action="stats"]')?.addEventListener('click', () => h.onNavigate('stats'))
   root.querySelector('[data-action="mark"]')?.addEventListener('click', () => h.onNavigate('home'))
-  // Recycle's UI (WP-07's power-ups have no view yet, flagged in NEXT.md) stays
-  // unwired — do not overload the label with a draw stub.
+  root.querySelector('[data-action="actions"]')?.addEventListener('click', () => h.onNavigate('actions'))
 }
 
 function bindHome(root: HTMLElement, h: ShellHandlers): void {
-  root.querySelectorAll<HTMLButtonElement>('.board-cell').forEach((btn) => {
+  root.querySelectorAll<HTMLButtonElement>('button.board-cell').forEach((btn) => {
     btn.addEventListener('click', () => {
       const index = Number(btn.dataset.index)
       h.onMarkCell(index)
     })
   })
+  root.querySelectorAll<HTMLButtonElement>('.mini-cell').forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+      event.stopPropagation()
+      const parentIndex = Number(btn.dataset.parentIndex)
+      const innerIndex = Number(btn.dataset.innerIndex)
+      if (h.boardTarget.kind === 'mark') h.onMarkMiniCell(parentIndex, innerIndex)
+      else h.onMarkCell(parentIndex)
+    })
+  })
   root.querySelector('[data-testid="dismiss-empty-prompt"]')?.addEventListener('click', () => {
     h.onDismissEmptyPrompt()
+  })
+}
+
+function bindActions(root: HTMLElement, h: ShellHandlers): void {
+  root.querySelector('[data-testid="start-recycle"]')?.addEventListener('click', () => h.onStartRecycle())
+  root.querySelector('[data-testid="upgrade-allowance"]')?.addEventListener('click', () => h.onUpgradeAllowance())
+  root.querySelector('[data-testid="start-swap"]')?.addEventListener('click', () => h.onStartSwap())
+  root.querySelector('[data-testid="expand-grid"]')?.addEventListener('click', () => h.onExpand())
+  root.querySelectorAll<HTMLButtonElement>('[data-testid="purchase-unlock"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const track = btn.dataset.track
+      const category = btn.dataset.category
+      if (track === 'multi-completion' || track === 'mini-grid') {
+        if (category) h.onPurchaseUnlock(track, category)
+      }
+    })
+  })
+  root.querySelectorAll<HTMLButtonElement>('[data-testid="start-place"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const track = btn.dataset.track
+      if (track === 'multi-completion' || track === 'mini-grid') h.onStartPlace(track)
+    })
+  })
+  root.querySelectorAll<HTMLButtonElement>('[data-testid="purchase-global"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const track = btn.dataset.track
+      if (track === 'multi-completion' || track === 'mini-grid') h.onPurchaseGlobal(track)
+    })
   })
 }
 
