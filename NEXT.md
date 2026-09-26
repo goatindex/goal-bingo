@@ -66,6 +66,11 @@ Current focus matches `vitest`.
 
 ## Done (2026-09-26 session)
 
+- **Merge is asked, not assumed:** the merge gate now answers every reviewed merge with a
+  permission prompt, requires `--match-head-commit`, and refuses a stacked base
+  (claude-workflow#44); link 6 states who runs the merge (project-tracking#52,
+  `D-2026-09-26-1`); `CLAUDE.md` says to ask at merge-ready. Prompted by a merge attempted
+  unasked, and by `--delete-branch` on #157 closing #159, recovered by restoring the branch.
 - **Requirements amended for the presentation decisions:** GB-FUN-009 (press-and-hold,
   not tap), GB-FUN-014 (intersection as the focal point of the clear moment) and GB-FUN-045
   (completions by hold) now match `D-2026-09-26-1` and `D-2026-09-26-4`; ids kept, all three
