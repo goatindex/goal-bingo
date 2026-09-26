@@ -50,6 +50,42 @@ describe('recycleCell (GB-FUN-039, GB-CON-008)', () => {
     expect(beforeBalance).toBe(0)
   })
 
+  it('refuses an unmarked advanced tile without touching allowance or balance', () => {
+    const pool = STARTER_POOL.map((g) => ({ ...g }))
+    const board = createBoard(5, pool, () => 0)
+    expect(board.ok).toBe(true)
+    if (!board.ok) return
+    const plain = board.board.cells[0]!
+    const advancedBoards = [
+      {
+        ...board.board,
+        cells: board.board.cells.map((cell, index) =>
+          index === 0
+            ? { ...plain, marked: false, advanced: { kind: 'mini-grid' as const, cells: [] } }
+            : cell,
+        ),
+      },
+      {
+        ...board.board,
+        cells: board.board.cells.map((cell, index) =>
+          index === 0
+            ? {
+                ...plain,
+                marked: false,
+                advanced: { kind: 'multi-completion' as const, completionsRequired: 3, completionsSoFar: 1 },
+              }
+            : cell,
+        ),
+      },
+    ]
+    for (const advanced of advancedBoards) {
+      const before = advanced.cells[0]
+      const result = recycleCell(advanced, pool, 0, FRESH, 20, Math.random, NOW)
+      expect(result).toEqual({ ok: false, reason: 'advanced' })
+      expect(advanced.cells[0]).toEqual(before)
+    }
+  })
+
   it('uses the free allowance first, leaving board balance untouched', () => {
     const pool = STARTER_POOL.map((g) => ({ ...g }))
     const board = createBoard(5, pool, () => 0)

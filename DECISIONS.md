@@ -3,6 +3,16 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-25-1 — An advanced tile is not a recycle target
+
+- **Status:** open
+- **Context:** Recycle refused a marked cell and then replaced any other cell. Once the Actions screen could target a cell, an unmarked mini-grid or multi-completion tile could be recycled into a plain goal, dropping the nested grid or the in-progress completion count, with no extra confirmation. The player had paid board balance or marks for that tile.
+- **Options considered:** replace an advanced tile like any other unmarked cell (rejected — the tile and its progress disappear for the ordinary recycle price) · ask for a second confirmation and then replace it (rejected — the loss is the problem, not the surprise) · **refuse the recycle when the cell holds an advanced tile, and leave the cell, the allowance, and the board balance unchanged (chosen)**
+- **Why:** Swap already moves an advanced tile whole, and paid placement already refuses a cell that is advanced. Recycle is the path that destroyed one. GB-FUN-039 now says an advanced tile is rejected.
+- **Expected outcome:** `recycleCell` on an unmarked mini-grid cell and on an unmarked multi-completion cell returns `{ ok: false, reason: 'advanced' }`, and the cell object is unchanged.
+- **Revisit:** At first playtest, if an advanced tile is what jams a line and players have no other way to clear that cell.
+- **Outcome:** _(filled at review)_
+
 ## D-2026-09-25-2 — Eight verification criteria name an observation the app can show
 
 - **Status:** open

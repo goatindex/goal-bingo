@@ -660,20 +660,26 @@ notes: Wider-range swap is an upgrade area, not a base-game feature. Price is 10
   Verified by `app/src/swap.test.ts`: adjacent cells exchange goals, and a non-adjacent pair is refused.
 
 ### GB-FUN-039 — Recycle power-up replaces unmarked tile
-statement: When the player activates a recycle on an unmarked tile, Goal Bingo shall remove
-  that tile from the cell and draw a replacement goal from the pool into the same cell.
+statement: When the player activates a recycle on an unmarked tile that is not an advanced
+  tile, Goal Bingo shall remove that tile from the cell and draw a replacement goal from
+  the pool into the same cell. When the selected cell holds an advanced tile, Goal Bingo
+  shall reject the recycle and leave the cell, the allowance, and the board balance
+  unchanged.
 type: functional
 rationale: The recycle is the primary way out of a blocked line. D-2026-09-19-10.
 trace-to-source: design-description.md 6.2
 verification-method: test
-verification-criteria: After a recycle, the selected cell contains a different goal; the
-  prior goal is no longer visible in that cell.
+verification-criteria: After a recycle of an unmarked tile that is not advanced, the
+  selected cell contains a different goal; the prior goal is no longer visible in that
+  cell. A recycle of an advanced tile is rejected, and that cell, the allowance, and
+  the board balance are unchanged.
 verification-status: verified
 owner: k
 priority: must
 notes: Paid recycle cost (once the free allowance is exhausted, GB-FUN-042) is 5 board
   balance, ported from `sim/jam_sim.py`'s own `recycle_cost` default (`D-2026-09-21-8`).
-  Verified by `app/src/recycle.test.ts`: recycling an unmarked cell replaces its goal.
+  An advanced tile is not a recycle target (`D-2026-09-25-1`).
+  Verified by `app/src/recycle.test.ts`: recycling an unmarked cell replaces its goal, and an advanced tile is refused with the cell, allowance, and balance unchanged.
 
 ### GB-FUN-040 — Recycle unavailable on marked tiles
 statement: If the player selects a marked tile for recycle, Goal Bingo shall reject the

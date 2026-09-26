@@ -75,7 +75,9 @@ function handleTargetTap(index: number): void {
       refuseAction(
         result.reason === 'marked'
           ? 'Marked cells cannot be recycled.'
-          : 'Not enough board balance.',
+          : result.reason === 'advanced'
+            ? 'Advanced tiles cannot be recycled.'
+            : 'Not enough board balance.',
       )
       return
     }
