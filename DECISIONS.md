@@ -3,6 +3,56 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-26-5 — Light mode and dark mode both ship
+
+- **Status:** open
+- **Context:** Playtest said the board was not visually pleasing. The presentation brief's Q5 was whether to deepen the one stone skin or compare two skins and keep one.
+- **Options considered:** one skin, deepened (rejected — a single palette cannot show what "pleasing" means, and it cannot serve both a light and a dark preference) · compare two skins and delete the loser (rejected — both a light UI and a dark UI are wanted at once) · **ship at least a light mode and a dark mode, as token overrides on the same markup, and allow further modes the same way (chosen)**
+- **Why:** The player asked for both modes, and for more to remain possible. A further mode is another token set, not another renderer.
+- **Expected outcome:** The player can switch the same board between a light palette and a dark palette, and board state is unchanged by the switch. A third palette can be added without a new shell.
+- **Revisit:** At the first playtest of both modes. If category color fails contrast in either mode, fix the palette before adding a third. If players never leave the mode they started in, still keep both.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-4 — Mark leaves the thumb bar; a mark is a short press-and-hold
+
+- **Status:** open
+- **Context:** Playtest said the Mark item did nothing. In the shell it shares Board's handler and never shows active. The presentation brief's Q4 was whether Mark becomes the way back to marking, or leaves the bar. The player added a mark gesture: press and hold, with a fill, so a mark feels deliberate and a brief press does not mark.
+- **Options considered:** keep Mark and make it the active "back to marking" control (rejected — the player chose to remove it) · leave Mark as a second Board (rejected — that is the control the playtest could not see working) · tap-to-mark kept as the only gesture (rejected — it is the accidental mis-mark, and it has no moment of its own) · **remove Mark from the thumb bar, and require a press-and-hold with a short filling animation before a cell marks (chosen)**
+- **Why:** Board already goes home and already clears an armed recycle, swap, or place. The hold is the safety and the sensation. How long the hold lasts is not set here. The hold is the mark in every advanced-tile presentation setting (`D-2026-09-26-3`); that setting does not restore tap-to-mark. GB-FUN-009 still says "taps" and is to be amended before anyone builds this, id kept.
+- **Expected outcome:** The thumb bar has no Mark control. A press released before the hold completes leaves the cell unmarked and pays no board balance. A press held through the fill marks the cell once. The same hold marks a mini-grid inner cell and records one completion on a multi-completion tile.
+- **Revisit:** At the next playtest. If people stop marking, or miss marks they meant, add a tap-to-mark preference and keep the hold as the default. If the fill feels like a wait across a run of marks, shorten or drop the motion and keep the hold gate. If brief presses still mark, the gate is wrong.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-3 — How an advanced tile is shown is a player setting
+
+- **Status:** open
+- **Context:** Playtest said both advanced tile types were hard to see, and suggested a zoom on click. The presentation brief's Q3 was one global gesture: tap marks and another gesture opens the tile, or tap opens the tile and the mark sits inside. Screen size and preference differ.
+- **Options considered:** one gesture for every player, tap-opens (rejected — some screens and some players can read the cell and do not want a tap to take over the board) · one gesture for every player, mark-immediately with zoom only on a second gesture (rejected — a small screen cannot read a 3×3 or a `k/N` at cell size) · **the player can change how a multi-completion tile and a mini-grid are presented, so screen size or preference can differ (chosen)**
+- **Why:** Readability of the two tile types is one problem with two tolerable answers. The mark itself stays the hold in `D-2026-09-26-4` under every value of this setting. Which controls the setting contains is not listed here.
+- **Expected outcome:** Two saved values of the setting present the same mini-grid, and the same multi-completion tile, differently. The player can choose the value; a small screen does not lock it. Changing the value does not mark the tile.
+- **Revisit:** Before implementation, name the controls. After the first playtest, if players never change the setting, or a small screen still cannot read the tile under every value, decide whether one presentation should be the only one.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-2 — A cell shows its category
+
+- **Status:** open
+- **Context:** Arrangement is the game's first targeted aesthetic, and matching and variety are scored from category. The cell paints the goal title only. The presentation brief's Q2 was a category cue on the cell, or titles alone.
+- **Options considered:** titles only, category left on the pool screen (rejected — the pattern the player is arranging is invisible until a clear changes a number) · **each cell shows a category cue, colored from a palette indexed by the player's category list (chosen)**
+- **Why:** Categories are not a fixed set, so the color cannot be a class named after the category. The title stays; the cue shares the cell.
+- **Expected outcome:** On a board with two categories, a player can point to which cells share a category without opening the pool. A category added later receives a palette color without a new CSS rule per name.
+- **Revisit:** At the first phone playtest. If the cue makes titles unreadable on a 5–7 inch screen, keep the cue as a corner or a band and give the title the rest of the cell.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-1 — A line clear is a short visible moment
+
+- **Status:** open
+- **Context:** Playtest said clearing a line was not visually rewarding. A clear updates the header totals and refills the cells before the next paint. A multi-clear adds a gold outline on the intersection indexes of the new goals. `D-2026-09-19-14`'s revisit (after the first playable prototype) has fired. The presentation brief's Q1 was a short moment, or the totals alone.
+- **Options considered:** totals only (rejected — that is the shell the playtest saw, and it misses the expected outcome already on `D-2026-09-19-14`) · a blocking ceremony that holds the board (rejected — a daily mark should not wait on an animation, and §3.2 still forbids handing the player an empty board) · **a short moment on every clear, single or multi: which cells cleared and the points of that clear, painted on the already-refilled board; a multi-clear keeps the intersection as the focal point; reduced motion keeps the same information and drops the motion (chosen)**
+- **Why:** The score and the line are already computed. The moment makes them visible without becoming a session boundary. How long the moment stays up is not set here.
+- **Expected outcome:** After a single-line clear and after a double-clear, a player can say which cells cleared and what that clear scored. The board they can act on is the refilled one. A second mark is accepted without waiting for the moment to finish.
+- **Revisit:** At the next playtest of a clear. If players still cannot say what the clear scored, the moment is missing a fact. If they wait it out, or it gets in the way of the next mark, shorten it. If the intersection makes it unclear which lines scored, that is `D-2026-09-19-14`'s own revisit.
+- **Outcome:** _(filled at review)_
+
 ## D-2026-09-25-1 — An advanced tile is not a recycle target
 
 - **Status:** open
@@ -1009,14 +1059,16 @@ source of requirements, so the reverse walk from a failing test ends here.
   visual treatment and is the anchor for the multi-clear bonus calculation (chosen)**
 - **Why:** The intersection is the only cell in the game that simultaneously completes two
   independent obligations. Making it the focal point of the reward is consistent with how
-  the game values marks, and gives the player a clear read on what scored what. The exact
-  animation and bonus formula are tuning questions; the principle that the cell is the
-  anchor is the decision.
+  the game values marks, and gives the player a clear read on what scored what. The bonus
+  formula is settled elsewhere. **Amended 2026-09-26:** the playtest revisit fired. Whether
+  there is a visible moment is no longer open — `D-2026-09-26-1` specifies a short moment
+  on every clear, with this cell still the focal point of a multi-clear. How long that
+  moment stays up is unset.
 - **Expected outcome:** Double-clears are visually distinct and feel earned; players begin
   positioning for multi-line completions deliberately.
-- **Revisit:** After first playable prototype. If the intersection animation makes it
-  unclear which lines scored what, decouple the visual focal point from the bonus
-  calculation.
+- **Revisit:** The first-prototype trigger has fired (2026-09-26). Next: the playtest of
+  `D-2026-09-26-1`'s moment. If the intersection makes it unclear which lines scored,
+  decouple the visual focal point from the bonus calculation.
 
 ## D-2026-09-19-13 — Diagonals count as lines; all completing lines resolve on a simultaneous mark
 

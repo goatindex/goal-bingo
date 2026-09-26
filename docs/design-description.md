@@ -69,7 +69,8 @@ same time as it raises the ceiling, and its pricing has to answer for that.
 ### 3.2 Cells and tiles
 
 A cell holds one tile. A tile carries the goal drawn into it, its category, and whether it
-is marked. Ordinary tiles need one completion. Advanced tiles (§7) need more.
+is marked. The board shows that category on the cell (`D-2026-09-26-2`). Ordinary tiles
+need one completion. Advanced tiles (§7) need more.
 
 An empty cell is a transient state between a line clearing and the refill landing. The
 board is never presented to the player as playable while it holds an empty cell: the refill
@@ -77,8 +78,9 @@ completes before the player can act again.
 
 ### 3.3 Marking
 
-Marking is **self-reported**. The player taps the cell when they have done the thing. There
-is no verification, no sensor, no integration that confirms it.
+Marking is **self-reported**. The player presses and holds the cell when they have done the
+thing (`D-2026-09-26-4`). A press that ends early does not mark. There is no verification,
+no sensor, no integration that confirms it.
 
 This is a deliberate position, not a shortcut. The player is the only audience, so cheating
 is self-defeating, and the alternative — gating a mark behind a health API or a photo —
@@ -90,7 +92,10 @@ from.
 A line is a complete row, column, or diagonal (`D-2026-09-19-13`).
 
 When a line's every cell is marked, the line clears at once: score is awarded (§5), the
-cells empty, and the refill draws new goals into them (§4.4).
+cells empty, and the refill draws new goals into them (§4.4). Every clear, including a
+single line, then shows a short moment of which cells cleared and what that clear scored,
+on the refilled board (`D-2026-09-26-1`). The board is playable as soon as it is refilled;
+the moment does not hold the next mark.
 
 **Simultaneous completion.** When one mark completes more than one line at once, every line
 resolves — each clears, scores, and refills — and bonus points are awarded for the
@@ -603,6 +608,7 @@ invented here reads as fact once it is a requirement.
   | ~~Q22~~ | ~~How the remaining draw weight splits across the three short-term cadences (hourly/daily/weekly), now that the long-term share is set~~ — **resolved** by `D-2026-09-21-1`: 40% hourly / 40% daily / 20% weekly, ported from `sim/jam_sim.py`'s own `SHORT_MIX` | §4.4, §4.3 |
   | ~~Q23~~ | ~~Whether ambient blocking (§10.4) should target a fixed share, or vary with grid size~~ — **resolved** by `D-2026-09-19-25`: fixed share regardless of grid size; perception difference is speculative | §10.4, §3.1 |
   | Q24 | Whether `sim/jam_sim.py`'s remaining harsher assumptions (swap not modelled; challenge income idealised as always-available) should be revisited once those questions settle — the Q14 assumption (marks lost) is now the decided rule (`D-2026-09-19-15`) and is confirmed | §10.3, §10.4 |
+| Q25 | How long a mark must be held before it counts, and how long a clear moment stays up (`D-2026-09-26-4`, `D-2026-09-26-1`). Both are "short". Neither duration is a number yet | §3.3, §3.4 |
 
 Q22 through Q24 are new, surfaced by building the Q20 simulation rather than by review. A
 simulation answers the question it was pointed at and exposes the ones nobody had framed

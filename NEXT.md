@@ -66,6 +66,14 @@ Current focus matches `vitest`.
 
 ## Done (2026-09-26 session)
 
+- **Intake:** change to existing work, entering at link 3. Impact: requirements yes
+  (GB-FUN-009 still says a tap; GB-FUN-014 still stops at a distinct intersection;
+  GB-FUN-045's criteria still count taps — statements not amended in this pass, ids kept;
+  `D-2026-09-26-1` through `D-2026-09-26-5`), work packages none.
+- **Intake:** change to existing work, entering at link 6. Impact: requirements conditional
+  (none for a visual pass over rules that already hold; yes if a chosen option changes what a
+  tap does, or raises GB-FUN-014 from distinct treatment to a specified animation), work
+  packages none.
 - **Review-process auth cleanup:** User-level `ANTHROPIC_API_KEY` was overriding Claude
   subscription for local Claude Code. Quarantined to `~\.claude\quarantine\`; CI remains
   `CLAUDE_CODE_OAUTH_TOKEN` only (subscription) on goatindex repos.
