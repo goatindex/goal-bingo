@@ -3,6 +3,36 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-26-8 — The board shows no cadence cue
+
+- **Status:** open
+- **Context:** A long-term tile blocks its row and its column (§4.3), and at the ~5% draw share about half the lines hold one (§10.4). `D-2026-09-26-2` puts a category cue on each cell. The board mockup raised whether a cell should also show its cadence, so that the player can see which tiles block.
+- **Options considered:** a marker on long-term tiles only (rejected — the player chose to keep the cell to title and category for now) · a glyph for all four cadences (rejected — a 66 px cell at 5×5, and less at 7×7, has no room for a second cue next to the title and the category band) · **no cadence cue on the board; cadence stays on the pool screen (chosen)**
+- **Why:** The cell already carries a title and a category cue. The player knows which goals they set as long-term. A second cue is added only if a playtest shows it is needed.
+- **Expected outcome:** A board cell renders the goal title and the category cue and no cadence indicator. At the first phone playtest, players can still name which tiles on their board are long-term when asked.
+- **Revisit:** At the first phone playtest. If players cannot say which tiles block their lines, or they plan around a tile they think is long-term and it is not, add a long-term-only marker and record it. If players ask for cadence on every cell, reconsider the all-cadence glyph at 5×5 only.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-7 — The board screen shows one compact challenge strip
+
+- **Status:** open
+- **Context:** Challenges are the only source of board balance (§5.3, §8.2), but in the shell they are visible only on their own tab. The board mockup tried a panel of all three challenge types under the board. That panel uses the vertical space a 7×7 board will need (`D-2026-09-20-8`).
+- **Options considered:** a full panel with universal, category and cadence progress under the board (rejected — it competes with the board at larger grid sizes) · no challenge progress on the board screen (rejected — the player cannot see what their marks earn toward) · **one compact row under the board with the universal challenge's progress, which opens the Challenges view (chosen)**
+- **Why:** The universal challenge is the coverage guarantee: every mark counts toward it (`D-2026-09-19-17`). One row shows that marking pays, and leaves the space for the board.
+- **Expected outcome:** The board screen shows the universal challenge's progress in one row that fits under a 7×7 board on a 390×844 viewport without scrolling the board. Activating the row opens the Challenges view.
+- **Revisit:** At the first playtest. If players do not know what earns board balance, show the category and cadence progress too. If the row is never used, remove it.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-6 — The advanced-tile presentation setting has two values
+
+- **Status:** open
+- **Context:** `D-2026-09-26-3` made how an advanced tile is shown a player setting, and its revisit asked that the controls be named before implementation.
+- **Options considered:** the same two values set separately for mini-grid and for multi-completion tiles (rejected — two settings for one readability problem) · three values, adding a zoom in place over the neighbouring cells (rejected — more to build and test before any playtest shows it is needed) · **one setting, "Show advanced tiles", with two values: "In the cell" (mark inner cells on the board) and "Open larger" (a press opens the tile in a sheet, and marks are made inside it) (chosen)**
+- **Why:** Two saved values are the least that meets `D-2026-09-26-3`'s expected outcome. The press-and-hold stays the mark under both values (`D-2026-09-26-4`). Which value is the default is not set here.
+- **Expected outcome:** The setting shows exactly two values. Under "Open larger", pressing a mini-grid or multi-completion tile opens it and does not mark it. Under "In the cell", a hold on a mini-grid inner cell marks it on the board. Changing the value marks nothing.
+- **Revisit:** After the first playtest. If players on small screens never leave "Open larger", or a multi-completion tile reads fine in the cell but a mini-grid does not, reconsider a per-type setting.
+- **Outcome:** _(filled at review)_
+
 ## D-2026-09-26-5 — Light mode and dark mode both ship
 
 - **Status:** open

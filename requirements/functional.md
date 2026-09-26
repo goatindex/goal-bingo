@@ -142,18 +142,26 @@ notes: Verified by `app/src/lines.test.ts`: a clear refills every emptied cell b
 ## 3.3 — Marking
 
 ### GB-FUN-009 — Marking requires only player input
-statement: Goal Bingo shall accept a mark on a cell when the player taps it, requiring no
-  external verification.
+statement: Goal Bingo shall mark a cell only when the player holds a press on that cell
+  for the full hold duration, with no external verification.
 type: functional
 rationale: Marking is self-reported. No health API, sensor, or integration is required.
-  D-2026-09-19-5 (restart from design, not prototype), 3.3 position.
+  The hold makes a mark deliberate and stops an accidental mis-mark. D-2026-09-19-5
+  (restart from design, not prototype), 3.3 position, D-2026-09-26-4.
 trace-to-source: design-description.md 3.3
 verification-method: test
-verification-criteria: Marking an unmarked cell marks it, and the mark path sends no request and asks for no confirmation.
-verification-status: verified
+verification-criteria: A press held through the hold duration marks an unmarked cell
+  once. A press released before the hold duration leaves the cell unmarked and pays no
+  board balance. The same hold marks a mini-grid inner cell. The mark path sends no request
+  and asks for no confirmation.
+verification-status: not-verified
 owner: k
 priority: must
-notes: Verified by the mark tests in `app/src/board.test.ts`. No `fetch` or `requestPermission` under `app/src`.
+notes: Amended 2026-09-26 from "taps" to the press-and-hold (`D-2026-09-26-4`); id kept,
+  verification reset. The hold duration is open (Q25): build against one named constant,
+  not a number in this statement. The hold is the mark under every value of the
+  advanced-tile presentation setting (`D-2026-09-26-3`). No `fetch` or
+  `requestPermission` under `app/src` still holds from the earlier verification.
 
 ---
 
@@ -219,18 +227,25 @@ notes: Bonus is 50% of the summed base score of the clearing lines (`D-2026-09-2
 
 ### GB-FUN-014 — Intersection cell has distinct visual treatment
 statement: When two lines clear simultaneously, Goal Bingo shall render the cell at their
-  intersection with a visual treatment distinct from cells that belong to only one clearing
-  line.
+  intersection as the focal point of that clear's moment, with a visual treatment distinct
+  from cells that belong to only one clearing line, on the refilled board.
 type: functional
-rationale: The intersection is the anchor for the multi-clear bonus. D-2026-09-19-14.
+rationale: The intersection is the anchor for the multi-clear bonus. D-2026-09-19-14,
+  whose revisit fired at the first playtest; D-2026-09-26-1.
 trace-to-source: design-description.md 3.4
 verification-method: inspection
-verification-criteria: The shared cell of a double-clear gets a treatment the other cells in those lines do not.
-verification-status: verified
+verification-criteria: After a double-clear, the refilled board shows which cells cleared,
+  and the shared cell has a treatment the other cleared cells do not. A second mark is
+  accepted before the moment ends. With reduced motion, the same cells and treatment show
+  without motion.
+verification-status: not-verified
 owner: k
 priority: must
-notes: Exact animation is a design decision deferred to implementation.
-  Verified by `intersectionCells` in `app/src/lines.test.ts` and the `board-cell--intersection` class in `app/src/shell.ts`.
+notes: Amended 2026-09-26 from "distinct treatment" to the focal point of the clear moment
+  (`D-2026-09-26-1`); id kept, verification reset. How long the moment stays up is open
+  (Q25). The earlier evidence (`intersectionCells` in `app/src/lines.test.ts`, the
+  `board-cell--intersection` class in `app/src/shell.ts`) still identifies the cell; it
+  does not show a moment.
 
 ### GB-FUN-015 — Perpendicular progress is lost on a clear
 statement: When a line clears, Goal Bingo shall discard the marks of cells that were
@@ -784,13 +799,17 @@ rationale: The multi-completion tile makes a long-term goal into a structured, v
 trace-to-source: design-description.md 7.1
 verification-method: test
 verification-criteria: A multi-completion tile configured for N completions counts as
-  marked only after the player has tapped it N times.
-verification-status: verified
+  marked only after the player has completed N press-and-holds on it. A press released
+  before the hold duration records no completion.
+verification-status: not-verified
 owner: k
 priority: must
 notes: Default is 3 completions (`D-2026-09-21-18`); the mechanism itself stays
   parametric to whatever N a tile is created with.
-  Verified by `app/src/board.test.ts`: a tile set for 3 completions stays unmarked until the third tap.
+  Criteria amended 2026-09-26 from taps to press-and-holds (`D-2026-09-26-4`); statement
+  and id kept, verification reset. The domain count is still covered by
+  `app/src/board.test.ts` (a tile set for 3 completions stays unmarked until the third
+  completion); the hold gate is not yet built.
 
 ### GB-FUN-046 — Multi-completion tile displays progress
 statement: Goal Bingo shall display the current completion count on a multi-completion tile.
