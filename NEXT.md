@@ -28,7 +28,7 @@ guard. `partition_check.py --cut` refuses a package that still carries a TBD.
 `figures.txt` is checked by `figures_check.py`. `citation_check.py` checks every `#N`
 in this file, `README.md`, and `DECISIONS.md`. Masters: claude-workflow #40 and #41.
 
-**198 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**224 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
@@ -73,6 +73,14 @@ Current focus matches `vitest`.
   durations stay open (Q25). New records: `D-2026-09-26-6` (presentation setting has two
   values), `D-2026-09-26-7` (one compact challenge strip on the board screen),
   `D-2026-09-26-8` (no cadence cue on cells).
+- **WP-11 built (presentation pass):** a mark is now a press-and-hold with a filling cell
+  (`app/src/hold.ts`); Mark is gone from the thumb bar; every clear shows a clear moment on the
+  refilled board and ends without a repaint (`app/src/moment.ts`); cells carry a category cue
+  indexed by list position; "Show advanced tiles" opens a sheet or marks in the cell; light and
+  dark are token sets in `app/src/tokens.ts`, with a Display view. `D-2026-09-26-9` records the
+  three build defaults ("Open larger", first run follows the device, both choices persist) and
+  adds GB-FUN-087/088. Checked by hand in the browser at 375×812 in both modes; requirements
+  stay `not-verified` until a verification pass. Hold 600 ms and moment 2.6 s are Q25 placeholders.
 - **Presentation decisions mined and cut:** the design description now states `D-2026-09-26-3`
   to `-8` (§3.2, §3.3, §8.2, new §7.3 and §9.3); GB-FUN-069 to GB-FUN-086 mine them with
   `D-2026-09-26-1`, `-2` and `-4`; all 18 are `not-verified` and cut into WP-11 Presentation
