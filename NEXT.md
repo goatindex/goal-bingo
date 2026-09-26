@@ -35,8 +35,8 @@ do not update it by hand from memory.
 
 ## Next up
 
-- ~~**Recycle guard**~~ **Done** ([#150](https://github.com/goatindex/goal-bingo/pull/150),
-  `D-2026-09-25-1`): an unmarked advanced tile is refused.
+- **Recycle guard** ([#150](https://github.com/goatindex/goal-bingo/pull/150),
+  `D-2026-09-25-1`) — an unmarked advanced tile is refused. Open; not on `main`.
 - ~~**Build the global-unlock layer**~~ **Done**: `D-2026-09-21-22` / `D-2026-09-22-1`,
   progression + bulk purchase per track in `advancedUnlock.ts`, wired on mark.
 - **Package C residual (review process)** — `fix_mojibake` runs on every pull request
@@ -95,7 +95,7 @@ Current focus matches `vitest`.
   they were), work packages none.
 - **Recycle guard** (`D-2026-09-25-1`, [#150](https://github.com/goatindex/goal-bingo/pull/150)):
   an unmarked mini-grid or multi-completion tile is refused instead of being replaced
-  by a plain goal.
+  by a plain goal. Open.
 
 ## Done (2026-09-23 session)
 
