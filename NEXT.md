@@ -20,7 +20,12 @@ unlock layered on top of the per-category foundation.
 
 **Nothing in `work-packages/cut.md` is left to build, and the flagged WP-08 gap is
 closed.** This is a stopping point: the next build is a choice, not the next package
-in the cut.
+in the cut. [#150](https://github.com/goatindex/goal-bingo/pull/150),
+[#151](https://github.com/goatindex/goal-bingo/pull/151), and
+[#152](https://github.com/goatindex/goal-bingo/pull/152) are on main. The Android
+phone pass (`D-2026-09-26-1`) is
+[#153](https://github.com/goatindex/goal-bingo/pull/153), reviewed and not merged.
+iOS is accepted on that same result until a retest.
 
 The four chain gates from the 97-pull-request run are wired as of 2026-09-22.
 `tests.yml` runs the typecheck and vitest on every pull request, with a zero-tests
@@ -35,14 +40,15 @@ do not update it by hand from memory.
 
 ## Next up
 
+- **Merge [#153](https://github.com/goatindex/goal-bingo/pull/153)** — Android phone
+  pass (`D-2026-09-26-1`). Review is green. iOS retest of install and one-handed reach
+  stays open under that decision.
 - ~~**Recycle guard**~~ **Done** ([#150](https://github.com/goatindex/goal-bingo/pull/150),
   `D-2026-09-25-1`): an unmarked advanced tile is refused. Merged.
 - ~~**Build the global-unlock layer**~~ **Done**: `D-2026-09-21-22` / `D-2026-09-22-1`,
   progression + bulk purchase per track in `advancedUnlock.ts`, wired on mark.
-- **Package C residual (review process)** — `fix_mojibake` runs on every pull request
-  in [#151](https://github.com/goatindex/goal-bingo/pull/151) (`mojibake-check.yml`).
-  `decision_lint` blocking already landed (#129); cited-path overlap may already be
-  covered by `citation_check.py` (claude-workflow#40).
+- ~~**Package C residual (review process)**~~ **Done**: `fix_mojibake` runs on every
+  pull request ([#151](https://github.com/goatindex/goal-bingo/pull/151)).
 - **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`,
   "lifetime score ≥ 10 unlocks one custom category slot") — its own revisit trigger
   ("at first playtest or when category-unlock progression is designed properly for
@@ -71,6 +77,11 @@ Current focus matches `vitest`.
 - **Phone pass** (`D-2026-09-26-1`): Android inspection accepted for install and for
   one-handed mark, board, balance, and recycle. iOS is accepted on the same result
   until a retest.
+- **Merged:** [#150](https://github.com/goatindex/goal-bingo/pull/150) recycle guard,
+  [#151](https://github.com/goatindex/goal-bingo/pull/151) mojibake check,
+  [#152](https://github.com/goatindex/goal-bingo/pull/152) requirement verification.
+- **Still open:** [#153](https://github.com/goatindex/goal-bingo/pull/153) holds the
+  phone pass. Review is green. Not on main.
 
 ## Done (2026-09-25 session)
 
