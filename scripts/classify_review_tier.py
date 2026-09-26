@@ -2,8 +2,8 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/scripts/classify_review_tier.py
-# Commit: 9d60817
-# Copied: 2026-09-22
+# Commit: 1e5f559
+# Copied: 2026-09-26
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
 # lost at the next refresh, and drift is reported by --check.
@@ -87,13 +87,44 @@ def is_lite_path(path):
     return False
 
 
+def is_tooling_path(path):
+    """Session/process tooling — not product. Never forces deep by itself.
+
+    hooks/, skills/, and top-level scripts/ are the estate's own gates and masters.
+    A change there still needs review (standard), but not a 75-turn product deep pass
+    the way app/src does (Package D hook PRs were paying deep for test_*.py alone).
+    """
+    path = norm(path)
+    if path.startswith("hooks/"):
+        return True
+    if path.startswith("skills/"):
+        return True
+    if path.startswith("scripts/"):
+        return True
+    return False
+
+
+def is_product_path(path):
+    path = norm(path)
+    if path.startswith("app/") or path.startswith("src/"):
+        return True
+    # Monorepo-style packages/foo/src/...
+    if "/src/" in ("/" + path):
+        return True
+    return False
+
+
 def is_deep_path(path, copy_dests):
     path = norm(path)
-    if path.startswith("app/") or "/src/" in ("/" + path):
-        return True
-    if path.startswith("src/"):
+    # Tooling first: hooks/skills/scripts stay standard even when named test_*.py.
+    if is_tooling_path(path):
+        return False
+    if is_product_path(path):
         return True
     lower = path.lower()
+    # Product test trees (not under hooks/skills/scripts — already excluded).
+    if path.startswith("tests/") or path.startswith("test/"):
+        return True
     if "/test/" in ("/" + lower) or "/tests/" in ("/" + lower):
         return True
     if re.search(r"(^|/)test[^/]*$", lower) or lower.endswith("_test.py"):
