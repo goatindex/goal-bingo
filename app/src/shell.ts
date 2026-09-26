@@ -263,7 +263,22 @@ function renderHome(state: GameState, h: ShellHandlers): string {
   `
 }
 
-function cueStyle(categories: readonly string[], category: string): string {
+/** What a press on a board cell does. In ordinary play a cell is held to mark
+ *  (GB-FUN-009); under "Open larger" an unmarked advanced tile opens the sheet instead
+ *  (GB-FUN-077); under "In the cell" an unmarked mini-grid takes holds on its inner
+ *  cells (GB-FUN-079). A marked cell does nothing. While recycle, swap or place is armed
+ *  every cell takes a tap, because those choose a cell rather than mark it. */
+export type CellBehaviour = 'hold' | 'open' | 'inner-holds' | 'tap' | 'none'
+
+export function cellBehaviour(cell: Cell, target: BoardTarget, advancedTiles: AdvancedView): CellBehaviour {
+  if (target.kind !== 'mark') return 'tap'
+  if (cell.marked) return 'none'
+  if (cell.advanced && advancedTiles === 'open') return 'open'
+  if (cell.advanced?.kind === 'mini-grid') return 'inner-holds'
+  return 'hold'
+}
+
+export function cueStyle(categories: readonly string[], category: string): string {
   const slot = categorySlot(categories, category)
   return slot < 0 ? '' : ` style="--cell-cat: var(--cat-${slot}); --cell-cue: var(--cue-${slot})"`
 }
@@ -285,7 +300,7 @@ function cellInner(cell: Cell, i: number, star: boolean): string {
   }${star ? '<span class="cell-star" aria-hidden="true"></span>' : ''}`
 }
 
-function cellLabel(cell: Cell, category: string): string {
+export function cellLabel(cell: Cell, category: string): string {
   let label = `${cell.goal.title}, ${category}`
   if (cell.marked) return `${label}, marked`
   if (cell.advanced?.kind === 'multi-completion') {
@@ -303,7 +318,6 @@ function renderBoard(state: GameState, h: ShellHandlers): string {
   const fresh = new Set(m?.cells ?? [])
   const stars = new Set(m?.intersection ?? [])
   const pop = m !== null && m.id !== lastAnimatedMomentId
-  const marking = h.boardTarget.kind === 'mark'
   const swapFirst = h.boardTarget.kind === 'swap' ? h.boardTarget.first : null
   const cells = board.cells
     .map((cell, i) => {
@@ -316,9 +330,8 @@ function renderBoard(state: GameState, h: ShellHandlers): string {
       if (cell.advanced && !cell.marked) classes.push('board-cell--advanced')
       const style = cueStyle(state.categories, cell.goal.category)
       const label = escapeHtml(cellLabel(cell, cell.goal.category))
-      const unmarkedAdvanced = !!cell.advanced && !cell.marked
-      // GB-FUN-079: "In the cell" holds a mini-grid's inner cells on the board.
-      if (marking && cell.advanced?.kind === 'mini-grid' && !cell.marked && h.prefs.advancedTiles === 'cell') {
+      const behaviour = cellBehaviour(cell, h.boardTarget, h.prefs.advancedTiles)
+      if (behaviour === 'inner-holds' && cell.advanced?.kind === 'mini-grid') {
         const inner = cell.advanced.cells
           .map((innerCell, j) => {
             const title = escapeHtml(innerCell.goal.title)
@@ -333,12 +346,9 @@ function renderBoard(state: GameState, h: ShellHandlers): string {
             stars.has(i) ? '<span class="cell-star" aria-hidden="true"></span>' : ''
           }</div>`
       }
-      // GB-FUN-077: "Open larger" opens the tile; the press is not a mark.
-      const opens = marking && unmarkedAdvanced && h.prefs.advancedTiles === 'open'
-      const holds = marking && !cell.marked && !opens && cell.advanced?.kind !== 'mini-grid'
-      const behaviour = opens ? 'data-open="1"' : holds ? 'data-hold="cell"' : ''
+      const attr = behaviour === 'open' ? 'data-open="1"' : behaviour === 'hold' ? 'data-hold="cell"' : ''
       return `<button type="button" class="${classes.join(' ')}"${style}
-        data-testid="board-cell-${i}" data-index="${i}" ${behaviour}
+        data-testid="board-cell-${i}" data-index="${i}" ${attr}
         aria-pressed="${cell.marked}" aria-label="${label}">${cellInner(cell, i, stars.has(i))}</button>`
     })
     .join('')

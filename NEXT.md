@@ -28,7 +28,7 @@ guard. `partition_check.py --cut` refuses a package that still carries a TBD.
 `figures.txt` is checked by `figures_check.py`. `citation_check.py` checks every `#N`
 in this file, `README.md`, and `DECISIONS.md`. Masters: claude-workflow #40 and #41.
 
-**224 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**233 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
