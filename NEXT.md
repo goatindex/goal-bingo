@@ -4,29 +4,23 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**Link 5 build phase complete — all 10 work packages closed — and the advanced-tiles
-draw/placement gap WP-08 deliberately left open is now closed too.** WP-01 through
-WP-10 (issues [#18](https://github.com/goatindex/goal-bingo/issues/18)–[#27](https://github.com/goatindex/goal-bingo/issues/27))
-are every package `work-packages/cut.md` cut from the requirement set, and every one
-is closed. Advanced tiles shipped as fully-tested, directly-constructible domain logic
-with no code path that placed one through ordinary play (`D-2026-09-21-16`); that gap
-is now closed by four follow-on issues (#133–#136, merged as #137–#140) under
-`D-2026-09-21-23`: eligibility splits into two independent
-per-category tracks (multi-completion, mini-grid), a tile places automatically the
-moment a track unlocks plus a 15% passive chance on later refills, a paid action places
-one on demand, and mini-grids draw only from the parent tile's own category. A related
-decision, `D-2026-09-21-22` / `D-2026-09-22-1`, scoped and now built a per-track global
-unlock layered on top of the per-category foundation.
+**WP-11, the presentation pass, is built and on `main`** ([#160](https://github.com/goatindex/goal-bingo/pull/160),
+issue [#158](https://github.com/goatindex/goal-bingo/issues/158) closed). The first playtest
+found five problems: a tap mis-marked, Mark did nothing, a clear was only a number changing,
+categories were invisible, and advanced tiles were hard to read. `D-2026-09-26-1` to `-9`
+answer them, GB-FUN-069 to GB-FUN-088 state them, and the app now has press-and-hold
+marking, a clear moment, category cues, the "Show advanced tiles" setting, and light and
+dark modes.
 
-**Nothing in `work-packages/cut.md` is left to build, and the flagged WP-08 gap is
-closed.** This is a stopping point: the next build is a choice, not the next package
-in the cut.
+**The next thing is a phone playtest of WP-11, not another build.** Q25 (the hold and
+moment durations), the provisional category-unlock threshold (`D-2026-09-20-7`), and the
+revisit triggers on all nine `D-2026-09-26-*` decisions all wait on real play. WP-01 to
+WP-11 are every package in `work-packages/cut.md`, and all are closed.
 
-The four chain gates from the 97-pull-request run are wired as of 2026-09-22.
-`tests.yml` runs the typecheck and vitest on every pull request, with a zero-tests
-guard. `partition_check.py --cut` refuses a package that still carries a TBD.
-`figures.txt` is checked by `figures_check.py`. `citation_check.py` checks every `#N`
-in this file, `README.md`, and `DECISIONS.md`. Masters: claude-workflow #40 and #41.
+The chain gates are wired: `tests.yml` (typecheck and vitest, zero-tests guard),
+`partition_check.py --cut` with its TBD gate, `figures_check.py`, `citation_check.py`, and
+the adversarial review. As of 2026-09-26 the session merge gate asks the human on every
+merge (claude-workflow#44 once merged).
 
 **233 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
@@ -35,38 +29,62 @@ do not update it by hand from memory.
 
 ## Next up
 
-- ~~**Recycle guard**~~ **Done**: [#150](https://github.com/goatindex/goal-bingo/pull/150),
-  `D-2026-09-25-1` — unmarked advanced tile refused.
-- ~~**Build the global-unlock layer**~~ **Done**: `D-2026-09-21-22` / `D-2026-09-22-1`,
-  progression + bulk purchase per track in `advancedUnlock.ts`, wired on mark.
-- ~~**Package C residual (review process)**~~ **Done**: mojibake CI [#151](https://github.com/goatindex/goal-bingo/pull/151);
-  `decision_lint` blocking (#129); citation check from claude-workflow#40.
-- **Ask what's next for product** — cut and WP-08 gap are closed; remaining Next up is
-  playtest/threshold and chain-wide standing default, not a build-order item.
-- **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`,
-  "lifetime score ≥ 10 unlocks one custom category slot") — its own revisit trigger
-  ("at first playtest or when category-unlock progression is designed properly for
-  WP-08/09") has fired now that WP-08/09 are done, but the user chose to leave it
-  provisional until an actual playtest supplies real data rather than guess a
-  replacement number now.
+- **Decide `D-2026-09-26-9`** (the build defaults: "Open larger" first, the first run
+  follows the device, both choices persist). It was made during the build and stays
+  `open` until the user decides it.
+- **Phone pass [#153](https://github.com/goatindex/goal-bingo/pull/153)** is blocked:
+  GB-CON-001 claims iOS and Android but only Android was inspected, and NEXT.md there says
+  "Review is green". It needs a choice (test on an iPhone, or verify for Android only),
+  then a rebase onto main.
+- **Playtest WP-11 on a phone**, then set Q25's durations from what players do, and act on
+  the revisit triggers of `D-2026-09-26-1` to `-9` and `D-2026-09-20-7`.
+- **Verification pass for WP-11:** GB-FUN-009, -014, -045 and -069 to -088 are
+  `not-verified`, and most have a test to cite (`hold.test.ts`, `moment.test.ts`,
+  `prefs.test.ts`, `tokens.test.ts`, `shell.test.ts`).
+- **Q19 is simulable now:** extend `sim/` to test whether one free recycle per 24 hours
+  outpaces re-jamming.
+- **Open process PRs:** claude-workflow#44 (merge gate asks), project-tracking#52 (link 6,
+  C6-3, `D-2026-09-26-1`), [#161](https://github.com/goatindex/goal-bingo/pull/161)
+  (`CLAUDE.md` merge convention). Also regenerate `CHAIN.pdf`, and re-link the installed
+  `adversarial-review` skill, which points at a `C:\claude-workflow` that does not exist.
+- **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`, "lifetime
+  score ≥ 10 unlocks one custom category slot"). Its revisit trigger has fired, and the user
+  chose to wait for playtest data rather than guess a replacement.
 - **Scope the `record-contract` `standing` default fix (chain-wide, not goal-bingo-only).**
-  `RECORD-CONTRACT.md`'s `standing` field still defaults to `active` when absent — the same
-  "absence read as default" shape the owner/verification-status migration above just closed
-  for requirements. Confirmed in scope ("this is a rule for our ways of working and chain,
-  always"), not yet scoped: ~220+ records across every repo carrying decisions/requirements/
-  to-be items (this repo, `project-tracking`, `weewoo`, `live-action-intel`). Larger blast
-  radius than the requirements fix; needs its own pass, not a rushed one.
+  `RECORD-CONTRACT.md`'s `standing` field still defaults to `active` when absent: the same
+  "absence read as default" shape already closed for requirements. It spans roughly 220
+  records across this repo, `project-tracking`, `weewoo` and `live-action-intel`, and needs
+  its own pass.
+- **Housekeeping (ask first):** a 6-day-old stash from `requirements/link-3-glossary-and-mining`,
+  the stray `wrap-up/2026-09-22-ci-billing-audit` branch (it has no common history with this
+  repo), about 40 squash-merged local branches, and the empty "Goal Bingo playtest
+  presentation" canvas.
 
 ## Done means
 
 A work package is done when its acceptance criteria pass and the code is on `main`.
-WP-01 through WP-10 in `work-packages/cut.md` are done. WP-11 (presentation pass, #158) is
-open. The chain
+WP-01 through WP-11 in `work-packages/cut.md` are done, with WP-11's requirements awaiting a
+verification pass. The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
 
 ## Done (2026-09-26 session)
 
+- **Merged, in the user's order:** claude-workflow#43 (preflight passes `partition_check` the
+  repo's cut layout), then [#157](https://github.com/goatindex/goal-bingo/pull/157),
+  [#159](https://github.com/goatindex/goal-bingo/pull/159) and
+  [#160](https://github.com/goatindex/goal-bingo/pull/160). Each was merged at the reviewed
+  HEAD after a review with 0 blocking findings. `--delete-branch` on #157 closed #159 by
+  deleting its base; #159 was recovered by restoring the branch from its commit, reopening,
+  retargeting to `main` and re-reviewing. #160 was retargeted before its base was deleted.
+- **The merge is asked, not assumed:** an agent merge attempted without being asked was
+  refused by the permission classifier. The user set the rule: the merge is theirs, and a
+  merge instruction given in the session is their decision, asked for first. That rule is now
+  in the gate (claude-workflow#44: `ask`, `--match-head-commit`, no stacked base), the chain
+  (project-tracking#52, `D-2026-09-26-1`) and `CLAUDE.md` (#161).
+- **Design canvas:** the Goal Bingo canvas gained playable Play artboards (light, "Open
+  larger"; dark, "In the cell") with the hold, clear moment and setting working, scored by
+  `lines.ts`'s rules.
 - **Requirements amended for the presentation decisions:** GB-FUN-009 (press-and-hold,
   not tap), GB-FUN-014 (intersection as the focal point of the clear moment) and GB-FUN-045
   (completions by hold) now match `D-2026-09-26-1` and `D-2026-09-26-4`; ids kept, all three
