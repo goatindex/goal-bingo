@@ -35,11 +35,12 @@ do not update it by hand from memory.
 
 ## Next up
 
-- **Ask the user what's next** — the global-unlock layer that was the last scoped
-  build item is done; there is no further build-order item queued.
+- **Recycle guard** ([#150](https://github.com/goatindex/goal-bingo/pull/150),
+  `D-2026-09-25-1`) — an unmarked advanced tile is refused. Open; not on `main`.
 - ~~**Build the global-unlock layer**~~ **Done**: `D-2026-09-21-22` / `D-2026-09-22-1`,
   progression + bulk purchase per track in `advancedUnlock.ts`, wired on mark.
-- **Package C residual (review process)** — mainly wire `fix_mojibake` into CI.
+- **Package C residual (review process)** — `fix_mojibake` runs on every pull request
+  in [#151](https://github.com/goatindex/goal-bingo/pull/151) (`mojibake-check.yml`).
   `decision_lint` blocking already landed (#129); cited-path overlap may already be
   covered by `citation_check.py` (claude-workflow#40).
 - **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`,
@@ -65,16 +66,27 @@ Current focus matches `vitest`.
 
 ## Done (2026-09-25 session)
 
+- **Mojibake gate** ([#151](https://github.com/goatindex/goal-bingo/pull/151)):
+  `mojibake-check.yml` runs `fix_mojibake.py` in check mode on README, NEXT, DECISIONS,
+  docs, requirements, and work-packages for every pull request.
 - **Intake:** change to existing work, entering at link 6. Impact: requirements none
   (GB-FUN-036–039, 041, 042, 044 and GB-CON-006 already require the board-balance
   actions), work packages none.
-- **Board actions screen:** recycle, allowance upgrade, swap, grid expansion, per-category
-  unlock, paid placement, and bulk unlock, all spending board balance only.
+- **Board actions screen** ([#148](https://github.com/goatindex/goal-bingo/pull/148)):
+  recycle, allowance upgrade, swap, grid expansion, per-category unlock, paid placement,
+  and bulk unlock, all spending board balance only.
 - **Intake:** change to existing work, entering at link 6. Impact: requirements none
   (GB-FUN-055–062 already require the always-active challenges and their payments),
   work packages none.
-- **Challenges screen:** the counters a mark already moves, plus a notice when one
-  finishes and pays its completion bonus.
+- **Challenges screen** ([#149](https://github.com/goatindex/goal-bingo/pull/149)):
+  the counters a mark already moves, plus a notice when one finishes and pays its
+  completion bonus.
+- **Intake:** change to existing work, entering at link 6. Impact: GB-FUN-039 narrowed
+  (an advanced tile is rejected, and the cell, allowance, and board balance stay as
+  they were), work packages none.
+- **Recycle guard** (`D-2026-09-25-1`, [#150](https://github.com/goatindex/goal-bingo/pull/150)):
+  an unmarked mini-grid or multi-completion tile is refused instead of being replaced
+  by a plain goal. Open.
 
 ## Done (2026-09-23 session)
 
