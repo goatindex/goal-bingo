@@ -8,7 +8,7 @@ import {
   remainingCategoriesForTrack,
   type AdvancedTileTrack,
 } from './advancedUnlock'
-import { SUPPORTED_SIZES, type Board, type Cell } from './board'
+import { SUPPORTED_SIZES, type Cell } from './board'
 import { GRID_EXPANSION_COST } from './expansion'
 import {
   RECYCLE_ALLOWANCE_MAX_LEVEL,
@@ -26,8 +26,12 @@ import {
   canUnlockCustomCategory,
   listCustomCategories,
 } from './categories'
+import { attachHold } from './hold'
+import type { ClearMoment } from './moment'
+import { ADVANCED_VIEWS, ADVANCED_VIEW_LABELS, type AdvancedView, type Prefs } from './prefs'
+import { MODES, categorySlot, type Mode } from './tokens'
 
-export type ShellView = 'home' | 'pool' | 'rewards' | 'stats' | 'actions' | 'challenges'
+export type ShellView = 'home' | 'pool' | 'rewards' | 'stats' | 'actions' | 'challenges' | 'display'
 
 /** Cell-targeting mode. Not persisted. 'mark' is ordinary play. */
 export type BoardTarget =
@@ -37,7 +41,6 @@ export type BoardTarget =
   | { kind: 'place'; track: AdvancedTileTrack }
 
 const PRIMARY_ACTIONS = [
-  { id: 'mark', label: 'Mark' },
   { id: 'board', label: 'Board' },
   { id: 'pool', label: 'Pool' },
   { id: 'rewards', label: 'Rewards' },
@@ -69,17 +72,25 @@ export type ShellHandlers = {
   softReset: boolean
   view: ShellView
   emptyPoolPrompt: boolean
-  /** Cells reported as the intersection of the lines cleared by the most recent mark
-   *  (GB-FUN-014) - empty when the last mark cleared zero or one line. */
-  lastIntersectionCells: number[]
+  /** The clear moment shown on the refilled board (GB-FUN-073, GB-FUN-014), or null.
+   *  It holds nothing: every cell stays markable while it is up (GB-FUN-074). */
+  moment: ClearMoment | null
+  prefs: Prefs
+  /** The advanced tile open in the sheet under "Open larger" (GB-FUN-077), or null. */
+  openTile: number | null
   boardTarget: BoardTarget
   /** Shown when a board-balance action is refused. */
   actionNotice: string | null
   /** Shown when a mark finishes one or more challenges. */
   completionNotice: string | null
+  /** A completed hold on a cell, or a tap on a cell while a board action is armed. */
   onMarkCell: (index: number) => void
-  /** Tap one cell inside a mini-grid tile. The parent index is not itself a mark. */
+  /** A completed hold on one cell inside a mini-grid tile. The parent is not a mark. */
   onMarkMiniCell: (parentIndex: number, innerIndex: number) => void
+  onOpenTile: (index: number) => void
+  onCloseTile: () => void
+  onSetAdvancedView: (view: AdvancedView) => void
+  onSetMode: (mode: Mode) => void
   onNavigate: (view: ShellView) => void
   onAddGoal: (input: { title: string; category: string; cadence: string }) => string | null
   onUpdateGoal: (
@@ -128,7 +139,7 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
     <div class="shell">
       <header class="shell__header">
         <p class="shell__brand">Goal Bingo</p>
-        <p class="shell__tag">Your goals. Your board.</p>
+        <button type="button" class="shell__display-btn${h.view === 'display' ? ' is-active' : ''}" data-action="display" data-testid="action-display" aria-pressed="${h.view === 'display'}">Display</button>
       </header>
 
       <main class="shell__main">
@@ -156,8 +167,10 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
         }
         ${
           h.view === 'home'
-            ? renderHome(state, h.lastIntersectionCells, h.boardTarget)
-            : h.view === 'pool'
+            ? renderHome(state, h)
+            : h.view === 'display'
+              ? renderDisplay(h.prefs)
+              : h.view === 'pool'
               ? renderPool(state, unlockReady, customCategories)
               : h.view === 'rewards'
                 ? renderRewards(state)
@@ -181,10 +194,14 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
           return `<button type="button" class="thumb-btn${active ? ' thumb-btn--active' : ''}" data-action="${a.id}" data-testid="action-${a.id}">${a.label}</button>`
         }).join('')}
       </nav>
+      ${h.view === 'home' ? renderSheet(state, h) : ''}
     </div>
   `
+  if (h.moment) lastAnimatedMomentId = h.moment.id
 
   bindHome(root, h)
+  bindAdvancedView(root, h)
+  bindDisplay(root, h)
   bindPool(root, h)
   bindRewards(root, h)
   bindActions(root, h)
@@ -197,84 +214,245 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
   })
 }
 
-function renderHome(
-  state: GameState,
-  lastIntersectionCells: number[],
-  target: BoardTarget,
-): string {
-  const hint = targetHint(target)
+/** The clear moment animates on the paint that first shows it, not on every repaint
+ *  while it is up (a mark made during the moment repaints the board). */
+let lastAnimatedMomentId = -1
+
+const HOLD_HINT = 'Press and hold a goal when you have done it.'
+
+function statTile(label: string, value: number, testid: string): string {
+  return `<div class="stat-tile"><strong data-testid="${testid}">${value}</strong><span>${label}</span></div>`
+}
+
+function holdHintHtml(): string {
+  return `<p class="hold-hint" role="status" data-testid="hold-status">${HOLD_HINT}</p>`
+}
+
+function renderMoment(m: ClearMoment | null): string {
+  if (!m) return holdHintHtml()
+  const multi = m.intersection.length > 0
+  return `<div class="moment${multi ? ' moment--multi' : ''}${m.id !== lastAnimatedMomentId ? ' moment--enter' : ''}" role="status" data-testid="clear-moment">
+      <span class="moment__pts" data-testid="clear-moment-points">+${m.points}</span>
+      <span class="moment__text"><strong>${escapeHtml(m.title)}</strong><span>${escapeHtml(m.detail)}</span></span>
+    </div>`
+}
+
+function renderHome(state: GameState, h: ShellHandlers): string {
+  const hint = targetHint(h.boardTarget)
+  const universal = state.challenges.find((c) => c.kind === 'universal')
+  const pct = universal ? Math.min(100, Math.round((universal.progress / universal.target) * 100)) : 0
   return `
     ${hint ? `<p class="shell__banner" role="status" data-testid="target-hint">${escapeHtml(hint)}</p>` : ''}
-    <section class="shell__status" aria-label="Local status">
-      <p>Pool: <strong data-testid="pool-count">${state.pool.length}</strong> goals</p>
-      <p>Lifetime: <strong data-testid="lifetime">${state.score.lifetime}</strong></p>
-      <p>Reward balance: <strong data-testid="reward-balance">${state.score.rewardBalance}</strong></p>
-      <p>Board balance: <strong data-testid="board-balance">${state.score.boardBalance}</strong></p>
-      <p class="shell__hint">No account. Works offline. Data stays on this device.</p>
+    <section class="stat-tiles" aria-label="Local status">
+      ${statTile('Lifetime', state.score.lifetime, 'lifetime')}
+      ${statTile('Rewards', state.score.rewardBalance, 'reward-balance')}
+      ${statTile('Board', state.score.boardBalance, 'board-balance')}
     </section>
-    ${renderBoard(state.board, lastIntersectionCells, target)}
+    <div class="moment-slot" data-testid="moment-slot">${renderMoment(h.moment)}</div>
+    ${renderBoard(state, h)}
+    ${
+      universal
+        ? `<button type="button" class="challenge-row" data-testid="challenge-row" aria-label="Challenges: mark any ${universal.target} goals, ${universal.progress} of ${universal.target}. Open challenges.">
+            <span class="challenge-row__label">Mark any ${universal.target} goals</span>
+            <span class="challenge-row__track" aria-hidden="true"><span style="width: ${pct}%"></span></span>
+            <span class="challenge-row__count">${universal.progress}/${universal.target}</span>
+          </button>`
+        : ''
+    }
+    <p class="shell__hint">Pool: <strong data-testid="pool-count">${state.pool.length}</strong> goals. No account. Works offline. Data stays on this device.</p>
   `
 }
 
-function renderMiniSquares(parentIndex: number, cells: Cell[]): string {
-  return cells
-    .map((innerCell, innerIndex) => {
-      const innerClasses = ['mini-cell']
-      if (innerCell.marked) innerClasses.push('mini-cell--marked')
-      const title = escapeHtml(innerCell.goal.title)
-      return `<button
-        type="button"
-        class="${innerClasses.join(' ')}"
-        data-testid="mini-cell-${parentIndex}-${innerIndex}"
-        data-parent-index="${parentIndex}"
-        data-inner-index="${innerIndex}"
-        aria-pressed="${innerCell.marked}"
-        aria-label="${title}"
-        title="${title}"
-      >${title}</button>`
-    })
-    .join('')
+/** What a press on a board cell does. In ordinary play a cell is held to mark
+ *  (GB-FUN-009); under "Open larger" an unmarked advanced tile opens the sheet instead
+ *  (GB-FUN-077); under "In the cell" an unmarked mini-grid takes holds on its inner
+ *  cells (GB-FUN-079). A marked cell does nothing. While recycle, swap or place is armed
+ *  every cell takes a tap, because those choose a cell rather than mark it. */
+export type CellBehaviour = 'hold' | 'open' | 'inner-holds' | 'tap' | 'none'
+
+export function cellBehaviour(cell: Cell, target: BoardTarget, advancedTiles: AdvancedView): CellBehaviour {
+  if (target.kind !== 'mark') return 'tap'
+  if (cell.marked) return 'none'
+  if (cell.advanced && advancedTiles === 'open') return 'open'
+  if (cell.advanced?.kind === 'mini-grid') return 'inner-holds'
+  return 'hold'
 }
 
-function renderBoard(board: Board, lastIntersectionCells: number[], target: BoardTarget): string {
-  const intersection = new Set(lastIntersectionCells)
-  const swapFirst = target.kind === 'swap' ? target.first : null
+export function cueStyle(categories: readonly string[], category: string): string {
+  const slot = categorySlot(categories, category)
+  return slot < 0 ? '' : ` style="--cell-cat: var(--cat-${slot}); --cell-cue: var(--cue-${slot})"`
+}
+
+function cellInner(cell: Cell, i: number, star: boolean): string {
+  const progress =
+    cell.advanced?.kind === 'multi-completion' && !cell.marked
+      ? `<span class="board-cell__progress" data-testid="board-cell-${i}-progress">${cell.advanced.completionsSoFar}/${cell.advanced.completionsRequired}</span>`
+      : ''
+  const dots =
+    cell.advanced?.kind === 'mini-grid' && !cell.marked
+      ? `<span class="mini-dots" aria-hidden="true">${cell.advanced.cells
+          .map((c) => `<span class="${c.marked ? 'is-on' : ''}"></span>`)
+          .join('')}</span>`
+      : ''
+  const title = dots ? '' : `<span class="board-cell__title">${escapeHtml(cell.goal.title)}</span>`
+  return `<span class="board-cell__fill" aria-hidden="true"></span><span class="board-cell__band" aria-hidden="true"></span>${title}${progress}${dots}${
+    cell.marked ? '<span class="board-cell__check" aria-hidden="true"></span>' : ''
+  }${star ? '<span class="cell-star" aria-hidden="true"></span>' : ''}`
+}
+
+export function cellLabel(cell: Cell, category: string): string {
+  let label = `${cell.goal.title}, ${category}`
+  if (cell.marked) return `${label}, marked`
+  if (cell.advanced?.kind === 'multi-completion') {
+    label += `, ${cell.advanced.completionsSoFar} of ${cell.advanced.completionsRequired} done`
+  }
+  if (cell.advanced?.kind === 'mini-grid') {
+    label += `, mini-grid, ${cell.advanced.cells.filter((c) => c.marked).length} of ${cell.advanced.cells.length} done`
+  }
+  return label
+}
+
+function renderBoard(state: GameState, h: ShellHandlers): string {
+  const board = state.board
+  const m = h.moment
+  const fresh = new Set(m?.cells ?? [])
+  const stars = new Set(m?.intersection ?? [])
+  const pop = m !== null && m.id !== lastAnimatedMomentId
+  const swapFirst = h.boardTarget.kind === 'swap' ? h.boardTarget.first : null
   const cells = board.cells
     .map((cell, i) => {
       const classes = ['board-cell']
       if (cell.marked) classes.push('board-cell--marked')
-      if (intersection.has(i)) classes.push('board-cell--intersection')
+      if (fresh.has(i)) classes.push('board-cell--fresh')
+      if (fresh.has(i) && pop) classes.push('board-cell--pop')
+      if (stars.has(i)) classes.push('board-cell--intersection')
       if (swapFirst === i) classes.push('board-cell--selected')
-      // GB-FUN-046: show a multi-completion tile's progress alongside its title.
-      if (cell.advanced?.kind === 'mini-grid') {
-        return `<div
-          class="${classes.join(' ')} board-cell--mini"
-          data-testid="board-cell-${i}"
-          role="group"
-          aria-label="${escapeHtml(cell.goal.title)}"
-        ><div class="mini-grid">${renderMiniSquares(i, cell.advanced.cells)}</div></div>`
+      if (cell.advanced && !cell.marked) classes.push('board-cell--advanced')
+      const style = cueStyle(state.categories, cell.goal.category)
+      const label = escapeHtml(cellLabel(cell, cell.goal.category))
+      const behaviour = cellBehaviour(cell, h.boardTarget, h.prefs.advancedTiles)
+      if (behaviour === 'inner-holds' && cell.advanced?.kind === 'mini-grid') {
+        const inner = cell.advanced.cells
+          .map((innerCell, j) => {
+            const title = escapeHtml(innerCell.goal.title)
+            return `<button type="button" class="mini-cell${innerCell.marked ? ' mini-cell--marked' : ''}"
+              data-testid="mini-cell-${i}-${j}" data-parent-index="${i}" data-inner-index="${j}"
+              ${innerCell.marked ? '' : 'data-hold="mini"'} aria-pressed="${innerCell.marked}"
+              aria-label="${title}${innerCell.marked ? ', marked' : ''}"><span class="board-cell__fill" aria-hidden="true"></span></button>`
+          })
+          .join('')
+        return `<div class="${classes.join(' ')} board-cell--mini"${style} data-testid="board-cell-${i}" role="group" aria-label="${label}">
+          <span class="board-cell__band" aria-hidden="true"></span><div class="mini-grid">${inner}</div>${
+            stars.has(i) ? '<span class="cell-star" aria-hidden="true"></span>' : ''
+          }</div>`
       }
-      const progress =
-        cell.advanced?.kind === 'multi-completion'
-          ? ` <span class="board-cell__progress" data-testid="board-cell-${i}-progress">${cell.advanced.completionsSoFar}/${cell.advanced.completionsRequired}</span>`
-          : ''
-      return `<button
-        type="button"
-        class="${classes.join(' ')}"
-        data-testid="board-cell-${i}"
-        data-index="${i}"
-        aria-pressed="${cell.marked}"
-      >${escapeHtml(cell.goal.title)}${progress}</button>`
+      const attr = behaviour === 'open' ? 'data-open="1"' : behaviour === 'hold' ? 'data-hold="cell"' : ''
+      return `<button type="button" class="${classes.join(' ')}"${style}
+        data-testid="board-cell-${i}" data-index="${i}" ${attr}
+        aria-pressed="${cell.marked}" aria-label="${label}">${cellInner(cell, i, stars.has(i))}</button>`
     })
     .join('')
 
   return `
     <section class="board" aria-label="Board" data-testid="board">
-      <div class="board__grid" style="grid-template-columns: repeat(${board.size}, 1fr)">
+      <div class="board__grid" style="grid-template-columns: repeat(${board.size}, minmax(0, 1fr))">
         ${cells}
       </div>
     </section>
   `
+}
+
+function advancedViewControl(prefs: Prefs): string {
+  return `<div class="segmented" role="group" aria-label="Show advanced tiles">
+    ${ADVANCED_VIEWS.map(
+      (v) =>
+        `<button type="button" data-advanced-view="${v}" data-testid="advanced-view-${v}" aria-pressed="${prefs.advancedTiles === v}">${ADVANCED_VIEW_LABELS[v]}</button>`,
+    ).join('')}
+  </div>`
+}
+
+function renderSheet(state: GameState, h: ShellHandlers): string {
+  if (h.openTile === null || h.boardTarget.kind !== 'mark') return ''
+  const cell = state.board.cells[h.openTile]
+  if (!cell || cell.marked || !cell.advanced) return ''
+  const i = h.openTile
+  const style = cueStyle(state.categories, cell.goal.category)
+  let body = ''
+  let lead = ''
+  if (cell.advanced.kind === 'mini-grid') {
+    lead = 'Complete any line inside to mark this tile.'
+    body = `<div class="sheet__grid">${cell.advanced.cells
+      .map((innerCell, j) => {
+        const title = escapeHtml(innerCell.goal.title)
+        return `<button type="button" class="sheet-cell${innerCell.marked ? ' sheet-cell--marked' : ''}"
+          data-testid="sheet-cell-${j}" data-parent-index="${i}" data-inner-index="${j}"
+          ${innerCell.marked ? '' : 'data-hold="mini"'} aria-pressed="${innerCell.marked}"
+          aria-label="${title}${innerCell.marked ? ', marked' : ''}"><span class="board-cell__fill" aria-hidden="true"></span><span class="board-cell__band" aria-hidden="true"></span><span class="sheet-cell__title">${title}</span></button>`
+      })
+      .join('')}</div>`
+  } else {
+    const { completionsSoFar: done, completionsRequired: req } = cell.advanced
+    lead = `${done} of ${req} done. Each hold records one completion.`
+    body = `<div class="sheet__multi">
+      <span class="sheet__pips" aria-hidden="true">${Array.from({ length: req }, (_, k) => `<span class="${k < done ? 'is-on' : ''}"></span>`).join('')}</span>
+      <button type="button" class="sheet-hold" data-testid="sheet-hold" data-index="${i}" data-hold="cell"
+        aria-label="${escapeHtml(cell.goal.title)}, ${done} of ${req} done. Press and hold to record one."><span class="board-cell__fill" aria-hidden="true"></span><span class="sheet-hold__text">Hold to record one</span></button>
+    </div>`
+  }
+  return `
+    <div class="sheet-scrim" data-testid="sheet-scrim" aria-hidden="true"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-label="${escapeHtml(cell.goal.title)}"${style} data-testid="tile-sheet">
+      <div class="sheet__top">
+        <span class="sheet__chip">${escapeHtml(cell.goal.category)}</span>
+        <span class="sheet__kind">${cell.advanced.kind === 'mini-grid' ? 'Mini-grid' : 'Multi-completion'}</span>
+        <button type="button" class="sheet__close" data-testid="close-sheet" aria-label="Close">Close</button>
+      </div>
+      <h2 class="sheet__title">${escapeHtml(cell.goal.title)}</h2>
+      <p class="shell__hint">${escapeHtml(lead)}</p>
+      ${body}
+      ${holdHintHtml()}
+      <div class="sheet__setting"><span>Show advanced tiles</span>${advancedViewControl(h.prefs)}</div>
+    </section>
+  `
+}
+
+function renderDisplay(prefs: Prefs): string {
+  return `
+    <section class="pool" aria-label="Display" data-testid="display-view">
+      <h2 class="pool__heading">Display</h2>
+      <div class="pool__form">
+        <h3>Mode</h3>
+        <div class="segmented" role="group" aria-label="Mode">
+          ${MODES.map(
+            (mode) =>
+              `<button type="button" data-mode="${mode}" data-testid="mode-${mode}" aria-pressed="${prefs.mode === mode}">${mode === 'light' ? 'Light' : 'Dark'}</button>`,
+          ).join('')}
+        </div>
+      </div>
+      <div class="pool__form">
+        <h3>Show advanced tiles</h3>
+        ${advancedViewControl(prefs)}
+        <p class="shell__hint">How a mini-grid or multi-completion tile is shown. Changing it marks nothing.</p>
+      </div>
+    </section>
+  `
+}
+
+/** Ends the clear moment without a repaint, so a hold in progress survives it. */
+export function endMoment(root: HTMLElement): void {
+  root
+    .querySelectorAll('.board-cell--fresh, .board-cell--pop, .board-cell--intersection')
+    .forEach((el) => el.classList.remove('board-cell--fresh', 'board-cell--pop', 'board-cell--intersection'))
+  root.querySelectorAll('.cell-star').forEach((el) => el.remove())
+  const slot = root.querySelector('[data-testid="moment-slot"]')
+  if (slot) slot.innerHTML = holdHintHtml()
+}
+
+function showEarlyRelease(root: HTMLElement): void {
+  root.querySelectorAll<HTMLElement>('[data-testid="hold-status"]').forEach((el) => {
+    el.textContent = 'Released early. Not marked.'
+    el.classList.add('hold-hint--early')
+  })
 }
 
 function renderActions(state: GameState): string {
@@ -536,29 +714,54 @@ function bindNav(root: HTMLElement, h: ShellHandlers): void {
   root.querySelector('[data-action="pool"]')?.addEventListener('click', () => h.onNavigate('pool'))
   root.querySelector('[data-action="rewards"]')?.addEventListener('click', () => h.onNavigate('rewards'))
   root.querySelector('[data-action="stats"]')?.addEventListener('click', () => h.onNavigate('stats'))
-  root.querySelector('[data-action="mark"]')?.addEventListener('click', () => h.onNavigate('home'))
+  root.querySelector('[data-action="display"]')?.addEventListener('click', () => h.onNavigate('display'))
   root.querySelector('[data-action="actions"]')?.addEventListener('click', () => h.onNavigate('actions'))
   root.querySelector('[data-action="challenges"]')?.addEventListener('click', () => h.onNavigate('challenges'))
 }
 
 function bindHome(root: HTMLElement, h: ShellHandlers): void {
-  root.querySelectorAll<HTMLButtonElement>('button.board-cell').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const index = Number(btn.dataset.index)
-      h.onMarkCell(index)
+  const onEarly = () => showEarlyRelease(root)
+  root.querySelectorAll<HTMLElement>('[data-hold="cell"]').forEach((el) => {
+    attachHold(el, { onComplete: () => h.onMarkCell(Number(el.dataset.index)), onEarly })
+  })
+  root.querySelectorAll<HTMLElement>('[data-hold="mini"]').forEach((el) => {
+    attachHold(el, {
+      onComplete: () => h.onMarkMiniCell(Number(el.dataset.parentIndex), Number(el.dataset.innerIndex)),
+      onEarly,
     })
   })
-  root.querySelectorAll<HTMLButtonElement>('.mini-cell').forEach((btn) => {
-    btn.addEventListener('click', (event) => {
-      event.stopPropagation()
-      const parentIndex = Number(btn.dataset.parentIndex)
-      const innerIndex = Number(btn.dataset.innerIndex)
-      if (h.boardTarget.kind === 'mark') h.onMarkMiniCell(parentIndex, innerIndex)
-      else h.onMarkCell(parentIndex)
-    })
+  root.querySelectorAll<HTMLElement>('[data-open]').forEach((el) => {
+    el.addEventListener('click', () => h.onOpenTile(Number(el.dataset.index)))
   })
+  // Recycle, swap and place still take a tap: they choose a cell, they do not mark it.
+  if (h.boardTarget.kind !== 'mark') {
+    root.querySelectorAll<HTMLButtonElement>('button.board-cell').forEach((btn) => {
+      btn.addEventListener('click', () => h.onMarkCell(Number(btn.dataset.index)))
+    })
+  }
+  root.querySelector('[data-testid="close-sheet"]')?.addEventListener('click', () => h.onCloseTile())
+  root.querySelector('[data-testid="sheet-scrim"]')?.addEventListener('click', () => h.onCloseTile())
+  root.querySelector('[data-testid="challenge-row"]')?.addEventListener('click', () => h.onNavigate('challenges'))
   root.querySelector('[data-testid="dismiss-empty-prompt"]')?.addEventListener('click', () => {
     h.onDismissEmptyPrompt()
+  })
+}
+
+function bindAdvancedView(root: HTMLElement, h: ShellHandlers): void {
+  root.querySelectorAll<HTMLButtonElement>('[data-advanced-view]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const value = btn.dataset.advancedView
+      if (value === 'cell' || value === 'open') h.onSetAdvancedView(value)
+    })
+  })
+}
+
+function bindDisplay(root: HTMLElement, h: ShellHandlers): void {
+  root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const value = btn.dataset.mode
+      if (value === 'light' || value === 'dark') h.onSetMode(value)
+    })
   })
 }
 

@@ -3,6 +3,16 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-26-9 — Build defaults: "Open larger" first, the first mode follows the device, both choices persist
+
+- **Status:** open
+- **Context:** Building WP-11 needed three values the presentation decisions left open: the default of "Show advanced tiles" (`D-2026-09-26-6`), which mode a first run shows, and whether a chosen mode survives a restart (`D-2026-09-26-5`). The two durations stay under Q25 as named constants and are not decided here.
+- **Options considered:** "In the cell" as the default (rejected — a mini-grid's inner cells are about 12 px at 5×5, far below a 44 px touch target, so the default would be the unreadable value on a phone) · a fixed light first run (rejected — it ignores the color scheme the player already set on the device) · a mode that resets on every launch (rejected — the player would choose it again each time) · **"Open larger" is the default; a first run follows the device's color scheme; the mode and "Show advanced tiles" persist in their own storage key, apart from the game state (chosen)**
+- **Why:** The default should be the value that works on every screen, and the player who can read a tile at cell size can switch. Keeping display choices out of the game state means no save-format migration, and a change of look cannot touch the board (GB-FUN-080, GB-FUN-085).
+- **Expected outcome:** At the first phone playtest, a player whose phone is in dark mode first sees the dark board without changing anything, and a mode they choose is still in effect after the app is closed and reopened. Fewer than half of the players move "Show advanced tiles" off "Open larger".
+- **Revisit:** At the first phone playtest. If most players switch to "In the cell", make it the default. If players on a dark-mode phone switch to light straight away, drop the device-following first run for a fixed light one. If a soft reset of the game state leaves players confused that their display choices survived it, reset the preferences with it.
+- **Outcome:** _(filled at review)_
+
 ## D-2026-09-26-8 — The board shows no cadence cue
 
 - **Status:** open
@@ -28,7 +38,7 @@ source of requirements, so the reverse walk from a failing test ends here.
 - **Status:** open
 - **Context:** `D-2026-09-26-3` made how an advanced tile is shown a player setting, and its revisit asked that the controls be named before implementation.
 - **Options considered:** the same two values set separately for mini-grid and for multi-completion tiles (rejected — two settings for one readability problem) · three values, adding a zoom in place over the neighbouring cells (rejected — more to build and test before any playtest shows it is needed) · **one setting, "Show advanced tiles", with two values: "In the cell" (mark inner cells on the board) and "Open larger" (a press opens the tile in a sheet, and marks are made inside it) (chosen)**
-- **Why:** Two saved values are the least that meets `D-2026-09-26-3`'s expected outcome. The press-and-hold stays the mark under both values (`D-2026-09-26-4`). Which value is the default is not set here.
+- **Why:** Two saved values are the least that meets `D-2026-09-26-3`'s expected outcome. The press-and-hold stays the mark under both values (`D-2026-09-26-4`). Which value is the default is not set here. **Amended 2026-09-26:** `D-2026-09-26-9` sets "Open larger" as the default.
 - **Expected outcome:** The setting shows exactly two values. Under "Open larger", pressing a mini-grid or multi-completion tile opens it and does not mark it. Under "In the cell", a hold on a mini-grid inner cell marks it on the board. Changing the value marks nothing.
 - **Revisit:** After the first playtest. If players on small screens never leave "Open larger", or a multi-completion tile reads fine in the cell but a mini-grid does not, reconsider a per-type setting.
 - **Outcome:** _(filled at review)_

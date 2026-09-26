@@ -989,7 +989,7 @@ verification-criteria: The setting offers exactly the two values "In the cell" a
 verification-status: not-verified
 owner: k
 priority: must
-notes: Which value is the default is not set (`D-2026-09-26-6`).
+notes: "Open larger" is the default (`D-2026-09-26-9`).
 
 ### GB-FUN-077 — Open larger opens a tile without marking it
 statement: When the player presses an unmarked advanced tile while "Show advanced tiles" is "Open larger", Goal Bingo shall open that tile in a sheet with the tile's mark state unchanged.
@@ -1301,7 +1301,29 @@ verification-criteria: The player can switch the same board between a light pale
 verification-status: not-verified
 owner: k
 priority: must
-notes: Whether the chosen mode persists, and whether the first mode follows the device setting, are not decided.
+notes: GB-FUN-087 and GB-FUN-088 cover which mode a first run shows and that the choice persists (`D-2026-09-26-9`).
+
+### GB-FUN-087 — The chosen mode survives a restart
+statement: Goal Bingo shall keep the mode the player chose across app restarts.
+type: functional
+rationale: A mode that reset on every launch would be chosen again each time. D-2026-09-26-9.
+trace-to-source: design-description.md 9.3
+verification-method: test
+verification-criteria: After the player chooses a mode and the app restarts, the same mode is in effect.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-088 — A first run follows the device's color scheme
+statement: When no mode has been chosen, Goal Bingo shall start in the mode that matches the device's color scheme.
+type: functional
+rationale: The player already set a preference on the device. D-2026-09-26-9.
+trace-to-source: design-description.md 9.3
+verification-method: test
+verification-criteria: With no saved mode, a device set to dark starts in the dark mode and a device set to light starts in the light mode.
+verification-status: not-verified
+owner: k
+priority: must
 
 ### GB-FUN-085 — Switching mode leaves state unchanged
 statement: When the player switches mode, Goal Bingo shall leave the board, the pool, and each counter unchanged.

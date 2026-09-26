@@ -385,7 +385,8 @@ setting, "Show advanced tiles", with two values (`D-2026-09-26-3`, `D-2026-09-26
   the sheet. The press that opens the tile does not mark it.
 
 Under both values the mark is still the press-and-hold (§3.3). Changing the value changes
-only how the tile is shown; it marks nothing. Which value is the default is not set.
+only how the tile is shown; it marks nothing. "Open larger" is the default, because it is
+the value that is readable on every screen (`D-2026-09-26-9`).
 
 ## 8 Progression and record
 
@@ -468,7 +469,8 @@ starter pool, preserving recoverable counters when cheap (`D-2026-09-20-1`).
 The game ships a light mode and a dark mode, and the player can switch between them
 (`D-2026-09-26-5`). A mode is a set of style tokens applied to the same screens, so a further
 mode is another token set, not another renderer. Switching mode changes how the board looks
-and nothing about its state.
+and nothing about its state. A first run follows the device's color scheme, and the mode the
+player chooses is kept across restarts (`D-2026-09-26-9`).
 
 ## 10 Scope
 
