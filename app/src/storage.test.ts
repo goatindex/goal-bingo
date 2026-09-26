@@ -1,4 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { everyCellHasOneTile } from './board'
+import { DEFAULT_CATEGORIES } from './categories'
+import { initialChallenges } from './challenges'
+import { GRID_EXPANSION_COST, purchaseGridExpansion } from './expansion'
+import { markCellAndResolve } from './lines'
+import { RECYCLE_ALLOWANCE_UPGRADE_COST, purchaseAllowanceUpgrade } from './recycle'
 import {
   FRESH_RECYCLE_STATE,
   STORAGE_KEY,
@@ -8,8 +14,6 @@ import {
   saveState,
 } from './storage'
 import { MemoryStorage } from './test-support'
-import { DEFAULT_CATEGORIES } from './categories'
-import { initialChallenges } from './challenges'
 
 describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
   it('creates a non-empty starter pool on first launch', () => {
@@ -51,6 +55,55 @@ describe('loadState / saveState (GB-DAT-001, GB-FUN-066)', () => {
     const { state, softReset } = loadState(storage)
     expect(softReset).toBe(true)
     expect(state.pool.length).toBeGreaterThan(0)
+    expect(everyCellHasOneTile(state.board)).toBe(true)
+  })
+
+  it('keeps a mark across a reload until its line clears (GB-FUN-002)', () => {
+    const storage = new MemoryStorage()
+    const state = freshState()
+    state.board.cells[0]!.marked = true
+    saveState(state, storage)
+    const loaded = loadState(storage)
+    expect(loaded.state.board.cells[0]!.marked).toBe(true)
+    const board = loaded.state.board
+    for (let i = 1; i < board.size - 1; i++) board.cells[i]!.marked = true
+    const cleared = markCellAndResolve(board, board.size - 1, loaded.state.pool, () => 0)
+    expect(cleared.ok).toBe(true)
+    if (!cleared.ok) return
+    expect(cleared.outcome.clearedLineCount).toBeGreaterThan(0)
+    expect(cleared.outcome.board.cells[0]!.marked).toBe(false)
+  })
+
+  it('keeps a purchased 7x7 board across a reload (GB-FUN-006)', () => {
+    const storage = new MemoryStorage()
+    const state = freshState()
+    const expanded = purchaseGridExpansion(
+      state.board,
+      state.pool,
+      GRID_EXPANSION_COST,
+      () => 0,
+    )
+    expect(expanded.ok).toBe(true)
+    if (!expanded.ok) return
+    state.board = expanded.board
+    state.score.boardBalance = expanded.boardBalance
+    saveState(state, storage)
+    const loaded = loadState(storage)
+    expect(loaded.state.board.size).toBe(7)
+    expect(loaded.state.board.cells.length).toBe(49)
+  })
+
+  it('keeps a purchased recycle allowance across a reload (GB-FUN-037)', () => {
+    const storage = new MemoryStorage()
+    const state = freshState()
+    const upgraded = purchaseAllowanceUpgrade(state.recycle, RECYCLE_ALLOWANCE_UPGRADE_COST)
+    expect(upgraded.ok).toBe(true)
+    if (!upgraded.ok) return
+    state.recycle = upgraded.recycle
+    state.score.boardBalance = upgraded.boardBalance
+    saveState(state, storage)
+    const loaded = loadState(storage)
+    expect(loaded.state.recycle.allowanceLevel).toBe(FRESH_RECYCLE_STATE.allowanceLevel + 1)
   })
 
   it('treats an empty pool as valid saved state, not corruption', () => {
