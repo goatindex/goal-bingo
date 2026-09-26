@@ -3,12 +3,36 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-26-10 — The Android phone pass is recorded; iOS stays open
+
+- **Status:** open
+- **Context:** GB-CON-001 (installable, home screen) and GB-CON-002 (one-handed reach) name
+  both iOS and Android in their verification criteria. The player ran the phone pass on
+  Android on 2026-09-26: the app installed to the home screen, and mark, board, balance and
+  recycle were each reachable with one thumb. No iPhone was available. The first version of
+  this record (on #153, as `D-2026-09-26-1`, an id since taken by the clear-moment record)
+  marked both requirements verified; its review blocked that as a claim the criteria do not
+  support.
+- **Options considered:** mark both `verified` and treat iOS as passing on the Android result
+  (rejected — the criteria name iOS, so `verified` would state an observation nobody made) ·
+  leave both `not-verified` until an iPhone is in hand (rejected — it loses the Android
+  result, which is real evidence) · **mark both `in-progress`, record the Android pass in
+  their notes, and leave iOS as the one remaining check (chosen)**
+- **Why:** `in-progress` says exactly what is true: half of each criterion has been observed.
+  The requirement flips to `verified` on the iOS retest, not on a reading of the Android one.
+- **Expected outcome:** An iPhone retest of install-to-home-screen and of one-thumb mark,
+  board, balance and recycle agrees with the Android pass, and both requirements become
+  `verified`. A failure on either check on iOS makes this record's assumption false.
+- **Revisit:** When an iPhone is available. Also if the iOS retest is still outstanding at
+  the first phone playtest, run it then.
+- **Outcome:** _(filled at review)_
+
 ## D-2026-09-26-9 — Build defaults: "Open larger" first, the first mode follows the device, both choices persist
 
 - **Status:** open
 - **Context:** Building WP-11 needed three values the presentation decisions left open: the default of "Show advanced tiles" (`D-2026-09-26-6`), which mode a first run shows, and whether a chosen mode survives a restart (`D-2026-09-26-5`). The two durations stay under Q25 as named constants and are not decided here.
 - **Options considered:** "In the cell" as the default (rejected — a mini-grid's inner cells are about 12 px at 5×5, far below a 44 px touch target, so the default would be the unreadable value on a phone) · a fixed light first run (rejected — it ignores the color scheme the player already set on the device) · a mode that resets on every launch (rejected — the player would choose it again each time) · **"Open larger" is the default; a first run follows the device's color scheme; the mode and "Show advanced tiles" persist in their own storage key, apart from the game state (chosen)**
-- **Why:** The default should be the value that works on every screen, and the player who can read a tile at cell size can switch. Keeping display choices out of the game state means no save-format migration, and a change of look cannot touch the board (GB-FUN-080, GB-FUN-085).
+- **Why:** The default should be the value that works on every screen, and the player who can read a tile at cell size can switch. Keeping display choices out of the game state means no save-format migration, and a change of look cannot touch the board (GB-FUN-080, GB-FUN-085). **Decided by the user 2026-09-27:** made during the build, this record waited on the user; the user kept all three values. Status stays `open` until the playtest observes the expected outcome.
 - **Expected outcome:** At the first phone playtest, a player whose phone is in dark mode first sees the dark board without changing anything, and a mode they choose is still in effect after the app is closed and reopened. Fewer than half of the players move "Show advanced tiles" off "Open larger".
 - **Revisit:** At the first phone playtest. If most players switch to "In the cell", make it the default. If players on a dark-mode phone switch to light straight away, drop the device-following first run for a fixed light one. If a soft reset of the game state leaves players confused that their display choices survived it, reset the preferences with it.
 - **Outcome:** _(filled at review)_
@@ -106,7 +130,7 @@ source of requirements, so the reverse walk from a failing test ends here.
 ## D-2026-09-25-2 — Eight verification criteria name an observation the app can show
 
 - **Status:** open
-- **Context:** Eight requirements (GB-FUN-007, GB-FUN-009, GB-FUN-014, GB-CON-003, GB-CON-004, GB-DAT-001, GB-DAT-002, GB-DAT-003) had verification criteria that named a device lab, an aeroplane-mode rig, or a clear animation. The product has none of those. The statements already match what the app does. `D-2026-09-25-1` is reserved on the recycle-guard branch, so this record is `-2`. GB-CON-001 and GB-CON-002 stay `not-verified`; they still need a phone.
+- **Context:** Eight requirements (GB-FUN-007, GB-FUN-009, GB-FUN-014, GB-CON-003, GB-CON-004, GB-DAT-001, GB-DAT-002, GB-DAT-003) had verification criteria that named a device lab, an aeroplane-mode rig, or a clear animation. The product has none of those. The statements already match what the app does. `D-2026-09-25-1` is reserved on the recycle-guard branch, so this record is `-2`. GB-CON-001 and GB-CON-002 stay `not-verified`; they still need a phone. (Later: `D-2026-09-26-10` records the Android pass and leaves them `in-progress` pending iOS.)
 - **Options considered:** stand up a device lab, an aeroplane-mode rig, or a clear animation so the old criteria can be run (rejected — the product does not have those, and building them would not change the statements) · **narrow those eight verification criteria to the observation the statement already requires, and leave the statements unchanged (chosen)**
 - **Why:** A criterion that names a rig the app does not have cannot be observed, even when the statement is met. One tile per cell, a distinct intersection treatment, a mark that sends no request, no notification grant, a local round-trip, and a fresh load with no account are the observations those statements require.
 - **Expected outcome:** Each of the eight rewritten criteria is observed by the test or inspection named in its notes. A later `fetch`, `requestPermission`, account field, or game-over view under `app/src` makes the matching inspection note false.

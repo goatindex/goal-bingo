@@ -15,9 +15,11 @@ trace-to-source: design-description.md 9.1
 verification-method: inspection
 verification-criteria: The app passes the installability criteria for the target browsers
   and can be added to the home screen on iOS and Android.
-verification-status: not-verified
+verification-status: in-progress
 owner: k
 priority: must
+notes: Android observed 2026-09-26 by the player: installable and added to the home screen.
+  iOS not yet observed; this becomes verified on an iPhone retest (`D-2026-09-26-10`).
 
 ### GB-CON-002 — One-handed phone usability
 statement: Goal Bingo shall make each primary game action reachable with the thumb of one
@@ -29,9 +31,12 @@ trace-to-source: design-description.md 9.1
 verification-method: inspection
 verification-criteria: Each of mark, board view, balance view, and recycle is accessible
   without repositioning the hand on a 5–7 inch phone.
-verification-status: not-verified
+verification-status: in-progress
 owner: k
 priority: must
+notes: Android observed 2026-09-26 by the player: mark, board, balance and recycle were each
+  reachable one-handed. iOS not yet observed; this becomes verified on an iPhone retest
+  (`D-2026-09-26-10`).
 
 ### GB-CON-003 — All mechanics function without notification permission
 statement: When the operating system denies notification permission, Goal Bingo shall

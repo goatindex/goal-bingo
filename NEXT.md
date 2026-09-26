@@ -19,8 +19,8 @@ WP-11 are every package in `work-packages/cut.md`, and all are closed.
 
 The chain gates are wired: `tests.yml` (typecheck and vitest, zero-tests guard),
 `partition_check.py --cut` with its TBD gate, `figures_check.py`, `citation_check.py`, and
-the adversarial review. As of 2026-09-26 the session merge gate asks the human on every
-merge (claude-workflow#44 once merged).
+the adversarial review. The session merge gate asks the human on every merge
+(claude-workflow#44, merged 2026-09-27).
 
 **233 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
@@ -29,13 +29,8 @@ do not update it by hand from memory.
 
 ## Next up
 
-- **Decide `D-2026-09-26-9`** (the build defaults: "Open larger" first, the first run
-  follows the device, both choices persist). It was made during the build and stays
-  `open` until the user decides it.
-- **Phone pass [#153](https://github.com/goatindex/goal-bingo/pull/153)** is blocked:
-  GB-CON-001 claims iOS and Android but only Android was inspected, and NEXT.md there says
-  "Review is green". It needs a choice (test on an iPhone, or verify for Android only),
-  then a rebase onto main.
+- **iOS retest** of GB-CON-001 and GB-CON-002 (install, one-thumb reach), both
+  `in-progress` on the Android pass (`D-2026-09-26-10`).
 - **Playtest WP-11 on a phone**, then set Q25's durations from what players do, and act on
   the revisit triggers of `D-2026-09-26-1` to `-9` and `D-2026-09-20-7`.
 - **Verification pass for WP-11:** GB-FUN-009, -014, -045 and -069 to -088 are
@@ -43,10 +38,9 @@ do not update it by hand from memory.
   `prefs.test.ts`, `tokens.test.ts`, `shell.test.ts`).
 - **Q19 is simulable now:** extend `sim/` to test whether one free recycle per 24 hours
   outpaces re-jamming.
-- **Open process PRs:** claude-workflow#44 (merge gate asks), project-tracking#52 (link 6,
-  C6-3, `D-2026-09-26-1`), [#161](https://github.com/goatindex/goal-bingo/pull/161)
-  (`CLAUDE.md` merge convention). Also regenerate `CHAIN.pdf`, and re-link the installed
-  `adversarial-review` skill, which points at a `C:\claude-workflow` that does not exist.
+- **Re-render `CHAIN.pdf`** once project-tracking#52 merges, and **re-link the installed
+  `adversarial-review` skill** to `D:\claude-workflow\skills\adversarial-review`: the
+  session sandbox refused to create the junction, so it is the user's to run.
 - **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`, "lifetime
   score ≥ 10 unlocks one custom category slot"). Its revisit trigger has fired, and the user
   chose to wait for playtest data rather than guess a replacement.
@@ -55,10 +49,9 @@ do not update it by hand from memory.
   "absence read as default" shape already closed for requirements. It spans roughly 220
   records across this repo, `project-tracking`, `weewoo` and `live-action-intel`, and needs
   its own pass.
-- **Housekeeping (ask first):** a 6-day-old stash from `requirements/link-3-glossary-and-mining`,
-  the stray `wrap-up/2026-09-22-ci-billing-audit` branch (it has no common history with this
-  repo), about 40 squash-merged local branches, and the empty "Goal Bingo playtest
-  presentation" canvas.
+- **Stale remote branches** left after housekeeping: `smoke/package-b-deep`,
+  `smoke/package-b-mechanical`, `sync/package-a-jq-fix`, `sync/package-b-review-tiers` here,
+  and nine old local branches in `claude-workflow`. Ask before deleting.
 
 ## Done means
 
@@ -67,6 +60,20 @@ WP-01 through WP-11 in `work-packages/cut.md` are done, with WP-11's requirement
 verification pass. The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
+
+## Done (2026-09-27 session)
+
+- **Merge gate hardened and merged** (claude-workflow#44): five review rounds each found a way
+  the pull request checked could differ from the one merged, and each is closed with a test:
+  `--repo`, `-R` in every spelling, `GH_REPO`, `GH_HOST`, and a literal-backspace regex that
+  looked right in every diff. The chain side is project-tracking#52 (`WOW-OPS-007`,
+  `WOW-OPS-014` to `-017`, TB-50).
+- **Housekeeping:** the old stash dropped; 48 local branches (and 16 of their remotes) deleted
+  here, all merged or superseded; the stray project-tracking branch deleted; the empty design
+  canvas deleted.
+- **Two user decisions:** `D-2026-09-26-9`'s build defaults kept; the phone pass recorded as
+  `D-2026-09-26-10`, with GB-CON-001 and GB-CON-002 `in-progress` until an iOS retest
+  ([#153](https://github.com/goatindex/goal-bingo/pull/153)).
 
 ## Done (2026-09-26 session)
 
@@ -922,4 +929,4 @@ Current focus matches `vitest`.
 
 ## Last updated
 
-2026-09-26
+2026-09-27
