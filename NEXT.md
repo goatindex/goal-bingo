@@ -35,14 +35,14 @@ do not update it by hand from memory.
 
 ## Next up
 
-- **Recycle guard** ([#150](https://github.com/goatindex/goal-bingo/pull/150),
-  `D-2026-09-25-1`) — an unmarked advanced tile is refused. Open; not on `main`.
+- ~~**Recycle guard**~~ **Done**: [#150](https://github.com/goatindex/goal-bingo/pull/150),
+  `D-2026-09-25-1` — unmarked advanced tile refused.
 - ~~**Build the global-unlock layer**~~ **Done**: `D-2026-09-21-22` / `D-2026-09-22-1`,
   progression + bulk purchase per track in `advancedUnlock.ts`, wired on mark.
-- **Package C residual (review process)** — `fix_mojibake` runs on every pull request
-  in [#151](https://github.com/goatindex/goal-bingo/pull/151) (`mojibake-check.yml`).
-  `decision_lint` blocking already landed (#129); cited-path overlap may already be
-  covered by `citation_check.py` (claude-workflow#40).
+- ~~**Package C residual (review process)**~~ **Done**: mojibake CI [#151](https://github.com/goatindex/goal-bingo/pull/151);
+  `decision_lint` blocking (#129); citation check from claude-workflow#40.
+- **Ask what's next for product** — cut and WP-08 gap are closed; remaining Next up is
+  playtest/threshold and chain-wide standing default, not a build-order item.
 - **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`,
   "lifetime score ≥ 10 unlocks one custom category slot") — its own revisit trigger
   ("at first playtest or when category-unlock progression is designed properly for
@@ -63,6 +63,17 @@ A work package is done when its acceptance criteria pass and the code is on `mai
 Every package in `work-packages/cut.md` (WP-01 through WP-10) is done. The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
+
+## Done (2026-09-26 session)
+
+- **Review-process auth cleanup:** User-level `ANTHROPIC_API_KEY` was overriding Claude
+  subscription for local Claude Code. Quarantined to `~\.claude\quarantine\`; CI remains
+  `CLAUDE_CODE_OAUTH_TOKEN` only (subscription) on goatindex repos.
+- **Softened deep review tier** (claude-workflow[#42](https://github.com/goatindex/claude-workflow/pull/42),
+  synced [#154](https://github.com/goatindex/goal-bingo/pull/154)): `hooks/`, `skills/`,
+  and top-level `scripts/` stay **standard**; product/CI paths stay **deep**. Mechanical
+  sync of the classifier alone green in ~6s.
+- **Recycle guard merged** ([#150](https://github.com/goatindex/goal-bingo/pull/150)).
 
 ## Done (2026-09-25 session)
 
@@ -863,4 +874,4 @@ Current focus matches `vitest`.
 
 ## Last updated
 
-2026-09-25
+2026-09-26
