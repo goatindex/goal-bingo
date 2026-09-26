@@ -137,6 +137,41 @@ owner: k
 priority: must
 notes: Verified by `app/src/lines.test.ts`: a clear refills every emptied cell before the board is returned.
 
+### GB-FUN-069 — Cell shows its category cue
+statement: Goal Bingo shall display each board cell's category cue on that cell together with the cell's goal title.
+type: functional
+rationale: Arrangement is the first targeted aesthetic, and matching and variety combos are scored from category. D-2026-09-26-2.
+trace-to-source: design-description.md 3.2
+verification-method: inspection
+verification-criteria: On a board holding goals from two categories, a player can point to the cells that share a category without opening the pool, and every cell still shows its goal title.
+verification-status: not-verified
+owner: k
+priority: must
+notes: The form of the cue (band, corner, dot) is not set. If the cue makes titles unreadable on a 5–7 inch screen, keep it to a corner or a band (`D-2026-09-26-2` revisit).
+
+### GB-FUN-070 — Category cue color is indexed by list position
+statement: Goal Bingo shall select each category cue's color by the category's position in the player's category list.
+type: functional
+rationale: Categories are player-defined, so the color cannot come from a style named after the category. D-2026-09-26-2.
+trace-to-source: design-description.md 3.2
+verification-method: test
+verification-criteria: A custom category unlocked after the seven defaults receives a cue color from the palette, and no style rule in the application names a category.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-071 — Cell content excludes cadence
+statement: Goal Bingo shall limit a board cell's content to the goal title, the category cue, the mark state, and an advanced tile's progress.
+type: functional
+rationale: A cell at 5×5 has no room for a second cue beside the title and the category cue. D-2026-09-26-8.
+trace-to-source: design-description.md 3.2
+verification-method: inspection
+verification-criteria: A board cell holding a long-term goal renders no cadence indicator, and the pool screen still shows that goal's cadence.
+verification-status: not-verified
+owner: k
+priority: must
+notes: Revisit at the first phone playtest: add a long-term-only marker if players cannot say which tiles block their lines (`D-2026-09-26-8`).
+
 ---
 
 ## 3.3 — Marking
@@ -162,6 +197,17 @@ notes: Amended 2026-09-26 from "taps" to the press-and-hold (`D-2026-09-26-4`); 
   not a number in this statement. The hold is the mark under every value of the
   advanced-tile presentation setting (`D-2026-09-26-3`). No `fetch` or
   `requestPermission` under `app/src` still holds from the earlier verification.
+
+### GB-FUN-072 — Thumb bar has no Mark control
+statement: Goal Bingo shall exclude a Mark control from the thumb bar.
+type: functional
+rationale: The playtest could not see the Mark control do anything, and the hold is the only way to mark. D-2026-09-26-4.
+trace-to-source: design-description.md 3.3
+verification-method: inspection
+verification-criteria: The thumb bar shows no Mark control, and activating Board returns to the board and clears an armed recycle, swap, or place.
+verification-status: not-verified
+owner: k
+priority: must
 
 ---
 
@@ -261,6 +307,40 @@ verification-status: verified
 owner: k
 priority: must
 notes: Verified by `app/src/lines.test.ts`: a row clear drops the marked count on the crossing column.
+
+### GB-FUN-073 — Every clear shows a clear moment
+statement: When one or more lines clear, Goal Bingo shall display on the refilled board which cells cleared and the score that clear awarded.
+type: functional
+rationale: The playtest found a clear was not visually rewarding: it only changed a number. D-2026-09-26-1.
+trace-to-source: design-description.md 3.4
+verification-method: inspection
+verification-criteria: After a single-line clear and after a double-clear, a player can say which cells cleared and what that clear scored, and the cells shown hold the refilled goals.
+verification-status: not-verified
+owner: k
+priority: must
+notes: How long the moment stays up is open (Q25): build against one named constant. GB-FUN-014 covers the intersection's treatment in a multi-clear.
+
+### GB-FUN-074 — A clear moment does not hold the next mark
+statement: While a clear moment is displayed, Goal Bingo shall accept a mark on each unmarked cell.
+type: functional
+rationale: A daily mark should not wait on an animation. D-2026-09-26-1.
+trace-to-source: design-description.md 3.4
+verification-method: test
+verification-criteria: A hold that completes while a clear moment is displayed marks its cell, with no wait for the moment to end.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-075 — Reduced motion keeps the clear moment's facts
+statement: While the device requests reduced motion, Goal Bingo shall display the clear moment's cleared cells and score without animation.
+type: functional
+rationale: Reduced motion keeps the same information and drops the motion. D-2026-09-26-1.
+trace-to-source: design-description.md 3.4
+verification-method: inspection
+verification-criteria: With reduced motion set, a clear shows the same cleared cells and score as without it, and no element of the moment animates.
+verification-status: not-verified
+owner: k
+priority: must
 
 ---
 
@@ -897,6 +977,77 @@ notes: Bonus is +100% of the clear's own value (`D-2026-09-21-19`). Q7 resolved 
 
 ---
 
+## 7.3 — How an advanced tile is shown
+
+### GB-FUN-076 — Advanced-tile presentation setting has two values
+statement: Goal Bingo shall provide a "Show advanced tiles" setting with the two values "In the cell" and "Open larger".
+type: functional
+rationale: Readability of the two tile types is one problem with two tolerable answers, and screen size and preference differ. D-2026-09-26-3, D-2026-09-26-6.
+trace-to-source: design-description.md 7.3
+verification-method: inspection
+verification-criteria: The setting offers exactly the two values "In the cell" and "Open larger", and the player can select either on a 390 px wide screen.
+verification-status: not-verified
+owner: k
+priority: must
+notes: "Open larger" is the default (`D-2026-09-26-9`).
+
+### GB-FUN-077 — Open larger opens a tile without marking it
+statement: When the player presses an unmarked advanced tile while "Show advanced tiles" is "Open larger", Goal Bingo shall open that tile in a sheet with the tile's mark state unchanged.
+type: functional
+rationale: The press that opens the tile is not a mark. D-2026-09-26-6.
+trace-to-source: design-description.md 7.3
+verification-method: test
+verification-criteria: Under "Open larger", pressing a mini-grid tile or a multi-completion tile opens the sheet, and the tile's mark state and completion count are unchanged.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-078 — Marks are made inside the sheet
+statement: While an advanced tile is open in the sheet, Goal Bingo shall accept the hold on that tile's inner cells and completion control.
+type: functional
+rationale: Under "Open larger" the player marks inside the sheet, and the mark stays the hold. D-2026-09-26-4, D-2026-09-26-6.
+trace-to-source: design-description.md 7.3
+verification-method: test
+verification-criteria: In the sheet, a hold through the hold duration on a mini-grid inner cell marks that inner cell, and on a multi-completion tile records one completion.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-079 — In the cell accepts holds on the board
+statement: While "Show advanced tiles" is "In the cell", Goal Bingo shall accept the hold on a mini-grid tile's inner cells on the board.
+type: functional
+rationale: The player who can read the tile at cell size marks it without a sheet. D-2026-09-26-6.
+trace-to-source: design-description.md 7.3
+verification-method: test
+verification-criteria: Under "In the cell", a hold through the hold duration on a mini-grid inner cell on the board marks that inner cell, and no sheet opens.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-080 — Changing the setting marks nothing
+statement: When the player changes the "Show advanced tiles" value, Goal Bingo shall leave each cell's mark state and each completion count unchanged.
+type: functional
+rationale: The setting changes only how a tile is shown. D-2026-09-26-3.
+trace-to-source: design-description.md 7.3
+verification-method: test
+verification-criteria: Switching the value in either direction leaves the board's mark states, mini-grid inner marks, and multi-completion counts equal to their values before the switch.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-081 — The setting survives a restart
+statement: Goal Bingo shall keep the chosen "Show advanced tiles" value across app restarts.
+type: functional
+rationale: The setting has saved values that present the same tile differently. D-2026-09-26-3.
+trace-to-source: design-description.md 7.3
+verification-method: test
+verification-criteria: After the player chooses a value and the app restarts, the same value is in effect.
+verification-status: not-verified
+owner: k
+priority: must
+
+---
+
 ## 8.1 — Statistics
 
 ### GB-FUN-051 — Lifetime score display
@@ -1077,6 +1228,28 @@ notes: Target is 10 qualifying marks, uniform across universal, category, and ca
   counter resets and the same challenge continues (`D-2026-09-21-7`). Resolved.
   Verified by `markBoardIncome(1)` in `app/src/challenges.test.ts`: the per-mark amount plus the completion target.
 
+### GB-FUN-082 — Board screen shows the universal challenge
+statement: Goal Bingo shall display the universal challenge's progress in one row on the board screen.
+type: functional
+rationale: Challenges are the only source of board balance, and the universal challenge counts every mark. One row shows that marking pays and leaves the space a larger grid needs. D-2026-09-26-7.
+trace-to-source: design-description.md 8.2
+verification-method: inspection
+verification-criteria: The row shows the universal challenge's progress and fits under a 7×7 board on a 390×844 viewport without scrolling the board.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-083 — The challenge row opens the Challenges view
+statement: When the player activates the challenge row, Goal Bingo shall open the Challenges view.
+type: functional
+rationale: The category and cadence challenges stay on that view. D-2026-09-26-7.
+trace-to-source: design-description.md 8.2
+verification-method: test
+verification-criteria: Activating the challenge row shows the Challenges view with the universal, category, and cadence challenges.
+verification-status: not-verified
+owner: k
+priority: must
+
 ---
 
 ## 8.3 — Achievements
@@ -1113,6 +1286,66 @@ notes: Large grid = board size 7, the only size above the 5x5 start
   clear each (`D-2026-09-21-13`). Rare combination = any variety-combo clear, all 5
   cells distinct categories (`D-2026-09-21-14`). All three resolved.
   Verified by inspection of `app/src/achievements.ts`: the shipped set is first clear, large grid, sustained run, and rare combination.
+
+---
+
+## 9.3 — Appearance
+
+### GB-FUN-084 — Light mode and dark mode
+statement: Goal Bingo shall provide a light mode and a dark mode.
+type: functional
+rationale: The playtest found the board not visually pleasing, and both a light and a dark interface are wanted. D-2026-09-26-5.
+trace-to-source: design-description.md 9.3
+verification-method: inspection
+verification-criteria: The player can switch the same board between a light palette and a dark palette, and category cues meet 3:1 contrast against the cell in both.
+verification-status: not-verified
+owner: k
+priority: must
+notes: GB-FUN-087 and GB-FUN-088 cover which mode a first run shows and that the choice persists (`D-2026-09-26-9`).
+
+### GB-FUN-087 — The chosen mode survives a restart
+statement: Goal Bingo shall keep the mode the player chose across app restarts.
+type: functional
+rationale: A mode that reset on every launch would be chosen again each time. D-2026-09-26-9.
+trace-to-source: design-description.md 9.3
+verification-method: test
+verification-criteria: After the player chooses a mode and the app restarts, the same mode is in effect.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-088 — A first run follows the device's color scheme
+statement: When no mode has been chosen, Goal Bingo shall start in the mode that matches the device's color scheme.
+type: functional
+rationale: The player already set a preference on the device. D-2026-09-26-9.
+trace-to-source: design-description.md 9.3
+verification-method: test
+verification-criteria: With no saved mode, a device set to dark starts in the dark mode and a device set to light starts in the light mode.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-085 — Switching mode leaves state unchanged
+statement: When the player switches mode, Goal Bingo shall leave the board, the pool, and each counter unchanged.
+type: functional
+rationale: A mode changes how the board looks, not what it holds. D-2026-09-26-5.
+trace-to-source: design-description.md 9.3
+verification-method: test
+verification-criteria: After a switch in either direction, the board's goals and marks, the pool, and the lifetime score, reward balance, and board balance equal their values before the switch.
+verification-status: not-verified
+owner: k
+priority: must
+
+### GB-FUN-086 — A mode is a token set
+statement: Goal Bingo shall define each mode as a set of style tokens applied to the same markup.
+type: functional
+rationale: A further mode is then another token set, not another renderer. D-2026-09-26-5.
+trace-to-source: design-description.md 9.3
+verification-method: inspection
+verification-criteria: The light and dark modes differ only in token values, and the markup contains no branch on the mode.
+verification-status: not-verified
+owner: k
+priority: must
 
 ---
 

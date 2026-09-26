@@ -1,6 +1,10 @@
 import './style.css'
 import { loadState, saveState } from './storage'
-import { renderShell, type BoardTarget, type ShellView } from './shell'
+import { endMoment, renderShell, type BoardTarget, type ShellView } from './shell'
+import { HOLD_MS } from './hold'
+import { MOMENT_MS, clearMoment, type ClearMoment } from './moment'
+import { loadPrefs, savePrefs, type Prefs } from './prefs'
+import { applyMode } from './tokens'
 import { applyClearScore, markCellAndResolve } from './lines'
 import { addGoal, removeGoal, updateGoal, type Goal } from './pool'
 import { addReward, purchaseReward, removeReward } from './rewards'
@@ -36,8 +40,45 @@ const state = loaded.state
 let softReset = loaded.softReset
 let view: ShellView = 'home'
 let emptyPoolPrompt = false
-let lastIntersectionCells: number[] = []
 let boardTarget: BoardTarget = { kind: 'mark' }
+let openTile: number | null = null
+let moment: ClearMoment | null = null
+let momentSeq = 0
+let momentTimer: ReturnType<typeof setTimeout> | null = null
+
+function safeLocalStorage(): Storage | null {
+  try {
+    return localStorage
+  } catch {
+    return null
+  }
+}
+
+let prefs: Prefs = loadPrefs(
+  safeLocalStorage(),
+  typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches,
+)
+applyMode(document.documentElement, prefs.mode)
+document.documentElement.style.setProperty('--hold-ms', `${HOLD_MS}ms`)
+document.documentElement.style.setProperty('--moment-ms', `${MOMENT_MS}ms`)
+
+function setPrefs(next: Prefs): void {
+  prefs = next
+  savePrefs(safeLocalStorage(), prefs)
+}
+
+/** GB-FUN-073/074: show the clear moment on the refilled board, then end it without a
+ *  repaint so a hold in progress is never interrupted by it. */
+function showMoment(next: ClearMoment | null): void {
+  if (!next) return
+  moment = next
+  if (momentTimer) clearTimeout(momentTimer)
+  momentTimer = setTimeout(() => {
+    momentTimer = null
+    moment = null
+    endMoment(app!)
+  }, MOMENT_MS)
+}
 let actionNotice: string | null = null
 let completionNotice: string | null = null
 
@@ -220,11 +261,19 @@ function noteGenuineMark(goal: Goal, hadVarietyCombo: boolean): void {
 }
 
 function paint(): void {
+  // The sheet only ever shows an unmarked advanced tile; a clear or a completed tile
+  // closes it rather than leaving it to reopen on whatever lands in that cell later.
+  if (openTile !== null) {
+    const open = state.board.cells[openTile]
+    if (!open || open.marked || !open.advanced) openTile = null
+  }
   renderShell(app!, state, {
     softReset,
     view,
     emptyPoolPrompt,
-    lastIntersectionCells,
+    moment,
+    prefs,
+    openTile,
     boardTarget,
     actionNotice,
     completionNotice,
@@ -281,7 +330,7 @@ function paint(): void {
         state.board = placement.board
         state.advancedTileAccess = placement.access
       }
-      lastIntersectionCells = result.outcome.intersectionCells
+      showMoment(clearMoment(++momentSeq, result.outcome))
       emptyPoolPrompt = false
       saveState(state)
       paint()
@@ -324,7 +373,18 @@ function paint(): void {
         state.board = placement.board
         state.advancedTileAccess = placement.access
       }
-      lastIntersectionCells = mainClear?.intersectionCells ?? []
+      showMoment(
+        clearMoment(
+          ++momentSeq,
+          {
+            scoreDelta: result.scoreDelta,
+            clearedLineCount: mainClear?.clearedLineCount ?? 0,
+            refilledCells: mainClear?.refilledCells ?? [],
+            intersectionCells: mainClear?.intersectionCells ?? [],
+          },
+          parentIndex,
+        ),
+      )
       emptyPoolPrompt = false
       saveState(state)
       paint()
@@ -332,6 +392,26 @@ function paint(): void {
     onNavigate: (next) => {
       view = next
       boardTarget = { kind: 'mark' }
+      openTile = null
+      paint()
+    },
+    onOpenTile: (index) => {
+      openTile = index
+      paint()
+    },
+    onCloseTile: () => {
+      openTile = null
+      paint()
+    },
+    // GB-FUN-080/085: a display preference never touches the game state.
+    onSetAdvancedView: (advancedTiles) => {
+      setPrefs({ ...prefs, advancedTiles })
+      if (advancedTiles === 'cell') openTile = null
+      paint()
+    },
+    onSetMode: (mode) => {
+      setPrefs({ ...prefs, mode })
+      applyMode(document.documentElement, mode)
       paint()
     },
     onDismissActionNotice: () => {
