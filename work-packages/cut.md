@@ -17,6 +17,7 @@ reads; issue bodies mirror it. Package IDs are disposable.
 | WP-08 | #25 |
 | WP-09 | #26 |
 | WP-10 | #27 |
+| WP-11 | #158 |
 
 Build-order dependencies are native issue blocked-by links (C4-2).
 
@@ -34,6 +35,7 @@ Build-order dependencies are native issue blocked-by links (C4-2).
 | 8 | WP-08 Advanced tiles | WP-07 | Multi-completion + mini-grid |
 | 9 | WP-09 Record & discovery | WP-05 | Stats + achievements |
 | 10 | WP-10 Floor constraints | WP-07 | Soft floor / expansion principle verified by sim |
+| 11 | WP-11 Presentation pass | WP-08 | Hold to mark, clear moment, category cue, advanced-tile setting, light and dark |
 
 First shippable slice: **WP-01 → WP-05** (playable bingo with scoring, no economy).
 Recovery-critical slice adds **WP-06 → WP-07**.
@@ -75,6 +77,11 @@ GB-FUN-051, GB-FUN-052, GB-FUN-053, GB-FUN-054, GB-FUN-063, GB-FUN-064
 
 ### WP-10 — Floor constraints
 GB-CON-013, GB-CON-014
+
+### WP-11 — Presentation pass
+GB-FUN-069, GB-FUN-070, GB-FUN-071, GB-FUN-072, GB-FUN-073, GB-FUN-074, GB-FUN-075,
+GB-FUN-076, GB-FUN-077, GB-FUN-078, GB-FUN-079, GB-FUN-080, GB-FUN-081, GB-FUN-082,
+GB-FUN-083, GB-FUN-084, GB-FUN-085, GB-FUN-086
 
 ## Excluded (deleted)
 

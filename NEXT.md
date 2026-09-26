@@ -72,9 +72,13 @@ Current focus matches `vitest`.
   reset to `not-verified` until the hold and the clear moment are built. Hold and moment
   durations stay open (Q25). New records: `D-2026-09-26-6` (presentation setting has two
   values), `D-2026-09-26-7` (one compact challenge strip on the board screen),
-  `D-2026-09-26-8` (no cadence cue on cells). Not yet mined: a requirement for the clear
-  moment on every clear, and for the category cue, the presentation setting and the two
-  modes (`D-2026-09-26-1`, `-2`, `-3`, `-5`).
+  `D-2026-09-26-8` (no cadence cue on cells).
+- **Presentation decisions mined and cut:** the design description now states `D-2026-09-26-3`
+  to `-8` (§3.2, §3.3, §8.2, new §7.3 and §9.3); GB-FUN-069 to GB-FUN-086 mine them with
+  `D-2026-09-26-1`, `-2` and `-4`; all 18 are `not-verified` and cut into WP-11 Presentation
+  pass ([#158](https://github.com/goatindex/goal-bingo/issues/158)). The Play artboards on the
+  design canvas are its playable reference. Open and not guessed: both durations (Q25), the
+  setting's default, and whether the mode persists.
 - **Intake:** change to existing work, entering at link 3. Impact: requirements yes
   (GB-FUN-009 still says a tap; GB-FUN-014 still stops at a distinct intersection;
   GB-FUN-045's criteria still count taps — statements not amended in this pass, ids kept;
