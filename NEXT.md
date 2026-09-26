@@ -66,6 +66,15 @@ Current focus matches `vitest`.
 
 ## Done (2026-09-26 session)
 
+- **Requirements amended for the presentation decisions:** GB-FUN-009 (press-and-hold,
+  not tap), GB-FUN-014 (intersection as the focal point of the clear moment) and GB-FUN-045
+  (completions by hold) now match `D-2026-09-26-1` and `D-2026-09-26-4`; ids kept, all three
+  reset to `not-verified` until the hold and the clear moment are built. Hold and moment
+  durations stay open (Q25). New records: `D-2026-09-26-6` (presentation setting has two
+  values), `D-2026-09-26-7` (one compact challenge strip on the board screen),
+  `D-2026-09-26-8` (no cadence cue on cells). Not yet mined: a requirement for the clear
+  moment on every clear, and for the category cue, the presentation setting and the two
+  modes (`D-2026-09-26-1`, `-2`, `-3`, `-5`).
 - **Intake:** change to existing work, entering at link 3. Impact: requirements yes
   (GB-FUN-009 still says a tap; GB-FUN-014 still stops at a distinct intersection;
   GB-FUN-045's criteria still count taps — statements not amended in this pass, ids kept;

@@ -14,6 +14,8 @@ linter checks R4 (defined terms) and R37 (acronyms) against this file.
 - **clear** — the event when every cell in a line becomes marked: reward balance is awarded, the cells empty, and each refills from the pool.
 - **pool** — the player's full set of defined goals; a goal remains in the pool after being drawn and may be drawn again.
 - **mark** — the act of recording that the goal in a cell was completed; persists until the cell's line clears.
+- **hold duration** — how long a press on a cell must last before it counts as a mark or a completion (`D-2026-09-26-4`); its value is open (§11 Q25).
+- **clear moment** — the short display after a clear of which cells cleared and what that clear scored, on the refilled board; it does not hold the next mark (§3.4, `D-2026-09-26-1`).
 - **board balance** — the spendable currency earned from mark-based challenges (§8.2); spent on board actions (power-ups, recycles, grid expansion); cannot be spent on personal rewards.
 - **reward balance** — the spendable currency earned from clearing lines (§5.1, §5.2); spent on personal rewards (§6.1); cannot be spent on board actions.
 - **lifetime score** — the cumulative record of all clear value earned; never decreases; not spendable.
