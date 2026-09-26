@@ -3,14 +3,118 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
-## D-2026-09-26-1 — Android phone pass stands for iOS until a retest
+## D-2026-09-26-10 — The Android phone pass is recorded; iOS stays open
 
 - **Status:** open
-- **Context:** GB-CON-001 and GB-CON-002 needed a phone. The player tested on Android on 2026-09-26 and asked to treat iOS as the same result until a later retest.
-- **Options considered:** leave both requirements `not-verified` until an iPhone is in hand (rejected — the player accepted the Android result for both platforms for now) · **mark both verified from the Android inspection, and revisit when an iPhone is tested (chosen)**
-- **Why:** The player ran the phone pass and accepted Apple on the same terms, with a retest still due.
-- **Expected outcome:** An iPhone retest of install-to-home-screen, and of one-thumb mark, board, balance, and recycle, agrees with the Android pass. A failure on either check makes this acceptance false.
-- **Revisit:** When an iPhone is available for those same two checks.
+- **Context:** GB-CON-001 (installable, home screen) and GB-CON-002 (one-handed reach) name
+  both iOS and Android in their verification criteria. The player ran the phone pass on
+  Android on 2026-09-26: the app installed to the home screen, and mark, board, balance and
+  recycle were each reachable with one thumb. No iPhone was available. The first version of
+  this record (on #153, as `D-2026-09-26-1`, an id since taken by the clear-moment record)
+  marked both requirements verified; its review blocked that as a claim the criteria do not
+  support.
+- **Options considered:** mark both `verified` and treat iOS as passing on the Android result
+  (rejected — the criteria name iOS, so `verified` would state an observation nobody made) ·
+  leave both `not-verified` until an iPhone is in hand (rejected — it loses the Android
+  result, which is real evidence) · **mark both `in-progress`, record the Android pass in
+  their notes, and leave iOS as the one remaining check (chosen)**
+- **Why:** `in-progress` says exactly what is true: half of each criterion has been observed.
+  The requirement flips to `verified` on the iOS retest, not on a reading of the Android one.
+- **Expected outcome:** An iPhone retest of install-to-home-screen and of one-thumb mark,
+  board, balance and recycle agrees with the Android pass, and both requirements become
+  `verified`. A failure on either check on iOS makes this record's assumption false.
+- **Revisit:** When an iPhone is available. Also if the iOS retest is still outstanding at
+  the first phone playtest, run it then.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-9 — Build defaults: "Open larger" first, the first mode follows the device, both choices persist
+
+- **Status:** open
+- **Context:** Building WP-11 needed three values the presentation decisions left open: the default of "Show advanced tiles" (`D-2026-09-26-6`), which mode a first run shows, and whether a chosen mode survives a restart (`D-2026-09-26-5`). The two durations stay under Q25 as named constants and are not decided here.
+- **Options considered:** "In the cell" as the default (rejected — a mini-grid's inner cells are about 12 px at 5×5, far below a 44 px touch target, so the default would be the unreadable value on a phone) · a fixed light first run (rejected — it ignores the color scheme the player already set on the device) · a mode that resets on every launch (rejected — the player would choose it again each time) · **"Open larger" is the default; a first run follows the device's color scheme; the mode and "Show advanced tiles" persist in their own storage key, apart from the game state (chosen)**
+- **Why:** The default should be the value that works on every screen, and the player who can read a tile at cell size can switch. Keeping display choices out of the game state means no save-format migration, and a change of look cannot touch the board (GB-FUN-080, GB-FUN-085). **Decided by the user 2026-09-27:** made during the build, this record waited on the user; the user kept all three values. Status stays `open` until the playtest observes the expected outcome.
+- **Expected outcome:** At the first phone playtest, a player whose phone is in dark mode first sees the dark board without changing anything, and a mode they choose is still in effect after the app is closed and reopened. Fewer than half of the players move "Show advanced tiles" off "Open larger".
+- **Revisit:** At the first phone playtest. If most players switch to "In the cell", make it the default. If players on a dark-mode phone switch to light straight away, drop the device-following first run for a fixed light one. If a soft reset of the game state leaves players confused that their display choices survived it, reset the preferences with it.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-8 — The board shows no cadence cue
+
+- **Status:** open
+- **Context:** A long-term tile blocks its row and its column (§4.3), and at the ~5% draw share about half the lines hold one (§10.4). `D-2026-09-26-2` puts a category cue on each cell. The board mockup raised whether a cell should also show its cadence, so that the player can see which tiles block.
+- **Options considered:** a marker on long-term tiles only (rejected — the player chose to keep the cell to title and category for now) · a glyph for all four cadences (rejected — a 66 px cell at 5×5, and less at 7×7, has no room for a second cue next to the title and the category band) · **no cadence cue on the board; cadence stays on the pool screen (chosen)**
+- **Why:** The cell already carries a title and a category cue. The player knows which goals they set as long-term. A second cue is added only if a playtest shows it is needed.
+- **Expected outcome:** A board cell renders the goal title and the category cue and no cadence indicator. At the first phone playtest, players can still name which tiles on their board are long-term when asked.
+- **Revisit:** At the first phone playtest. If players cannot say which tiles block their lines, or they plan around a tile they think is long-term and it is not, add a long-term-only marker and record it. If players ask for cadence on every cell, reconsider the all-cadence glyph at 5×5 only.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-7 — The board screen shows one compact challenge strip
+
+- **Status:** open
+- **Context:** Challenges are the only source of board balance (§5.3, §8.2), but in the shell they are visible only on their own tab. The board mockup tried a panel of all three challenge types under the board. That panel uses the vertical space a 7×7 board will need (`D-2026-09-20-8`).
+- **Options considered:** a full panel with universal, category and cadence progress under the board (rejected — it competes with the board at larger grid sizes) · no challenge progress on the board screen (rejected — the player cannot see what their marks earn toward) · **one compact row under the board with the universal challenge's progress, which opens the Challenges view (chosen)**
+- **Why:** The universal challenge is the coverage guarantee: every mark counts toward it (`D-2026-09-19-17`). One row shows that marking pays, and leaves the space for the board.
+- **Expected outcome:** The board screen shows the universal challenge's progress in one row that fits under a 7×7 board on a 390×844 viewport without scrolling the board. Activating the row opens the Challenges view.
+- **Revisit:** At the first playtest. If players do not know what earns board balance, show the category and cadence progress too. If the row is never used, remove it.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-6 — The advanced-tile presentation setting has two values
+
+- **Status:** open
+- **Context:** `D-2026-09-26-3` made how an advanced tile is shown a player setting, and its revisit asked that the controls be named before implementation.
+- **Options considered:** the same two values set separately for mini-grid and for multi-completion tiles (rejected — two settings for one readability problem) · three values, adding a zoom in place over the neighbouring cells (rejected — more to build and test before any playtest shows it is needed) · **one setting, "Show advanced tiles", with two values: "In the cell" (mark inner cells on the board) and "Open larger" (a press opens the tile in a sheet, and marks are made inside it) (chosen)**
+- **Why:** Two saved values are the least that meets `D-2026-09-26-3`'s expected outcome. The press-and-hold stays the mark under both values (`D-2026-09-26-4`). Which value is the default is not set here. **Amended 2026-09-26:** `D-2026-09-26-9` sets "Open larger" as the default.
+- **Expected outcome:** The setting shows exactly two values. Under "Open larger", pressing a mini-grid or multi-completion tile opens it and does not mark it. Under "In the cell", a hold on a mini-grid inner cell marks it on the board. Changing the value marks nothing.
+- **Revisit:** After the first playtest. If players on small screens never leave "Open larger", or a multi-completion tile reads fine in the cell but a mini-grid does not, reconsider a per-type setting.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-5 — Light mode and dark mode both ship
+
+- **Status:** open
+- **Context:** Playtest said the board was not visually pleasing. The presentation brief's Q5 was whether to deepen the one stone skin or compare two skins and keep one.
+- **Options considered:** one skin, deepened (rejected — a single palette cannot show what "pleasing" means, and it cannot serve both a light and a dark preference) · compare two skins and delete the loser (rejected — both a light UI and a dark UI are wanted at once) · **ship at least a light mode and a dark mode, as token overrides on the same markup, and allow further modes the same way (chosen)**
+- **Why:** The player asked for both modes, and for more to remain possible. A further mode is another token set, not another renderer.
+- **Expected outcome:** The player can switch the same board between a light palette and a dark palette, and board state is unchanged by the switch. A third palette can be added without a new shell.
+- **Revisit:** At the first playtest of both modes. If category color fails contrast in either mode, fix the palette before adding a third. If players never leave the mode they started in, still keep both.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-4 — Mark leaves the thumb bar; a mark is a short press-and-hold
+
+- **Status:** open
+- **Context:** Playtest said the Mark item did nothing. In the shell it shares Board's handler and never shows active. The presentation brief's Q4 was whether Mark becomes the way back to marking, or leaves the bar. The player added a mark gesture: press and hold, with a fill, so a mark feels deliberate and a brief press does not mark.
+- **Options considered:** keep Mark and make it the active "back to marking" control (rejected — the player chose to remove it) · leave Mark as a second Board (rejected — that is the control the playtest could not see working) · tap-to-mark kept as the only gesture (rejected — it is the accidental mis-mark, and it has no moment of its own) · **remove Mark from the thumb bar, and require a press-and-hold with a short filling animation before a cell marks (chosen)**
+- **Why:** Board already goes home and already clears an armed recycle, swap, or place. The hold is the safety and the sensation. How long the hold lasts is not set here. The hold is the mark in every advanced-tile presentation setting (`D-2026-09-26-3`); that setting does not restore tap-to-mark. GB-FUN-009 still says "taps" and is to be amended before anyone builds this, id kept.
+- **Expected outcome:** The thumb bar has no Mark control. A press released before the hold completes leaves the cell unmarked and pays no board balance. A press held through the fill marks the cell once. The same hold marks a mini-grid inner cell and records one completion on a multi-completion tile.
+- **Revisit:** At the next playtest. If people stop marking, or miss marks they meant, add a tap-to-mark preference and keep the hold as the default. If the fill feels like a wait across a run of marks, shorten or drop the motion and keep the hold gate. If brief presses still mark, the gate is wrong.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-3 — How an advanced tile is shown is a player setting
+
+- **Status:** open
+- **Context:** Playtest said both advanced tile types were hard to see, and suggested a zoom on click. The presentation brief's Q3 was one global gesture: tap marks and another gesture opens the tile, or tap opens the tile and the mark sits inside. Screen size and preference differ.
+- **Options considered:** one gesture for every player, tap-opens (rejected — some screens and some players can read the cell and do not want a tap to take over the board) · one gesture for every player, mark-immediately with zoom only on a second gesture (rejected — a small screen cannot read a 3×3 or a `k/N` at cell size) · **the player can change how a multi-completion tile and a mini-grid are presented, so screen size or preference can differ (chosen)**
+- **Why:** Readability of the two tile types is one problem with two tolerable answers. The mark itself stays the hold in `D-2026-09-26-4` under every value of this setting. Which controls the setting contains is not listed here.
+- **Expected outcome:** Two saved values of the setting present the same mini-grid, and the same multi-completion tile, differently. The player can choose the value; a small screen does not lock it. Changing the value does not mark the tile.
+- **Revisit:** Before implementation, name the controls. After the first playtest, if players never change the setting, or a small screen still cannot read the tile under every value, decide whether one presentation should be the only one.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-2 — A cell shows its category
+
+- **Status:** open
+- **Context:** Arrangement is the game's first targeted aesthetic, and matching and variety are scored from category. The cell paints the goal title only. The presentation brief's Q2 was a category cue on the cell, or titles alone.
+- **Options considered:** titles only, category left on the pool screen (rejected — the pattern the player is arranging is invisible until a clear changes a number) · **each cell shows a category cue, colored from a palette indexed by the player's category list (chosen)**
+- **Why:** Categories are not a fixed set, so the color cannot be a class named after the category. The title stays; the cue shares the cell.
+- **Expected outcome:** On a board with two categories, a player can point to which cells share a category without opening the pool. A category added later receives a palette color without a new CSS rule per name.
+- **Revisit:** At the first phone playtest. If the cue makes titles unreadable on a 5–7 inch screen, keep the cue as a corner or a band and give the title the rest of the cell.
+- **Outcome:** _(filled at review)_
+
+## D-2026-09-26-1 — A line clear is a short visible moment
+
+- **Status:** open
+- **Context:** Playtest said clearing a line was not visually rewarding. A clear updates the header totals and refills the cells before the next paint. A multi-clear adds a gold outline on the intersection indexes of the new goals. `D-2026-09-19-14`'s revisit (after the first playable prototype) has fired. The presentation brief's Q1 was a short moment, or the totals alone.
+- **Options considered:** totals only (rejected — that is the shell the playtest saw, and it misses the expected outcome already on `D-2026-09-19-14`) · a blocking ceremony that holds the board (rejected — a daily mark should not wait on an animation, and §3.2 still forbids handing the player an empty board) · **a short moment on every clear, single or multi: which cells cleared and the points of that clear, painted on the already-refilled board; a multi-clear keeps the intersection as the focal point; reduced motion keeps the same information and drops the motion (chosen)**
+- **Why:** The score and the line are already computed. The moment makes them visible without becoming a session boundary. How long the moment stays up is not set here.
+- **Expected outcome:** After a single-line clear and after a double-clear, a player can say which cells cleared and what that clear scored. The board they can act on is the refilled one. A second mark is accepted without waiting for the moment to finish.
+- **Revisit:** At the next playtest of a clear. If players still cannot say what the clear scored, the moment is missing a fact. If they wait it out, or it gets in the way of the next mark, shorten it. If the intersection makes it unclear which lines scored, that is `D-2026-09-19-14`'s own revisit.
 - **Outcome:** _(filled at review)_
 
 ## D-2026-09-25-1 — An advanced tile is not a recycle target
@@ -26,7 +130,7 @@ source of requirements, so the reverse walk from a failing test ends here.
 ## D-2026-09-25-2 — Eight verification criteria name an observation the app can show
 
 - **Status:** open
-- **Context:** Eight requirements (GB-FUN-007, GB-FUN-009, GB-FUN-014, GB-CON-003, GB-CON-004, GB-DAT-001, GB-DAT-002, GB-DAT-003) had verification criteria that named a device lab, an aeroplane-mode rig, or a clear animation. The product has none of those. The statements already match what the app does. `D-2026-09-25-1` is the recycle-guard record, so this record is `-2`. GB-CON-001 and GB-CON-002 were left `not-verified` here; `D-2026-09-26-1` later accepted the Android phone pass and deferred the iOS retest.
+- **Context:** Eight requirements (GB-FUN-007, GB-FUN-009, GB-FUN-014, GB-CON-003, GB-CON-004, GB-DAT-001, GB-DAT-002, GB-DAT-003) had verification criteria that named a device lab, an aeroplane-mode rig, or a clear animation. The product has none of those. The statements already match what the app does. `D-2026-09-25-1` is reserved on the recycle-guard branch, so this record is `-2`. GB-CON-001 and GB-CON-002 stay `not-verified`; they still need a phone. (Later: `D-2026-09-26-10` records the Android pass and leaves them `in-progress` pending iOS.)
 - **Options considered:** stand up a device lab, an aeroplane-mode rig, or a clear animation so the old criteria can be run (rejected — the product does not have those, and building them would not change the statements) · **narrow those eight verification criteria to the observation the statement already requires, and leave the statements unchanged (chosen)**
 - **Why:** A criterion that names a rig the app does not have cannot be observed, even when the statement is met. One tile per cell, a distinct intersection treatment, a mark that sends no request, no notification grant, a local round-trip, and a fresh load with no account are the observations those statements require.
 - **Expected outcome:** Each of the eight rewritten criteria is observed by the test or inspection named in its notes. A later `fetch`, `requestPermission`, account field, or game-over view under `app/src` makes the matching inspection note false.
@@ -1019,14 +1123,16 @@ source of requirements, so the reverse walk from a failing test ends here.
   visual treatment and is the anchor for the multi-clear bonus calculation (chosen)**
 - **Why:** The intersection is the only cell in the game that simultaneously completes two
   independent obligations. Making it the focal point of the reward is consistent with how
-  the game values marks, and gives the player a clear read on what scored what. The exact
-  animation and bonus formula are tuning questions; the principle that the cell is the
-  anchor is the decision.
+  the game values marks, and gives the player a clear read on what scored what. The bonus
+  formula is settled elsewhere. **Amended 2026-09-26:** the playtest revisit fired. Whether
+  there is a visible moment is no longer open — `D-2026-09-26-1` specifies a short moment
+  on every clear, with this cell still the focal point of a multi-clear. How long that
+  moment stays up is unset.
 - **Expected outcome:** Double-clears are visually distinct and feel earned; players begin
   positioning for multi-line completions deliberately.
-- **Revisit:** After first playable prototype. If the intersection animation makes it
-  unclear which lines scored what, decouple the visual focal point from the bonus
-  calculation.
+- **Revisit:** The first-prototype trigger has fired (2026-09-26). Next: the playtest of
+  `D-2026-09-26-1`'s moment. If the intersection makes it unclear which lines scored,
+  decouple the visual focal point from the bonus calculation.
 
 ## D-2026-09-19-13 — Diagonals count as lines; all completing lines resolve on a simultaneous mark
 
