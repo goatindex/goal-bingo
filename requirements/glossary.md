@@ -17,7 +17,7 @@ linter checks R4 (defined terms) and R37 (acronyms) against this file.
 - **hold duration** — how long a press on a cell must last before it counts as a mark or a completion (`D-2026-09-26-4`); its value is open (§11 Q25).
 - **clear moment** — the short display after a clear of which cells cleared and what that clear scored, on the refilled board; it does not hold the next mark (§3.4, `D-2026-09-26-1`).
 - **category cue** — the mark on a board cell that shows the goal's category, colored by the category's position in the player's category list (§3.2, `D-2026-09-26-2`).
-- **thumb bar** — the row of navigation controls at the bottom of the screen, within reach of one thumb (§9.1).
+- **thumb bar** — the row of navigation controls at the bottom of the screen, within reach of one thumb; it carries no Mark control (§3.3, `D-2026-09-26-4`).
 - **sheet** — a panel that opens over the board to show one advanced tile larger (§7.3, `D-2026-09-26-6`).
 - **mode** — a named set of style tokens (light or dark) applied to the same screens (§9.3, `D-2026-09-26-5`).
 - **board balance** — the spendable currency earned from mark-based challenges (§8.2); spent on board actions (power-ups, recycles, grid expansion); cannot be spent on personal rewards.
