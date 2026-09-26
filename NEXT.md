@@ -35,8 +35,8 @@ do not update it by hand from memory.
 
 ## Next up
 
-- **Recycle guard** ([#150](https://github.com/goatindex/goal-bingo/pull/150),
-  `D-2026-09-25-1`) — an unmarked advanced tile is refused. Open; not on `main`.
+- ~~**Recycle guard**~~ **Done** ([#150](https://github.com/goatindex/goal-bingo/pull/150),
+  `D-2026-09-25-1`): an unmarked advanced tile is refused. Merged.
 - ~~**Build the global-unlock layer**~~ **Done**: `D-2026-09-21-22` / `D-2026-09-22-1`,
   progression + bulk purchase per track in `advancedUnlock.ts`, wired on mark.
 - **Package C residual (review process)** — `fix_mojibake` runs on every pull request
@@ -63,6 +63,14 @@ A work package is done when its acceptance criteria pass and the code is on `mai
 Every package in `work-packages/cut.md` (WP-01 through WP-10) is done. The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
+
+## Done (2026-09-26 session)
+
+- **Intake:** change to existing work, entering at link 6. Impact: verification-status
+  on GB-CON-001 and GB-CON-002 only; statements unchanged. Work packages none.
+- **Phone pass** (`D-2026-09-26-1`): Android inspection accepted for install and for
+  one-handed mark, board, balance, and recycle. iOS is accepted on the same result
+  until a retest.
 
 ## Done (2026-09-25 session)
 
@@ -95,7 +103,7 @@ Current focus matches `vitest`.
   they were), work packages none.
 - **Recycle guard** (`D-2026-09-25-1`, [#150](https://github.com/goatindex/goal-bingo/pull/150)):
   an unmarked mini-grid or multi-completion tile is refused instead of being replaced
-  by a plain goal. Open.
+  by a plain goal. Merged.
 
 ## Done (2026-09-23 session)
 
@@ -863,4 +871,4 @@ Current focus matches `vitest`.
 
 ## Last updated
 
-2026-09-25
+2026-09-26
