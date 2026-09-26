@@ -69,8 +69,10 @@ same time as it raises the ceiling, and its pricing has to answer for that.
 ### 3.2 Cells and tiles
 
 A cell holds one tile. A tile carries the goal drawn into it, its category, and whether it
-is marked. The board shows that category on the cell (`D-2026-09-26-2`). Ordinary tiles
-need one completion. Advanced tiles (§7) need more.
+is marked. The board shows that category on the cell (`D-2026-09-26-2`). Because the player
+defines the categories, the cue's color comes from the category's position in the player's
+category list, so a category added later needs no new rule. Ordinary tiles need one
+completion. Advanced tiles (§7) need more.
 
 A cell shows its goal title and its category, and an advanced tile shows its progress. It
 does not show the goal's cadence: cadence stays on the pool screen, where the player set it
@@ -100,7 +102,8 @@ When a line's every cell is marked, the line clears at once: score is awarded (�
 cells empty, and the refill draws new goals into them (§4.4). Every clear, including a
 single line, then shows a short moment of which cells cleared and what that clear scored,
 on the refilled board (`D-2026-09-26-1`). The board is playable as soon as it is refilled;
-the moment does not hold the next mark.
+the moment does not hold the next mark. Where the device asks for reduced motion, the moment
+shows the same cells and score without animating.
 
 **Simultaneous completion.** When one mark completes more than one line at once, every line
 resolves — each clears, scores, and refills — and bonus points are awarded for the

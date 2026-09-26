@@ -60,7 +60,8 @@ do not update it by hand from memory.
 ## Done means
 
 A work package is done when its acceptance criteria pass and the code is on `main`.
-Every package in `work-packages/cut.md` (WP-01 through WP-10) is done. The chain
+WP-01 through WP-10 in `work-packages/cut.md` are done. WP-11 (presentation pass, #158) is
+open. The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
 
