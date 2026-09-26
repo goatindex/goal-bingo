@@ -69,6 +69,13 @@ Plain, imperative, explaining *why*. **No Claude attribution of any kind** — n
 Branch and pull request for everything, including documentation. A session hook enforces
 this, because GitHub cannot on a private repository under the current plan.
 
+**The merge is the user's call.** The adversarial review and its fix loop make a pull request
+merge-ready; they do not decide it. At merge-ready, ask which pull requests to merge and in
+what order, and run `gh pr merge <n> --squash --match-head-commit <HEAD>` only when told to.
+Merge a stack bottom-up and never `--delete-branch` a branch another open pull request is
+based on: deleting a pull request's base closes it. The merge gate asks the user on every
+merge (project-tracking#52, its `D-2026-09-26-1`, not this repo's record of that id).
+
 ## Generated copies
 
 `scripts/refresh_copies.py` and `.github/workflows/adversarial-review.yml` are **generated
