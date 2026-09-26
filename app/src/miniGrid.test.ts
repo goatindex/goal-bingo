@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createBoard, type Board, type Cell } from './board'
-import { CADENCE_BASE_VALUE, COMBO_BONUS_RATIO } from './lines'
+import { CADENCE_BASE_VALUE, COMBO_BONUS_RATIO, applyClearScore } from './lines'
 import {
   MINI_GRID_SIZE,
   createMiniGrid,
@@ -202,7 +202,24 @@ describe('markMiniGridCellOnBoard (GB-FUN-049, GB-FUN-050)', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.board.cells[0]!.marked).toBe(true)
+    const line = [
+      { category: 'a', cadence: 'daily' as const },
+      { category: 'a', cadence: 'daily' as const },
+      { category: 'b', cadence: 'daily' as const },
+    ]
+    const base = line.reduce((sum, g) => sum + CADENCE_BASE_VALUE[g.cadence], 0)
+    const distinct = new Set(line.map((g) => g.category)).size
+    const combo = distinct === 1 || distinct === line.length ? 1 + COMBO_BONUS_RATIO : 1
+    const sameLineOnMain = Math.round(base * combo)
+    expect(result.scoreDelta).toBe(sameLineOnMain)
     expect(result.scoreDelta).toBe(MINI_GRID_CLEAR_VALUE)
+    const score = applyClearScore(
+      { lifetime: 0, rewardBalance: 0, boardBalance: 2 },
+      result.scoreDelta,
+    )
+    expect(score.rewardBalance).toBe(sameLineOnMain)
+    expect(score.lifetime).toBe(sameLineOnMain)
+    expect(score.boardBalance).toBe(2)
     expect(result.mainClear).toEqual({
       clearedLineCount: 0,
       clearedCategories: [],

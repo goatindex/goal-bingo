@@ -1,13 +1,13 @@
 import './style.css'
 import { loadState, saveState } from './storage'
 import { renderShell, type BoardTarget, type ShellView } from './shell'
-import { markCellAndResolve } from './lines'
+import { applyClearScore, markCellAndResolve } from './lines'
 import { addGoal, removeGoal, updateGoal, type Goal } from './pool'
 import { addReward, purchaseReward, removeReward } from './rewards'
 import {
   tryUnlockCustomCategory,
 } from './categories'
-import { addCategoryChallenge, progressChallenges, BOARD_BALANCE_PER_MARK, CHALLENGE_TARGET } from './challenges'
+import { addCategoryChallenge, markBoardIncome, progressChallenges, CHALLENGE_TARGET } from './challenges'
 import { recordClear, totalClears } from './stats'
 import { evaluateAchievements } from './achievements'
 import {
@@ -39,6 +39,7 @@ let emptyPoolPrompt = false
 let lastIntersectionCells: number[] = []
 let boardTarget: BoardTarget = { kind: 'mark' }
 let actionNotice: string | null = null
+let completionNotice: string | null = null
 
 function placeTrack(track: AdvancedTileTrack, category: string): void {
   const placed = placeOnUnlock(state.board, track, category, state.advancedTileAccess, state.pool)
@@ -163,8 +164,12 @@ function handleTargetTap(index: number): void {
 function noteGenuineMark(goal: Goal, hadVarietyCombo: boolean): void {
   const progressed = progressChallenges(state.challenges, goal)
   state.challenges = progressed.challenges
-  state.score.boardBalance +=
-    BOARD_BALANCE_PER_MARK + progressed.completedCount * CHALLENGE_TARGET
+  state.score.boardBalance += markBoardIncome(progressed.completedCount)
+  if (progressed.completedCount > 0) {
+    const finished = progressed.completedCount
+    const challenges = finished === 1 ? 'Challenge' : `${finished} challenges`
+    completionNotice = `${challenges} finished. Each paid ${CHALLENGE_TARGET} board balance.`
+  }
   const accessBefore = state.advancedTileAccess
   state.advancedTileAccess = recordAdvancedTileProgress(
     state.advancedTileAccess,
@@ -222,6 +227,7 @@ function paint(): void {
     lastIntersectionCells,
     boardTarget,
     actionNotice,
+    completionNotice,
     onMarkCell: (index) => {
       softReset = false
       if (boardTarget.kind !== 'mark') {
@@ -247,8 +253,7 @@ function paint(): void {
       state.board = result.outcome.board
       // GB-FUN-003 / GB-FUN-033: a clear's value feeds both counters identically -
       // lifetime score as a permanent record, reward balance as spendable currency.
-      state.score.lifetime += result.outcome.scoreDelta
-      state.score.rewardBalance += result.outcome.scoreDelta
+      state.score = applyClearScore(state.score, result.outcome.scoreDelta)
       // GB-FUN-052/053/054: recordClear is itself a no-op when clearedLineCount is 0.
       state.stats = recordClear(
         state.stats,
@@ -299,8 +304,7 @@ function paint(): void {
         return
       }
       state.board = result.board
-      state.score.lifetime += result.scoreDelta
-      state.score.rewardBalance += result.scoreDelta
+      state.score = applyClearScore(state.score, result.scoreDelta)
       const mainClear = result.mainClear
       state.stats = recordClear(
         state.stats,
@@ -332,6 +336,10 @@ function paint(): void {
     },
     onDismissActionNotice: () => {
       actionNotice = null
+      paint()
+    },
+    onDismissCompletionNotice: () => {
+      completionNotice = null
       paint()
     },
     onStartRecycle: () => {

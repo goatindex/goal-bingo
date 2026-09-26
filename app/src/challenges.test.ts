@@ -1,14 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_CATEGORIES, CADENCES } from './categories'
 import {
+  BOARD_BALANCE_PER_MARK,
   CHALLENGE_TARGET,
   addCategoryChallenge,
   cadenceChallengeId,
   categoryChallengeId,
   initialChallenges,
+  markBoardIncome,
   progressChallenges,
   universalChallengeId,
 } from './challenges'
+import { markCellAndResolve } from './lines'
+import type { Goal } from './pool'
 
 describe('initialChallenges', () => {
   it('includes exactly one universal challenge', () => {
@@ -83,6 +87,40 @@ describe('progressChallenges', () => {
     expect(
       result.challenges.find((c) => c.id === categoryChallengeId('health'))!.progress,
     ).toBe(1)
+  })
+})
+
+describe('markBoardIncome (GB-FUN-004, GB-FUN-061, GB-FUN-062, GB-CON-012)', () => {
+  it('a qualifying mark with no completion pays the per-mark amount', () => {
+    const { completedCount } = progressChallenges(initialChallenges(DEFAULT_CATEGORIES), {
+      category: 'health',
+      cadence: 'daily',
+    })
+    expect(completedCount).toBe(0)
+    expect(markBoardIncome(completedCount)).toBe(BOARD_BALANCE_PER_MARK)
+  })
+
+  it('a completion pays the per-mark amount plus one bonus per challenge that finished', () => {
+    const base = initialChallenges(DEFAULT_CATEGORIES).map((c) =>
+      c.kind === 'universal' ? { ...c, progress: CHALLENGE_TARGET - 1 } : c,
+    )
+    const { completedCount } = progressChallenges(base, { category: 'health', cadence: 'daily' })
+    expect(completedCount).toBe(1)
+    expect(markBoardIncome(completedCount)).toBe(BOARD_BALANCE_PER_MARK + CHALLENGE_TARGET)
+  })
+
+  it('a mark that does not clear a jammed board still pays the per-mark amount', () => {
+    const longTerm: Goal = { id: 'lt', title: 'Long', category: 'work', cadence: 'long-term' }
+    const hourly: Goal = { id: 'h', title: 'Hour', category: 'health', cadence: 'hourly' }
+    const cells = Array.from({ length: 25 }, (_, i) => ({
+      goal: i % 6 === 0 ? longTerm : hourly,
+      marked: false,
+    }))
+    const result = markCellAndResolve({ size: 5, cells }, 1, [hourly, longTerm], () => 0)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.outcome.clearedLineCount).toBe(0)
+    expect(markBoardIncome(0)).toBe(BOARD_BALANCE_PER_MARK)
   })
 })
 

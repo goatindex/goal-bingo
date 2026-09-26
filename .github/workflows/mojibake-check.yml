@@ -1,0 +1,21 @@
+# Mojibake check on every pull request.
+#
+# scripts/fix_mojibake.py is this repo's own checker, not a generated copy, so this
+# workflow is hand-written. Check mode (no --apply) exits 1 when it finds a repairable
+# sequence and 2 when a path is missing or no markdown is found.
+name: mojibake-check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: mojibake check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check markdown for mojibake
+        run: python3 scripts/fix_mojibake.py README.md NEXT.md DECISIONS.md docs requirements work-packages

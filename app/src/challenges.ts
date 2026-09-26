@@ -64,6 +64,12 @@ export function addCategoryChallenge(
 /** Flat board-balance payment per qualifying mark, regardless of challenge count (D-2026-09-21-6). */
 export const BOARD_BALANCE_PER_MARK = 1
 
+/** Board balance a genuine mark pays: the per-mark amount, plus one completion bonus
+ *  for each challenge that reached its target on this mark (GB-FUN-004, 061, 062). */
+export function markBoardIncome(completedCount: number): number {
+  return BOARD_BALANCE_PER_MARK + completedCount * CHALLENGE_TARGET
+}
+
 export type ProgressResult = {
   challenges: Challenge[]
   /** Number of challenges that reached target on this mark (each pays its own completion bonus). */
