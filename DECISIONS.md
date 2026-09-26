@@ -3,6 +3,16 @@
 ADR-lite records. Newest first. IDs are permanent (`D-YYYY-MM-DD-n`) and are cited as the
 source of requirements, so the reverse walk from a failing test ends here.
 
+## D-2026-09-26-1 — Android phone pass stands for iOS until a retest
+
+- **Status:** open
+- **Context:** GB-CON-001 and GB-CON-002 needed a phone. The player tested on Android on 2026-09-26 and asked to treat iOS as the same result until a later retest.
+- **Options considered:** leave both requirements `not-verified` until an iPhone is in hand (rejected — the player accepted the Android result for both platforms for now) · **mark both verified from the Android inspection, and revisit when an iPhone is tested (chosen)**
+- **Why:** The player ran the phone pass and accepted Apple on the same terms, with a retest still due.
+- **Expected outcome:** An iPhone retest of install-to-home-screen, and of one-thumb mark, board, balance, and recycle, agrees with the Android pass. A failure on either check makes this acceptance false.
+- **Revisit:** When an iPhone is available for those same two checks.
+- **Outcome:** _(filled at review)_
+
 ## D-2026-09-25-1 — An advanced tile is not a recycle target
 
 - **Status:** open
@@ -16,7 +26,7 @@ source of requirements, so the reverse walk from a failing test ends here.
 ## D-2026-09-25-2 — Eight verification criteria name an observation the app can show
 
 - **Status:** open
-- **Context:** Eight requirements (GB-FUN-007, GB-FUN-009, GB-FUN-014, GB-CON-003, GB-CON-004, GB-DAT-001, GB-DAT-002, GB-DAT-003) had verification criteria that named a device lab, an aeroplane-mode rig, or a clear animation. The product has none of those. The statements already match what the app does. `D-2026-09-25-1` is reserved on the recycle-guard branch, so this record is `-2`. GB-CON-001 and GB-CON-002 stay `not-verified`; they still need a phone.
+- **Context:** Eight requirements (GB-FUN-007, GB-FUN-009, GB-FUN-014, GB-CON-003, GB-CON-004, GB-DAT-001, GB-DAT-002, GB-DAT-003) had verification criteria that named a device lab, an aeroplane-mode rig, or a clear animation. The product has none of those. The statements already match what the app does. `D-2026-09-25-1` is the recycle-guard record, so this record is `-2`. GB-CON-001 and GB-CON-002 were left `not-verified` here; `D-2026-09-26-1` later accepted the Android phone pass and deferred the iOS retest.
 - **Options considered:** stand up a device lab, an aeroplane-mode rig, or a clear animation so the old criteria can be run (rejected — the product does not have those, and building them would not change the statements) · **narrow those eight verification criteria to the observation the statement already requires, and leave the statements unchanged (chosen)**
 - **Why:** A criterion that names a rig the app does not have cannot be observed, even when the statement is met. One tile per cell, a distinct intersection treatment, a mark that sends no request, no notification grant, a local round-trip, and a fresh load with no account are the observations those statements require.
 - **Expected outcome:** Each of the eight rewritten criteria is observed by the test or inspection named in its notes. A later `fetch`, `requestPermission`, account field, or game-over view under `app/src` makes the matching inspection note false.
