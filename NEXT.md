@@ -38,9 +38,23 @@ do not update it by hand from memory.
   `prefs.test.ts`, `tokens.test.ts`, `shell.test.ts`).
 - **Q19 is simulable now:** extend `sim/` to test whether one free recycle per 24 hours
   outpaces re-jamming.
-- **Re-render `CHAIN.pdf`** once project-tracking#52 merges, and **re-link the installed
-  `adversarial-review` skill** to `D:\claude-workflow\skills\adversarial-review`: the
-  session sandbox refused to create the junction, so it is the user's to run.
+- **Re-link the installed `adversarial-review` skill** to
+  `D:\claude-workflow\skills\adversarial-review`: the session sandbox refused to create the
+  junction, so it is the user's to run. (`CHAIN.pdf`/`ARCHITECTURE.pdf` re-rendering, the
+  other half of this item, is done — `project-tracking#52` and `#53`, both merged.)
+- **`claude-workflow#47` awaiting re-review** after three blocking findings (level-3-only
+  heading assumption in two new scripts, a wrong reader-leg name) were fixed and pushed.
+- **Requirement/decision records for four new house mechanisms are unwritten**: this
+  session's `hygiene_sweep.py --classify`, `requirement_counts.py`/`verify_status_check.py`,
+  `control_char_guard.py`/`control_char_check.py`, and `staleness_check.py` are built and
+  tested but not yet mined into `project-tracking`'s trace chain.
+- **Mutation-testing harness (item 7) and the review-round catalog/circuit-breaker/pattern-
+  review cadence (item 8)** are designed, not built — see `HANDOFF-loop-fixes-4-7-8.md` in
+  `claude-workflow` (untracked) for the full design and options.
+- **Orphaned branches in `project-tracking`** now that their pull requests merged:
+  `chain/link6-merge-asks`, `docs/rerender-architecture-pdf`, `records/chain-gates-tb46-49`,
+  `records/punch-list` (currently checked out), `wrap-up/2026-09-22-ci-billing-audit`. Ask
+  before deleting.
 - **Category-unlock threshold left provisional, by design** (`D-2026-09-20-7`, "lifetime
   score ≥ 10 unlocks one custom category slot"). Its revisit trigger has fired, and the user
   chose to wait for playtest data rather than guess a replacement.
@@ -74,6 +88,45 @@ Current focus matches `vitest`.
 - **Two user decisions:** `D-2026-09-26-9`'s build defaults kept; the phone pass recorded as
   `D-2026-09-26-10`, with GB-CON-001 and GB-CON-002 `in-progress` until an iOS retest
   ([#153](https://github.com/goatindex/goal-bingo/pull/153)).
+- **Loop-pattern review, then four deterministic checks against it** (house tooling, affects
+  every project's own sessions, not just this one): a numbered review of how work was
+  looping this session (hand-restated counts, "verified" set before the citing pull request
+  merged twice, staleness diagnosed by hand, a heredoc-mangled `\b` shipping as a literal
+  byte, every finding fixed on sight instead of only blocking ones) produced a prioritised
+  fix list, built as `claude-workflow#47`: `hygiene_sweep.py --classify` (blocking/non-
+  blocking triage is a function call), `requirement_counts.py`/`verify_status_check.py`
+  (a generated count and a check that refuses `verified` citing an unmerged pull request),
+  `control_char_guard.py` + `control_char_check.py` (refuses/flags a commit holding a
+  control byte outside tab/LF/CR — the exact heredoc-corruption signature above), and
+  `staleness_check.py` (reads GitHub's own `isResolved`/`isOutdated` per review thread
+  instead of rereading diffs by hand; `--heuristic` adds one explicitly non-deterministic,
+  clearly labeled guess, logged to a shared mechanism-health file). The review caught three
+  real blocking findings of its own — both new scripts only recognised `### ` headings
+  where the house format allows level 2-4 — fixed and pushed. `#47` is open, its fixes
+  awaiting re-review.
+- **`staleness_check.py` paid for itself immediately**, on the pull requests it was built to
+  help with: run against `project-tracking#55`, it found two blocking review threads whose
+  underlying content had already changed (one fixed by an earlier commit on the branch, one
+  by this session's own DECISIONS.md fix) but were never marked resolved — replied and
+  resolved both rather than re-diagnosing by eye.
+- **Merged** (user's instruction): `project-tracking#53` (headless `CHAIN.pdf`/
+  `ARCHITECTURE.pdf` rendering) and `project-tracking#55` (the punch-list mechanism and its
+  requirement records, `WOW-OPS-026`, plus the corrected DECISIONS.md amendment note).
+  `#55` conflicted with `main` after `#53` landed first (both touched `ARCHITECTURE.md`'s
+  TB-50/TB-51 rows) — merged by hand, combining both sides, re-linted clean, then merged
+  once CI re-ran green.
+- **Handoff written, not yet built:** `HANDOFF-loop-fixes-4-7-8.md` in `claude-workflow`
+  (untracked, for delegation) specifies a reusable mutation-testing harness (item 7 — one
+  shared script instead of a bespoke one per fix, with a case for periodically also running
+  an automated mutation tool like `mutmut`) and a review-round catalog + 2-round circuit
+  breaker + pattern-review cadence (item 8 — triggered every 10 first-round reviews with a
+  blocking finding, catalog covering all PRs' feedback open or closed) with a recommendation
+  on how it relates to the still-open punch-list batch trigger (item 6: share the data,
+  keep separate triggers, since they grow at different rates).
+- **Idea recorded, not yet built:** instrument every check/gate/hook so how often each one
+  actually saves effort is measurable, not assumed (`mechanism-health-monitoring` memory
+  note). `staleness_check.py`'s logging to `~/.claude/mechanism_health.jsonl` is the first
+  opportunistic piece; no aggregator reads it yet.
 
 ## Done (2026-09-26 session)
 
