@@ -75,6 +75,12 @@ verification pass. The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
 
+## Done (2026-10-05 session)
+
+- **Intake:** neither. This is a project skill and an advisory report for a Discord
+  control surface. It does not enter the Goal Bingo chain. Impact: requirements none,
+  work packages none.
+
 ## Done (2026-09-27 session)
 
 - **Merge gate hardened and merged** (claude-workflow#44): five review rounds each found a way
