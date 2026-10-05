@@ -234,13 +234,16 @@ live-action-intel's `bot.py`.
 **What the research had to leave the skill to learn.** Cursor local versus
 cloud, `bc-` ids, resume, the silent-local trap, and pricing are in the
 Cursor SDK skill and the Cursor docs, on purpose: this skill does not choose
-a control-surface layout. Thread membership and phone notifications are not
-in the channels operation; the archive timer is. The comparison "15 minutes
-is shorter than a cloud agent run" is an application of a fact the skill
-has, not a fact the skill draws. Allowlists, and "do not reuse the CI bot
-token", are absent. OpenClaw and agent-channels are absent. Those are real
-gaps for *this* job. They are not missing bot-building steps, so they stayed
-in this report.
+a control-surface layout. The comparison "15 minutes is shorter than a cloud
+agent run" is an application of a fact the skill has, not a fact the skill
+draws. "Do not reuse the CI bot token" stays out of the skill because it is
+this deployment. OpenClaw is unused, and agent-channels is a spike for this
+report, so neither is a bot-building procedure.
+
+Thread membership and who-may-trigger were missing at the time of that
+research. They are in the skill now, written for any bot: notifications
+follow thread membership, and the trigger gate is channel permissions, a
+role, or a user-id allowlist when the bot is private.
 
 **Whether the subfolders earned their keep.** Yes, for this pass. The ranking
 used channels, host, send, calls, and gateway, each as its own file, and did

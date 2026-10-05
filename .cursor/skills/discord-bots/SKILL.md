@@ -13,19 +13,19 @@ description: >-
 Build a bot that uses a bot token and the current Discord API. The estate's
 worked example is [live-action-intel](https://github.com/goatindex/live-action-intel)
 (`src/lai/bot.py`, `DEPLOY.md`). Copy its shape when it helps. Do not copy its
-game-day domain, and do not treat it as an agent control surface.
+game-day domain.
 
-This skill does not choose how a server should be organised. Layout is a
-separate decision.
+Channel types and caps are documented here. Which channels a product uses is
+that product's decision.
 
 ## Library
 
 Default to **discord.py 2** (`import discord`, `discord.app_commands`). It is
 what live-action-intel runs.
 
-Use **discord.js** instead when the bot lives in a TypeScript repo, including
-one that calls `@cursor/sdk`. The operations below are the same jobs; the
-library calls change. discord.js docs: <https://discord.js.org/docs/packages/discord.js/main>.
+Use **discord.js** when the bot lives in a TypeScript repo. The operations
+below are the same jobs; the library calls change. discord.js docs:
+<https://discord.js.org/docs/packages/discord.js/main>.
 
 Do not add a second library "for later".
 
@@ -47,6 +47,12 @@ Do not add a second library "for later".
   connected** to the gateway. An interactions endpoint URL can answer slash
   commands with no gateway. It cannot see ordinary messages.
 - Never commit a token. Read it from the environment.
+- Decide who may trigger the bot before it acts. See
+  [Add a feature](operations/features/OPERATION.md). Channel permissions and
+  role checks are the usual gate. A user-id allowlist is for a private bot,
+  or for an action a role cannot express. A bot that should answer everyone
+  who can speak in the channel says so in the feature. Ignore other bots
+  unless the feature is about them.
 
 ## Operations
 
