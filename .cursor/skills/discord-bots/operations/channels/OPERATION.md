@@ -46,37 +46,8 @@ call. Creating a forum post needs **Send Messages** on the forum, not
 Thread speech needs **Send Messages in Threads**. `Send Messages` on the
 parent does not carry into the thread.
 
-Permissions inherit from the parent. A public thread is readable by anyone
-who can view the parent. A private thread is visible to its members and to
-anyone with **Manage Threads**.
-
-## Membership and notifications
-
-Seeing a thread and being a member are different. Push notifications follow
-membership. The member object carries the notification flags.
-<https://docs.discord.com/developers/topics/threads>
-
-The user who creates the thread is a member. Everyone else is not, until one
-of these happens:
-
-- They join it, or send a message in it.
-- The bot adds them. On a public thread that needs **Send Messages in
-  Threads**. On a private thread with `invitable` off, it needs **Manage
-  Threads**.
-
-```python
-await thread.add_user(user)
-```
-
-`add_user` posts a system message in the thread (`@bot added @user`).
-@mentioning someone in a message inside the thread also adds them, and
-notifies them according to their own notification settings. Use the mention
-when the system line is noise. Use `add_user` when you need the member
-record and can tolerate the system line.
-
-If the bot opens the thread, the bot is the member who gets created with it.
-People who can see the parent channel do not automatically follow that
-thread. Add or @mention each person who must be notified.
+Permissions inherit from the parent. Private threads are visible to members
+and to anyone with **Manage Threads**.
 
 ## Creating channels
 
@@ -84,9 +55,9 @@ Need **Manage Channels**. The bot does not have it unless the invite granted
 it.
 
 ```python
-category = await guild.create_category("team")
-channel = await guild.create_text_channel("general", category=category)
-thread = await channel.create_thread(name="topic", type=discord.ChannelType.public_thread)
+category = await guild.create_category("goal-bingo")
+channel = await guild.create_text_channel("agents", category=category)
+thread = await channel.create_thread(name="session", type=discord.ChannelType.public_thread)
 await thread.send("started")
 ```
 
