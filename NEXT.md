@@ -17,6 +17,12 @@ moment durations), the provisional category-unlock threshold (`D-2026-09-20-7`),
 revisit triggers on all nine `D-2026-09-26-*` decisions all wait on real play. WP-01 to
 WP-11 are every package in `work-packages/cut.md`, and all are closed.
 
+The installable build is published from `main` by `pages.yml` to
+[https://goatindex.github.io/goal-bingo/](https://goatindex.github.io/goal-bingo/).
+That address is what a phone installs. The production manifest scope is `/goal-bingo/`;
+local `npm run dev` stays at `/`. The site is live once this is on `main` and the Pages
+source is GitHub Actions.
+
 The chain gates are wired: `tests.yml` (typecheck and vitest, zero-tests guard),
 `partition_check.py --cut` with its TBD gate, `figures_check.py`, `citation_check.py`, and
 the adversarial review. The session merge gate asks the human on every merge
@@ -29,6 +35,9 @@ do not update it by hand from memory.
 
 ## Next up
 
+- **After the Pages pull request merges:** if the first deploy says Pages is not enabled,
+  set the source to GitHub Actions and re-run `pages.yml`. Then install from
+  [https://goatindex.github.io/goal-bingo/](https://goatindex.github.io/goal-bingo/).
 - **iOS retest** of GB-CON-001 and GB-CON-002 (install, one-thumb reach), both
   `in-progress` on the Android pass (`D-2026-09-26-10`).
 - **Playtest WP-11 on a phone**, then set Q25's durations from what players do, and act on
@@ -74,6 +83,13 @@ WP-01 through WP-11 in `work-packages/cut.md` are done, with WP-11's requirement
 verification pass. The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
+
+## Done (2026-10-06 session)
+
+- **GitHub Pages deploy:** production builds use base `/goal-bingo/` so the manifest
+  `start_url` and `scope` match the project site. `pages.yml` builds `app/dist` and
+  deploys it on push to `main`. Local dev stays at `/`. The phone playtest installs
+  from `https://goatindex.github.io/goal-bingo/` once the workflow has run.
 
 ## Done (2026-09-27 session)
 
@@ -982,4 +998,4 @@ Current focus matches `vitest`.
 
 ## Last updated
 
-2026-09-27
+2026-10-06

@@ -24,10 +24,15 @@ Mobile-first progressive web app. Single player. No accounts, no verification, n
 ```bash
 cd app
 npm install
-npm run dev      # local shell
-npm run build    # installable PWA output in app/dist
+npm run dev      # local shell, at /
+npm run build    # installable PWA output in app/dist, base /goal-bingo/
+npm run preview  # that build at http://localhost:4173/goal-bingo/
 npm test         # 233 vitest unit tests, typecheck + suite gated in CI
 ```
+
+A push to `main` publishes that build to
+[https://goatindex.github.io/goal-bingo/](https://goatindex.github.io/goal-bingo/).
+Install it from that address: Chrome on Android, or Safari’s Share sheet on an iPhone.
 
 Scope-exclusion inspection from repo root:
 
