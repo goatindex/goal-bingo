@@ -51,6 +51,7 @@ describe('UX shell (WP-15–16, WP-19)', () => {
     renderShell(root, state, noopHandlers('home'))
     expect(root.innerHTML).toContain('data-testid="category-legend"')
     expect(root.innerHTML).toContain('data-testid="balance-hint"')
+    expect(root.innerHTML).toContain('data-testid="challenge-row"')
     expect(root.innerHTML).toContain('home-layout')
   })
 
