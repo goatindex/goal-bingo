@@ -4,6 +4,8 @@ import { renderButton } from './button'
 import { renderSegmented } from './segmented'
 import { renderStatTile } from './statTile'
 import { renderProgressBar } from './progressBar'
+import { renderFormError } from './formField'
+import { renderListRow } from './listRow'
 
 describe('ui primitives', () => {
   it('renders a dismissible warn banner', () => {
@@ -41,5 +43,10 @@ describe('ui primitives', () => {
   it('renders stat tile and progress bar', () => {
     expect(renderStatTile('Board', 12, 'board-balance')).toContain('data-testid="board-balance"')
     expect(renderProgressBar(40, 'challenge-progress')).toContain('width: 40%')
+  })
+
+  it('renders form error and list row', () => {
+    expect(renderFormError('add-error')).toContain('ui-form__error')
+    expect(renderListRow({ body: 'x', attrs: { 'data-goal-id': 'g1' } })).toContain('ui-list-row')
   })
 })

@@ -1,4 +1,6 @@
-/** Mode-independent layout tokens (WP-12). Colors stay in tokens.ts / GB-FUN-086. */
+/** Mode-independent layout tokens (WP-12). Colors stay in tokens.ts / GB-FUN-086.
+ *  Spacing, radius, and type do not change between light and dark; category fills and
+ *  surfaces are mode-specific and applied via applyMode(). */
 export const LAYOUT_CSS_VARS: Record<string, string> = {
   '--space-1': '0.25rem',
   '--space-2': '0.5rem',
