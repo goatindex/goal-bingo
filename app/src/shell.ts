@@ -30,8 +30,22 @@ import { attachHold } from './hold'
 import type { ClearMoment } from './moment'
 import { ADVANCED_VIEWS, ADVANCED_VIEW_LABELS, type AdvancedView, type Prefs } from './prefs'
 import { MODES, categorySlot, type Mode } from './tokens'
+import { renderBanner } from './ui/banner'
+import { renderCostRow } from './ui/costRow'
+import { escapeHtml } from './ui/escape'
+import { renderPanel, renderPageSection } from './ui/panel'
+import { renderProgressBar } from './ui/progressBar'
+import { renderSegmented } from './ui/segmented'
+import { renderStatTile } from './ui/statTile'
 
-export type ShellView = 'home' | 'pool' | 'rewards' | 'stats' | 'actions' | 'challenges' | 'display'
+export type ShellView =
+  | 'home'
+  | 'pool'
+  | 'rewards'
+  | 'stats'
+  | 'actions'
+  | 'challenges'
+  | 'settings'
 
 /** Cell-targeting mode. Not persisted. 'mark' is ordinary play. */
 export type BoardTarget =
@@ -41,13 +55,15 @@ export type BoardTarget =
   | { kind: 'place'; track: AdvancedTileTrack }
 
 const PRIMARY_ACTIONS = [
-  { id: 'board', label: 'Board' },
-  { id: 'pool', label: 'Pool' },
-  { id: 'rewards', label: 'Rewards' },
-  { id: 'stats', label: 'Stats' },
-  { id: 'actions', label: 'Actions' },
-  { id: 'challenges', label: 'Challenges' },
+  { id: 'board', label: 'Board', aria: 'Board' },
+  { id: 'pool', label: 'Pool', aria: 'Goal pool' },
+  { id: 'rewards', label: 'Rewards', aria: 'Personal rewards' },
+  { id: 'stats', label: 'Stats', aria: 'Statistics' },
+  { id: 'actions', label: 'Acts', aria: 'Board actions' },
+  { id: 'challenges', label: 'Chal', aria: 'Challenges' },
 ] as const
+
+let lastShellView: ShellView | null = null
 
 function trackLabel(track: AdvancedTileTrack): string {
   return track === 'multi-completion' ? 'Multi-completion' : 'Mini-grid'
@@ -112,64 +128,81 @@ export type ShellHandlers = {
   onExpand: () => void
   onPurchaseUnlock: (track: AdvancedTileTrack, category: string) => void
   onPurchaseGlobal: (track: AdvancedTileTrack) => void
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
+  onCancelBoardTarget: () => void
 }
 
 /** Shown when a draw is refused because the pool has nothing to draw (GB-FUN-065). */
 export function emptyPoolPromptHtml(show: boolean): string {
   if (!show) return ''
-  return `<p class="shell__banner shell__banner--warn" role="alert" data-testid="empty-pool-prompt">
-                The pool is empty — add a goal before drawing.
-                <button type="button" data-testid="dismiss-empty-prompt">OK</button>
-              </p>`
+  return renderBanner({
+    message: 'The pool is empty — add a goal before drawing.',
+    variant: 'warn',
+    testId: 'empty-pool-prompt',
+    dismissTestId: 'dismiss-empty-prompt',
+  })
+}
+
+function renderCategoryLegend(categories: readonly string[]): string {
+  const rows = categories
+    .map((category) => {
+      const slot = categorySlot(categories, category)
+      const style = slot >= 0 ? ` style="--legend-cue: var(--cue-${slot})"` : ''
+      return `<li class="category-legend__item"${style}><span class="category-legend__swatch" aria-hidden="true"></span>${escapeHtml(category)}</li>`
+    })
+    .join('')
+  return `<details class="category-legend" data-testid="category-legend">
+    <summary>Category colors</summary>
+    <ul class="category-legend__list">${rows}</ul>
+  </details>`
 }
 
 export function renderShell(root: HTMLElement, state: GameState, h: ShellHandlers): void {
   const unlockReady = canUnlockCustomCategory(state.score.lifetime)
   const customCategories = listCustomCategories(state.categories)
+  const preserveScroll = lastShellView === h.view && h.view !== 'home'
+  const scrollTop = preserveScroll ? (root.querySelector('.shell__main')?.scrollTop ?? 0) : 0
+  lastShellView = h.view
 
   root.innerHTML = `
     <div class="shell">
       <header class="shell__header">
         <p class="shell__brand">Goal Bingo</p>
-        <button type="button" class="shell__display-btn${h.view === 'display' ? ' is-active' : ''}" data-action="display" data-testid="action-display" aria-pressed="${h.view === 'display'}">Display</button>
+        <button type="button" class="ui-btn ui-btn--secondary ui-btn--header${h.view === 'settings' ? ' is-active' : ''}" data-action="settings" data-testid="action-display" aria-pressed="${h.view === 'settings'}">Settings</button>
       </header>
 
       <main class="shell__main">
         ${
           h.softReset
-            ? `<p class="shell__banner" role="status">Saved data could not be read. Starting fresh with a starter pool.</p>`
+            ? renderBanner({
+                message: 'Saved data could not be read. Starting fresh with a starter pool.',
+              })
             : ''
         }
         ${emptyPoolPromptHtml(h.emptyPoolPrompt)}
         ${
           h.actionNotice
-            ? `<p class="shell__banner shell__banner--warn" role="alert" data-testid="action-notice">
-                ${escapeHtml(h.actionNotice)}
-                <button type="button" data-testid="dismiss-action-notice">OK</button>
-              </p>`
+            ? renderBanner({
+                message: h.actionNotice,
+                variant: 'warn',
+                testId: 'action-notice',
+                dismissTestId: 'dismiss-action-notice',
+              })
             : ''
         }
         ${
           h.completionNotice
-            ? `<p class="shell__banner" role="status" data-testid="completion-notice">
-                ${escapeHtml(h.completionNotice)}
-                <button type="button" data-testid="dismiss-completion-notice">OK</button>
-              </p>`
+            ? renderBanner({
+                message: h.completionNotice,
+                testId: 'completion-notice',
+                dismissTestId: 'dismiss-completion-notice',
+              })
             : ''
         }
         ${
           h.view === 'home'
             ? renderHome(state, h)
-            : h.view === 'display'
-              ? renderDisplay(h.prefs)
+            : h.view === 'settings'
+              ? renderSettings(h.prefs)
               : h.view === 'pool'
               ? renderPool(state, unlockReady, customCategories)
               : h.view === 'rewards'
@@ -191,15 +224,18 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
             (a.id === 'actions' && h.view === 'actions') ||
             (a.id === 'challenges' && h.view === 'challenges') ||
             (a.id === 'board' && h.view === 'home')
-          return `<button type="button" class="thumb-btn${active ? ' thumb-btn--active' : ''}" data-action="${a.id}" data-testid="action-${a.id}">${a.label}</button>`
+          return `<button type="button" class="thumb-btn${active ? ' thumb-btn--active' : ''}" data-action="${a.id}" data-testid="action-${a.id}" aria-label="${escapeHtml(a.aria)}">${a.label}</button>`
         }).join('')}
       </nav>
       ${h.view === 'home' ? renderSheet(state, h) : ''}
     </div>
   `
+  const mainEl = root.querySelector('.shell__main')
+  if (mainEl && preserveScroll) mainEl.scrollTop = scrollTop
   if (h.moment) lastAnimatedMomentId = h.moment.id
 
   bindHome(root, h)
+  bindSheetKeyboard(root, h)
   bindAdvancedView(root, h)
   bindDisplay(root, h)
   bindPool(root, h)
@@ -220,9 +256,6 @@ let lastAnimatedMomentId = -1
 
 const HOLD_HINT = 'Press and hold a goal when you have done it.'
 
-function statTile(label: string, value: number, testid: string): string {
-  return `<div class="stat-tile"><strong data-testid="${testid}">${value}</strong><span>${label}</span></div>`
-}
 
 function holdHintHtml(): string {
   return `<p class="hold-hint" role="status" data-testid="hold-status">${HOLD_HINT}</p>`
@@ -242,19 +275,28 @@ function renderHome(state: GameState, h: ShellHandlers): string {
   const universal = state.challenges.find((c) => c.kind === 'universal')
   const pct = universal ? Math.min(100, Math.round((universal.progress / universal.target) * 100)) : 0
   return `
-    ${hint ? `<p class="shell__banner" role="status" data-testid="target-hint">${escapeHtml(hint)}</p>` : ''}
+    ${
+      hint
+        ? `<div class="target-hint" data-testid="target-hint">
+            ${renderBanner({ message: hint })}
+            <button type="button" class="ui-btn ui-btn--secondary ui-btn--compact" data-testid="cancel-board-target">Cancel</button>
+          </div>`
+        : ''
+    }
     <section class="stat-tiles" aria-label="Local status">
-      ${statTile('Lifetime', state.score.lifetime, 'lifetime')}
-      ${statTile('Rewards', state.score.rewardBalance, 'reward-balance')}
-      ${statTile('Board', state.score.boardBalance, 'board-balance')}
+      ${renderStatTile('Lifetime', state.score.lifetime, 'lifetime')}
+      ${renderStatTile('Rewards', state.score.rewardBalance, 'reward-balance')}
+      ${renderStatTile('Board', state.score.boardBalance, 'board-balance')}
     </section>
+    <p class="ui-hint ui-hint--balances" data-testid="balance-hint">Lifetime is your record. <strong>Rewards</strong> buys personal treats. <strong>Board</strong> pays for recycle, swap, expand, and tiles.</p>
+    ${renderCategoryLegend(state.categories)}
     <div class="moment-slot" data-testid="moment-slot">${renderMoment(h.moment)}</div>
     ${renderBoard(state, h)}
     ${
       universal
         ? `<button type="button" class="challenge-row" data-testid="challenge-row" aria-label="Challenges: mark any ${universal.target} goals, ${universal.progress} of ${universal.target}. Open challenges.">
             <span class="challenge-row__label">Mark any ${universal.target} goals</span>
-            <span class="challenge-row__track" aria-hidden="true"><span style="width: ${pct}%"></span></span>
+            ${renderProgressBar(pct)}
             <span class="challenge-row__count">${universal.progress}/${universal.target}</span>
           </button>`
         : ''
@@ -363,12 +405,16 @@ function renderBoard(state: GameState, h: ShellHandlers): string {
 }
 
 function advancedViewControl(prefs: Prefs): string {
-  return `<div class="segmented" role="group" aria-label="Show advanced tiles">
-    ${ADVANCED_VIEWS.map(
-      (v) =>
-        `<button type="button" data-advanced-view="${v}" data-testid="advanced-view-${v}" aria-pressed="${prefs.advancedTiles === v}">${ADVANCED_VIEW_LABELS[v]}</button>`,
-    ).join('')}
-  </div>`
+  return renderSegmented({
+    name: 'Show advanced tiles',
+    dataAttr: 'data-advanced-view',
+    selected: prefs.advancedTiles,
+    options: ADVANCED_VIEWS.map((v) => ({
+      value: v,
+      label: ADVANCED_VIEW_LABELS[v],
+      testId: `advanced-view-${v}`,
+    })),
+  })
 }
 
 function renderSheet(state: GameState, h: ShellHandlers): string {
@@ -411,31 +457,36 @@ function renderSheet(state: GameState, h: ShellHandlers): string {
       <p class="shell__hint">${escapeHtml(lead)}</p>
       ${body}
       ${holdHintHtml()}
-      <div class="sheet__setting"><span>Show advanced tiles</span>${advancedViewControl(h.prefs)}</div>
     </section>
   `
 }
 
-function renderDisplay(prefs: Prefs): string {
-  return `
-    <section class="pool" aria-label="Display" data-testid="display-view">
-      <h2 class="pool__heading">Display</h2>
-      <div class="pool__form">
-        <h3>Mode</h3>
-        <div class="segmented" role="group" aria-label="Mode">
-          ${MODES.map(
-            (mode) =>
-              `<button type="button" data-mode="${mode}" data-testid="mode-${mode}" aria-pressed="${prefs.mode === mode}">${mode === 'light' ? 'Light' : 'Dark'}</button>`,
-          ).join('')}
-        </div>
-      </div>
-      <div class="pool__form">
-        <h3>Show advanced tiles</h3>
-        ${advancedViewControl(prefs)}
-        <p class="shell__hint">How a mini-grid or multi-completion tile is shown. Changing it marks nothing.</p>
-      </div>
-    </section>
-  `
+function renderSettings(prefs: Prefs): string {
+  const modeControl = renderSegmented({
+    name: 'Mode',
+    dataAttr: 'data-mode',
+    selected: prefs.mode,
+    options: MODES.map((mode) => ({
+      value: mode,
+      label: mode === 'light' ? 'Light' : 'Dark',
+      testId: `mode-${mode}`,
+    })),
+  })
+  return renderPageSection({
+    ariaLabel: 'Settings',
+    testId: 'display-view',
+    heading: 'Settings',
+    body: `
+      ${renderPanel({
+        title: 'Mode',
+        body: modeControl,
+      })}
+      ${renderPanel({
+        title: 'Show advanced tiles',
+        body: `${advancedViewControl(prefs)}<p class="ui-hint">How a mini-grid or multi-completion tile is shown. Changing it marks nothing.</p>`,
+      })}
+    `,
+  })
 }
 
 /** Ends the clear moment without a repaint, so a hold in progress survives it. */
@@ -498,44 +549,59 @@ function renderActions(state: GameState): string {
     return `<button type="button" data-testid="purchase-global" data-track="${track}" ${affordable ? '' : 'disabled'}>${escapeHtml(label)}</button>`
   }).join('')
 
-  return `
-    <section class="pool" aria-label="Board actions" data-testid="actions-view">
-      <h2 class="pool__heading">Board actions</h2>
-      <p>Board balance: <strong data-testid="actions-balance">${balance}</strong></p>
-      <p class="shell__hint">Spent from board balance only.</p>
-
-      <div class="pool__form">
-        <h3>Recycle</h3>
-        <p>Free recycles left: <strong data-testid="free-recycles">${freeRecycles}</strong></p>
-        <button type="button" data-testid="start-recycle" ${freeRecycles > 0 || canPay(RECYCLE_COST) ? '' : 'disabled'}>Recycle a cell</button>
-        <p class="shell__hint">Free while any remain, then ${RECYCLE_COST} board balance.</p>
-        <button type="button" data-testid="upgrade-allowance" ${!atAllowanceCap && canPay(RECYCLE_ALLOWANCE_UPGRADE_COST) ? '' : 'disabled'}>${atAllowanceCap ? 'Free recycles at maximum' : `More free recycles (${RECYCLE_ALLOWANCE_UPGRADE_COST})`}</button>
-      </div>
-
-      <div class="pool__form">
-        <h3>Swap</h3>
-        <button type="button" data-testid="start-swap" ${canPay(SWAP_COST) ? '' : 'disabled'}>Swap adjacent cells (${SWAP_COST})</button>
-      </div>
-
-      <div class="pool__form">
-        <h3>Expand</h3>
-        <button type="button" data-testid="expand-grid" ${!atMaxSize && canPay(GRID_EXPANSION_COST) ? '' : 'disabled'}>${atMaxSize ? 'Board is full size' : `Expand the grid (${GRID_EXPANSION_COST})`}</button>
-      </div>
-
-      <h3>Unlock a tile type</h3>
-      <ul class="pool__list" data-testid="unlock-list">${unlockRows.join('') || '<li class="shell__hint">Every category already has both tile types.</li>'}</ul>
-
-      <div class="pool__form">
-        <h3>Place a tile</h3>
-        ${placeButtons}
-      </div>
-
-      <div class="pool__form">
-        <h3>Unlock a type for every category</h3>
-        ${globalButtons}
-      </div>
-    </section>
+  const recycleBody = `
+    <p>Free recycles left: <strong data-testid="free-recycles">${freeRecycles}</strong></p>
+    ${renderCostRow({
+      label: 'Recycle',
+      costLabel: freeRecycles > 0 ? 'Free' : `${RECYCLE_COST} board`,
+      hint: `Free while any remain, then ${RECYCLE_COST} board balance.`,
+      buttonLabel: 'Recycle a cell',
+      testId: 'start-recycle',
+      disabled: !(freeRecycles > 0 || canPay(RECYCLE_COST)),
+    })}
+    ${renderCostRow({
+      label: 'Allowance upgrade',
+      costLabel: atAllowanceCap ? 'Maxed' : `${RECYCLE_ALLOWANCE_UPGRADE_COST} board`,
+      buttonLabel: atAllowanceCap ? 'Free recycles at maximum' : 'More free recycles',
+      testId: 'upgrade-allowance',
+      disabled: atAllowanceCap || !canPay(RECYCLE_ALLOWANCE_UPGRADE_COST),
+    })}
   `
+
+  return renderPageSection({
+    ariaLabel: 'Board actions',
+    testId: 'actions-view',
+    heading: 'Board actions',
+    body: `
+      <p>Board balance: <strong data-testid="actions-balance">${balance}</strong></p>
+      <p class="ui-hint">Spent from board balance only — not reward balance.</p>
+      ${renderPanel({ title: 'Recycle', body: recycleBody })}
+      ${renderPanel({
+        title: 'Swap',
+        body: renderCostRow({
+          label: 'Adjacent swap',
+          costLabel: `${SWAP_COST} board`,
+          buttonLabel: 'Swap adjacent cells',
+          testId: 'start-swap',
+          disabled: !canPay(SWAP_COST),
+        }),
+      })}
+      ${renderPanel({
+        title: 'Expand',
+        body: renderCostRow({
+          label: 'Grid size',
+          costLabel: atMaxSize ? 'Maximum' : `${GRID_EXPANSION_COST} board`,
+          buttonLabel: atMaxSize ? 'Board is full size' : 'Expand the grid',
+          testId: 'expand-grid',
+          disabled: atMaxSize || !canPay(GRID_EXPANSION_COST),
+        }),
+      })}
+      <h3 class="ui-page__subheading">Unlock a tile type</h3>
+      <ul class="pool__list" data-testid="unlock-list">${unlockRows.join('') || '<li class="ui-hint">Every category already has both tile types.</li>'}</ul>
+      ${renderPanel({ title: 'Place a tile', body: placeButtons })}
+      ${renderPanel({ title: 'Unlock for every category', body: globalButtons })}
+    `,
+  })
 }
 
 function renderPool(
@@ -633,7 +699,7 @@ function renderRewards(state: GameState): string {
       <h2 class="pool__heading">Personal rewards</h2>
       <p>Reward balance: <strong data-testid="rewards-view-balance">${balance}</strong></p>
       <p class="shell__hint">Your own rewards, priced in reward balance only.</p>
-      <ul class="pool__list" data-testid="rewards-list">${rows || '<li class="shell__hint">No rewards yet.</li>'}</ul>
+      <ul class="pool__list" data-testid="rewards-list">${rows || '<li class="ui-empty" data-testid="rewards-empty">No rewards yet — add one below and earn reward balance from line clears.</li>'}</ul>
 
       <form class="pool__form" data-testid="add-reward-form">
         <h3>Add reward</h3>
@@ -655,21 +721,25 @@ function challengeName(challenge: Challenge): string {
 
 function renderChallenges(state: GameState): string {
   const rows = state.challenges
-    .map(
-      (challenge) => `<li class="pool-item" data-testid="challenge-${escapeHtml(challenge.id)}">
-        <span>${escapeHtml(challengeName(challenge))}</span>
-        <strong data-testid="challenge-${escapeHtml(challenge.id)}-progress">${challenge.progress} / ${challenge.target}</strong>
-      </li>`,
-    )
+    .map((challenge) => {
+      const pct = Math.min(100, Math.round((challenge.progress / challenge.target) * 100))
+      return `<li class="ui-challenge-row pool-item" data-testid="challenge-${escapeHtml(challenge.id)}">
+        <span class="ui-challenge-row__label">${escapeHtml(challengeName(challenge))}</span>
+        ${renderProgressBar(pct, `challenge-${escapeHtml(challenge.id)}-bar`)}
+        <strong class="ui-challenge-row__count" data-testid="challenge-${escapeHtml(challenge.id)}-progress">${challenge.progress} / ${challenge.target}</strong>
+      </li>`
+    })
     .join('')
 
-  return `
-    <section class="pool" aria-label="Challenges" data-testid="challenges-view">
-      <h2 class="pool__heading">Challenges</h2>
-      <p class="shell__hint">A mark counts toward every challenge it qualifies for.</p>
+  return renderPageSection({
+    ariaLabel: 'Challenges',
+    testId: 'challenges-view',
+    heading: 'Challenges',
+    body: `
+      <p class="ui-hint">A mark counts toward every challenge it qualifies for.</p>
       <ul class="pool__list" data-testid="challenge-list">${rows}</ul>
-    </section>
-  `
+    `,
+  })
 }
 
 function renderStats(state: GameState): string {
@@ -714,7 +784,7 @@ function bindNav(root: HTMLElement, h: ShellHandlers): void {
   root.querySelector('[data-action="pool"]')?.addEventListener('click', () => h.onNavigate('pool'))
   root.querySelector('[data-action="rewards"]')?.addEventListener('click', () => h.onNavigate('rewards'))
   root.querySelector('[data-action="stats"]')?.addEventListener('click', () => h.onNavigate('stats'))
-  root.querySelector('[data-action="display"]')?.addEventListener('click', () => h.onNavigate('display'))
+  root.querySelector('[data-action="settings"]')?.addEventListener('click', () => h.onNavigate('settings'))
   root.querySelector('[data-action="actions"]')?.addEventListener('click', () => h.onNavigate('actions'))
   root.querySelector('[data-action="challenges"]')?.addEventListener('click', () => h.onNavigate('challenges'))
 }
@@ -742,9 +812,29 @@ function bindHome(root: HTMLElement, h: ShellHandlers): void {
   root.querySelector('[data-testid="close-sheet"]')?.addEventListener('click', () => h.onCloseTile())
   root.querySelector('[data-testid="sheet-scrim"]')?.addEventListener('click', () => h.onCloseTile())
   root.querySelector('[data-testid="challenge-row"]')?.addEventListener('click', () => h.onNavigate('challenges'))
+  root.querySelector('[data-testid="cancel-board-target"]')?.addEventListener('click', () => {
+    h.onCancelBoardTarget()
+  })
   root.querySelector('[data-testid="dismiss-empty-prompt"]')?.addEventListener('click', () => {
     h.onDismissEmptyPrompt()
   })
+}
+
+let sheetEscapeHandler: ((event: KeyboardEvent) => void) | null = null
+
+function bindSheetKeyboard(root: HTMLElement, h: ShellHandlers): void {
+  if (sheetEscapeHandler) {
+    document.removeEventListener('keydown', sheetEscapeHandler)
+    sheetEscapeHandler = null
+  }
+  const sheet = root.querySelector('[data-testid="tile-sheet"]')
+  if (!sheet) return
+  sheetEscapeHandler = (event) => {
+    if (event.key !== 'Escape') return
+    event.preventDefault()
+    h.onCloseTile()
+  }
+  document.addEventListener('keydown', sheetEscapeHandler)
 }
 
 function bindAdvancedView(root: HTMLElement, h: ShellHandlers): void {

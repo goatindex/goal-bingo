@@ -28,7 +28,7 @@ The chain gates are wired: `tests.yml` (typecheck and vitest, zero-tests guard),
 the adversarial review. The session merge gate asks the human on every merge
 (claude-workflow#44, merged 2026-09-27).
 
-**233 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**239 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
