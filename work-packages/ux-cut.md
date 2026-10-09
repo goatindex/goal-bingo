@@ -1,7 +1,8 @@
 # Work-package cut — UI/UX refinement (post WP-11)
 
-**Status:** in progress (WP-12–WP-20 implemented on branch) · **Baselined requirements:** v1.0 (unchanged unless a package
-adds new obligations)
+**Status:** WP-12–WP-20 **closed on `main`** (completion PR follows #167). · **Baselined requirements:** v1.0 (unchanged unless a package adds new obligations)
+
+**Deferred (optional, not blocking close):** board-only DOM patch on mark/clear (WP-20); automated lint that forbids raw px in new CSS; first-run hold coach (WP-16 optional).
 **Scope:** Presentation and interaction quality only. No change to scoring, draw rules,
 economy numbers, or grid sizing unless playtest decisions already recorded elsewhere
 require it.
