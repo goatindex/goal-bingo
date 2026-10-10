@@ -73,8 +73,9 @@ do not update it by hand from memory.
   records across this repo, `project-tracking`, `weewoo` and `live-action-intel`, and needs
   its own pass.
 - **Stale remotes on this repo:** none on origin as of 2026-10-10 — deleted
-  `wrap-up/2026-09-27-loop-fixes` (#163 merged), `claude/determined-bohr-2frei1` (#164
-  superseded by #175), and the nine merged `cursor/*` cloud-agent branches (#167–#175). (The
+  `wrap-up/2026-09-27-loop-fixes` (merged #163), `claude/determined-bohr-2frei1` (closed
+  #164; the edit landed in merged #175), and the nine merged `cursor/*` cloud-agent branches
+  (#167–#175). (The
   four smoke/sync branches this line once named are still gone from the remote; checked
   2026-09-27.) Nine old **local** branches in `claude-workflow`. Ask before deleting.
 
