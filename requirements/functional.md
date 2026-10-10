@@ -208,10 +208,10 @@ rationale: The playtest could not see the Mark control do anything, and the hold
 trace-to-source: design-description.md 3.3
 verification-method: inspection
 verification-criteria: The thumb bar shows no Mark control, and activating Board returns to the board and clears an armed recycle, swap, or place.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: Thumb bar omits a Mark control (inspection of `app/src/shell.ts`). Still open: activating Board while recycle, swap, or place is armed is not covered by `shell.test.ts` or `shellUx.test.ts`.
+notes: Verified by `app/src/presentation.test.ts` (thumb bar has no Mark control; activating Board clears recycle, swap, or place via `onNavigate('home')`) and `app/src/shell.test.ts` (hold is the mark path).
 
 ---
 
@@ -332,10 +332,10 @@ rationale: A daily mark should not wait on an animation. D-2026-09-26-1.
 trace-to-source: design-description.md 3.4
 verification-method: test
 verification-criteria: A hold that completes while a clear moment is displayed marks its cell, with no wait for the moment to end.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: `app/src/main.ts` ends the moment without a full repaint (`endMoment`); no automated test in the cited suite yet.
+notes: Verified by `app/src/presentation.test.ts` (hold completes while `clear-moment` is shown; `endMoment` does not cancel an in-progress hold), `app/src/hold.test.ts`, and `app/src/shell.ts` (`endMoment`).
 
 ### GB-FUN-075 — Reduced motion keeps the clear moment's facts
 statement: While the device requests reduced motion, Goal Bingo shall display the clear moment's cleared cells and score without animation.
@@ -344,10 +344,10 @@ rationale: Reduced motion keeps the same information and drops the motion. D-202
 trace-to-source: design-description.md 3.4
 verification-method: inspection
 verification-criteria: With reduced motion set, a clear shows the same cleared cells and score as without it, and no element of the moment animates.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: Reduced-motion CSS is in `app/src/style.css`; no automated or manual verification recorded in the cited tests.
+notes: Verified by `app/src/presentation.test.ts` (`style.css` disables moment and cell animation under `prefers-reduced-motion: reduce`; moment markup still exposes score and refilled cells via `clear-moment-points` and `board-cell--fresh`).
 
 ---
 
@@ -1018,10 +1018,10 @@ rationale: Under "Open larger" the player marks inside the sheet, and the mark s
 trace-to-source: design-description.md 7.3
 verification-method: test
 verification-criteria: In the sheet, a hold through the hold duration on a mini-grid inner cell marks that inner cell, and on a multi-completion tile records one completion.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: `app/src/hold.test.ts` covers the hold primitive; sheet integration is not yet asserted in the cited tests.
+notes: Verified by `app/src/presentation.test.ts` (sheet inner mini hold calls `onMarkMiniCell`; sheet multi-completion hold calls `onMarkCell` and increments via `markCell`), `app/src/hold.test.ts`, and `app/src/miniGrid.test.ts`.
 
 ### GB-FUN-079 — In the cell accepts holds on the board
 statement: While "Show advanced tiles" is "In the cell", Goal Bingo shall accept the hold on a mini-grid tile's inner cells on the board.
@@ -1042,10 +1042,10 @@ rationale: The setting changes only how a tile is shown. D-2026-09-26-3.
 trace-to-source: design-description.md 7.3
 verification-method: test
 verification-criteria: Switching the value in either direction leaves the board's mark states, mini-grid inner marks, and multi-completion counts equal to their values before the switch.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: `app/src/prefs.test.ts` covers persistence only; board unchanged on toggle is not yet tested.
+notes: Verified by `app/src/presentation.test.ts` (toggle "In the cell" / "Open larger" leaves board marks and completion counts unchanged) and `app/src/prefs.test.ts` (persistence).
 
 ### GB-FUN-081 — The setting survives a restart
 statement: Goal Bingo shall keep the chosen "Show advanced tiles" value across app restarts.
@@ -1260,10 +1260,10 @@ rationale: The category and cadence challenges stay on that view. D-2026-09-26-7
 trace-to-source: design-description.md 8.2
 verification-method: test
 verification-criteria: Activating the challenge row shows the Challenges view with the universal, category, and cadence challenges.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: Navigation is wired in `app/src/shell.ts`; no test activates `challenge-row` in the cited suite.
+notes: Verified by `app/src/presentation.test.ts` (activating `challenge-row` opens `challenges-view` with universal, category, and cadence challenge rows) and `app/src/shellUx.test.ts` (home renders `challenge-row`).
 
 ---
 
@@ -1350,10 +1350,10 @@ rationale: A mode changes how the board looks, not what it holds. D-2026-09-26-5
 trace-to-source: design-description.md 9.3
 verification-method: test
 verification-criteria: After a switch in either direction, the board's goals and marks, the pool, and the lifetime score, reward balance, and board balance equal their values before the switch.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
-notes: Mode switching is implemented in `app/src/main.ts` without touching game state; no regression test in the cited suite yet.
+notes: Verified by `app/src/presentation.test.ts` (light/dark toggle via `applyMode` leaves board, pool, and score counters unchanged) and `app/src/prefs.test.ts` (mode persistence).
 
 ### GB-FUN-086 — A mode is a token set
 statement: Goal Bingo shall define each mode as a set of style tokens applied to the same markup.

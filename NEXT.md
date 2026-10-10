@@ -14,13 +14,11 @@ has press-and-hold marking, a clear moment, category cues, the "Show advanced ti
 light and dark modes, shared UI primitives, and responsive layout. WP-01–WP-11 in
 `work-packages/cut.md` and WP-12–WP-20 in `work-packages/ux-cut.md` are all closed.
 
-**Link 6 — presentation verification (metadata only) landed in [#169](https://github.com/goatindex/goal-bingo/pull/169):**
-fourteen of the twenty presentation requirements GB-FUN-069–GB-FUN-088 are `verified` where
-existing tests or inspection already match the criteria (`shell.test.ts`, `shellUx.test.ts`,
-`hold.test.ts`, `tokens.test.ts`, `prefs.test.ts`, plus `moment.test.ts` where cited). **The
-next verification priority is the seven still `not-verified`:** GB-FUN-072, GB-FUN-074,
-GB-FUN-075, GB-FUN-078, GB-FUN-080, GB-FUN-083, GB-FUN-085 — add focused tests or recorded
-playtest evidence, then update notes only (no statement changes).
+**Link 6 — presentation verification:** GB-FUN-069–GB-FUN-088 are all `verified` on `main`
+([#169](https://github.com/goatindex/goal-bingo/pull/169) metadata pass plus vitest in
+`app/src/presentation.test.ts` for the last seven). **Next verification priority:** GB-FUN-009,
+GB-FUN-014, and GB-FUN-045 (hold marking, clear-moment focal point, advanced marking) where
+tests still lag the built behaviour.
 
 **Phone playtest still gates tuning, not the UX build.** Q25 (hold and moment durations),
 the provisional category-unlock threshold (`D-2026-09-20-7`), and the revisit triggers on
@@ -37,26 +35,20 @@ The chain gates are wired: `tests.yml` (typecheck and vitest, zero-tests guard),
 the adversarial review. The session merge gate asks the human on every merge
 (claude-workflow#44, merged 2026-09-27).
 
-**243 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**255 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
 
 ## Next up
 
-- **Close the seven open presentation verifications** (priority order): GB-FUN-072 (thumb bar,
-  Board clears armed modes), GB-FUN-074 (mark during clear moment), GB-FUN-075 (reduced-motion
-  moment), GB-FUN-078 (hold marks inside the advanced-tile sheet), GB-FUN-080 (toggle advanced
-  setting without changing marks), GB-FUN-083 (challenge row → Challenges view), GB-FUN-085
-  (mode switch leaves game state unchanged). Cite new or existing tests in
-  `requirements/functional.md`; statements unchanged.
+- **Verification pass (marking and moment):** GB-FUN-009, GB-FUN-014, GB-FUN-045 — add or cite
+  tests in `hold.test.ts`, `moment.test.ts`, and `shell.test.ts`, then update
+  `requirements/functional.md` metadata only.
 - **iOS retest** of GB-CON-001 and GB-CON-002 (install, one-thumb reach), both
   `in-progress` on the Android pass (`D-2026-09-26-10`).
 - **Playtest WP-11 on a phone**, then set Q25's durations from what players do, and act on
   the revisit triggers of `D-2026-09-26-1` to `-9` and `D-2026-09-20-7`.
-- **Verification pass (non-presentation):** GB-FUN-009, GB-FUN-014, and GB-FUN-045 remain
-  `not-verified` until hold, clear-moment, and advanced marking behaviour are fully covered
-  by tests (`hold.test.ts`, `moment.test.ts`, `shell.test.ts`).
 - **Q19 is simulable now:** extend `sim/` to test whether one free recycle per 24 hours
   outpaces re-jamming.
 - **Re-link the installed `adversarial-review` skill** to
@@ -91,8 +83,8 @@ do not update it by hand from memory.
 ## Done means
 
 A work package is done when its acceptance criteria pass and the code is on `main`.
-WP-01 through WP-20 are done on `main`; presentation requirements GB-FUN-069–088 are partly
-verified — seven records still need evidence (see Current focus). The chain
+WP-01 through WP-20 are done on `main`; presentation requirements GB-FUN-069–088 are verified.
+The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
 
