@@ -1,5 +1,6 @@
 /** @vitest-environment happy-dom */
 import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { markCell } from './board'
 import { cadenceChallengeId, categoryChallengeId, universalChallengeId } from './challenges'
@@ -220,7 +221,7 @@ describe('GB-FUN-074 — clear moment does not hold the next mark', () => {
 
 describe('GB-FUN-075 — reduced motion keeps clear moment facts', () => {
   it('disables moment and cell motion under prefers-reduced-motion', () => {
-    const cssText = readFileSync(new URL('./style.css', import.meta.url), 'utf8')
+    const cssText = readFileSync(join(process.cwd(), 'src/style.css'), 'utf8')
     expect(cssText).toContain('@media (prefers-reduced-motion: reduce)')
     expect(cssText).toMatch(/\.moment--enter[\s\S]*animation:\s*none/)
     expect(cssText).toMatch(/\.board-cell--pop[\s\S]*animation:\s*none/)
