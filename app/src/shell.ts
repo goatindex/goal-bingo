@@ -27,6 +27,12 @@ import {
   listCustomCategories,
 } from './categories'
 import { attachHold } from './hold'
+import {
+  clearTilePeek,
+  getTilePeek,
+  restoreTilePeek,
+  toggleTilePeek,
+} from './tilePeek'
 import type { ClearMoment } from './moment'
 import { ADVANCED_VIEWS, ADVANCED_VIEW_LABELS, type AdvancedView, type Prefs } from './prefs'
 import { MODES, categorySlot, type Mode } from './tokens'
@@ -255,7 +261,21 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
   if (mainEl && preserveScroll) mainEl.scrollTop = scrollTop
   if (h.moment) lastAnimatedMomentId = h.moment.id
 
+  let peekIndex: number | null = null
+  if (h.view === 'home' && h.boardTarget.kind === 'mark') {
+    peekIndex = getTilePeek()?.index ?? null
+    if (peekIndex !== null) {
+      const cell = state.board.cells[peekIndex]
+      if (!cell || cell.marked) {
+        clearTilePeek(root)
+        peekIndex = null
+      }
+    }
+  } else {
+    clearTilePeek(root)
+  }
   bindHome(root, h)
+  if (peekIndex !== null) restoreTilePeek(root, peekIndex)
   bindSheetA11y(root, h)
   bindAdvancedView(root, h)
   bindDisplay(root, h)
@@ -844,8 +864,19 @@ function bindNav(root: HTMLElement, h: ShellHandlers): void {
 
 function bindHome(root: HTMLElement, h: ShellHandlers): void {
   const onEarly = () => showEarlyRelease(root)
+  const markMode = h.boardTarget.kind === 'mark'
   root.querySelectorAll<HTMLElement>('[data-hold="cell"]').forEach((el) => {
-    attachHold(el, { onComplete: () => h.onMarkCell(Number(el.dataset.index)), onEarly })
+    const index = Number(el.dataset.index)
+    attachHold(el, {
+      onComplete: () => {
+        clearTilePeek(root)
+        h.onMarkCell(index)
+      },
+      onEarly,
+      onQuickTap: markMode
+        ? () => toggleTilePeek(root, index)
+        : undefined,
+    })
   })
   root.querySelectorAll<HTMLElement>('[data-hold="mini"]').forEach((el) => {
     attachHold(el, {
