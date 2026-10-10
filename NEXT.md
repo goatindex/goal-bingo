@@ -72,12 +72,12 @@ do not update it by hand from memory.
   "absence read as default" shape already closed for requirements. It spans roughly 220
   records across this repo, `project-tracking`, `weewoo` and `live-action-intel`, and needs
   its own pass.
-- **Stale remote branch** here: `wrap-up/2026-09-27-loop-fixes`, orphaned now that #163
-  merged. The nine merged `cursor/*` cloud-agent branches (#167–#175) were deleted from
-  origin on 2026-10-10. (The four branches this line previously named — `smoke/package-b-deep`,
-  `smoke/package-b-mechanical`, `sync/package-a-jq-fix`, `sync/package-b-review-tiers` — are
-  gone from the remote; checked 2026-09-27.) Also nine old local branches in
-  `claude-workflow`. Ask before deleting.
+- **Stale remotes on this repo:** none on origin as of 2026-10-10 — deleted
+  `wrap-up/2026-09-27-loop-fixes` (merged #163), `claude/determined-bohr-2frei1` (closed
+  #164; the edit landed in merged #175), and the nine merged `cursor/*` cloud-agent branches
+  (#167–#175). (The
+  four smoke/sync branches this line once named are still gone from the remote; checked
+  2026-09-27.) Nine old **local** branches in `claude-workflow`. Ask before deleting.
 
 ## Done means
 
