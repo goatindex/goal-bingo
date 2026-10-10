@@ -14,10 +14,15 @@ has press-and-hold marking, a clear moment, category cues, the "Show advanced ti
 light and dark modes, shared UI primitives, and responsive layout. WP-01–WP-11 in
 `work-packages/cut.md` and WP-12–WP-20 in `work-packages/ux-cut.md` are all closed.
 
-**Link 6 — marking verification:** GB-FUN-009, GB-FUN-014, and GB-FUN-045 are `verified`
-(`app/src/markingVerification.test.ts` plus cited suites). Presentation requirements
-GB-FUN-069–GB-FUN-088 are all `verified` ([#169](https://github.com/goatindex/goal-bingo/pull/169),
-[#171](https://github.com/goatindex/goal-bingo/pull/171)).
+**Link 6 — requirement verification on live rows is complete.** Marking
+GB-FUN-009, GB-FUN-014, and GB-FUN-045 are `verified` (`markingVerification.test.ts` plus cited
+suites, [#173](https://github.com/goatindex/goal-bingo/pull/173)). Presentation GB-FUN-069–088
+are all `verified` ([#169](https://github.com/goatindex/goal-bingo/pull/169),
+[#171](https://github.com/goatindex/goal-bingo/pull/171)). Only deleted functional IDs and
+GB-CON-001/002 (`in-progress`, iOS retest) sit outside `verified` on the requirement set.
+
+**Read-assist on the board:** quick tap enlarges a holdable cell 1.5× for reading; hold still
+marks ([#174](https://github.com/goatindex/goal-bingo/pull/174), `tilePeek.ts`, `INTERACTION.md`).
 
 **Phone playtest still gates tuning, not the UX build.** Q25 (hold and moment durations),
 the provisional category-unlock threshold (`D-2026-09-20-7`), and the revisit triggers on
@@ -72,12 +77,7 @@ do not update it by hand from memory.
   "absence read as default" shape already closed for requirements. It spans roughly 220
   records across this repo, `project-tracking`, `weewoo` and `live-action-intel`, and needs
   its own pass.
-- **Stale remotes on this repo:** none on origin as of 2026-10-10 — deleted
-  `wrap-up/2026-09-27-loop-fixes` (merged #163), `claude/determined-bohr-2frei1` (closed
-  #164; the edit landed in merged #175), and the nine merged `cursor/*` cloud-agent branches
-  (#167–#175). (The
-  four smoke/sync branches this line once named are still gone from the remote; checked
-  2026-09-27.) Nine old **local** branches in `claude-workflow`. Ask before deleting.
+- **Nine old local branches in `claude-workflow`** (not this repo). Ask before deleting.
 
 ## Done means
 
@@ -86,6 +86,21 @@ WP-01 through WP-20 are done on `main`; presentation requirements GB-FUN-069–0
 The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
+
+## Done (2026-10-10 session)
+
+- **Presentation requirements closed out** ([#171](https://github.com/goatindex/goal-bingo/pull/171)):
+  `presentation.test.ts`; GB-FUN-072–085 and remaining GB-FUN-069–088 marked `verified`.
+- **Marking requirements verified** ([#173](https://github.com/goatindex/goal-bingo/pull/173)):
+  GB-FUN-009, GB-FUN-014, GB-FUN-045 via `markingVerification.test.ts`.
+- **Quick-tap tile peek merged** ([#174](https://github.com/goatindex/goal-bingo/pull/174)):
+  enlarge holdable cells for reading without changing hold-to-mark.
+- **PWA manifest icons fixed** ([#172](https://github.com/goatindex/goal-bingo/pull/172)):
+  valid `pwa-192.png` / `pwa-512.png` on live Pages.
+- **NEXT and remote housekeeping:** stale-branch note ([#175](https://github.com/goatindex/goal-bingo/pull/175)),
+  cursor remote cleanup logged ([#176](https://github.com/goatindex/goal-bingo/pull/176)),
+  origin cleared of wrap-up / claude / merged `cursor/*` branches ([#177](https://github.com/goatindex/goal-bingo/pull/177));
+  closed #164 superseded by #175. **268 tests** in CI.
 
 ## Done (2026-10-09 session)
 
