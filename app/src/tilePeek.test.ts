@@ -1,6 +1,6 @@
 /** @vitest-environment happy-dom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HOLD_MS, TAP_MS, attachHold, type HoldEvent, type HoldTarget } from './hold'
+import { TAP_MS, attachHold, type HoldEvent, type HoldTarget } from './hold'
 import { PEEK_CLASS, clearTilePeek, getTilePeek, setTilePeek, toggleTilePeek } from './tilePeek'
 
 describe('tile peek', () => {
