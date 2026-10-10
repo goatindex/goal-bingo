@@ -27,6 +27,14 @@ These rules keep marking, sheets, and navigation predictable. Game logic lives i
   moment ends via `endMoment()` without a full shell repaint when the timer fires.
 - Full `renderShell` repaints re-bind holds on board cells.
 
+## Quick tap to peek (read small tiles)
+
+- In ordinary mark mode, a quick tap on a holdable board cell enlarges it 50% (centred,
+  overlapping neighbours) so the goal text is easier to read. Another quick tap on that
+  cell, or a quick tap anywhere else on the shell, shrinks it back.
+- Press-and-hold on an enlarged cell still runs the normal mark fill; the cell returns to
+  normal size when the mark completes.
+
 ## Advanced-tile sheet (GB-FUN-077/078)
 
 - **Escape** closes the sheet; focus returns to the board cell that opened it.
