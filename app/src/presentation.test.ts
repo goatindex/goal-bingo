@@ -1,7 +1,5 @@
 /** @vitest-environment happy-dom */
 import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { markCell } from './board'
 import { cadenceChallengeId, categoryChallengeId, universalChallengeId } from './challenges'
@@ -13,9 +11,7 @@ import { endMoment, renderShell, type BoardTarget, type ShellHandlers, type Shel
 import { freshState } from './storage'
 import { MemoryStorage } from './test-support'
 import { loadState } from './storage'
-
-const here = dirname(fileURLToPath(import.meta.url))
-const styleCss = readFileSync(join(here, 'style.css'), 'utf8')
+import type { Prefs } from './prefs'
 
 function completeHold(el: HTMLElement): void {
   el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }))
@@ -224,9 +220,10 @@ describe('GB-FUN-074 — clear moment does not hold the next mark', () => {
 
 describe('GB-FUN-075 — reduced motion keeps clear moment facts', () => {
   it('disables moment and cell motion under prefers-reduced-motion', () => {
-    expect(styleCss).toContain('@media (prefers-reduced-motion: reduce)')
-    expect(styleCss).toMatch(/\.moment--enter[\s\S]*animation:\s*none/)
-    expect(styleCss).toMatch(/\.board-cell--pop[\s\S]*animation:\s*none/)
+    const cssText = readFileSync(new URL('./style.css', import.meta.url), 'utf8')
+    expect(cssText).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(cssText).toMatch(/\.moment--enter[\s\S]*animation:\s*none/)
+    expect(cssText).toMatch(/\.board-cell--pop[\s\S]*animation:\s*none/)
   })
 
   it('still renders score and cleared cells in the moment markup', () => {
@@ -318,9 +315,9 @@ describe('GB-FUN-080 — changing advanced-tile setting marks nothing', () => {
       advanced: { kind: 'multi-completion', completionsRequired: 3, completionsSoFar: 2 },
     }
     const before = structuredClone(state.board)
-    let prefs = { mode: 'light' as const, advancedTiles: 'open' as const }
+    let prefs: Prefs = { mode: 'light', advancedTiles: 'open' }
     let openTile: number | null = 0
-    const applyView = (advancedTiles: 'open' | 'cell') => {
+    const applyView = (advancedTiles: Prefs['advancedTiles']) => {
       prefs = { ...prefs, advancedTiles }
       if (advancedTiles === 'cell') openTile = null
     }
@@ -361,8 +358,8 @@ describe('GB-FUN-085 — switching mode leaves state unchanged', () => {
       pool: structuredClone(state.pool),
       score: structuredClone(state.score),
     }
-    let prefs = { mode: 'light' as const, advancedTiles: 'open' as const }
-    const setMode = (mode: 'light' | 'dark') => {
+    let prefs: Prefs = { mode: 'light', advancedTiles: 'open' }
+    const setMode = (mode: Prefs['mode']) => {
       prefs = { ...prefs, mode }
       applyMode(document.documentElement, mode)
     }
