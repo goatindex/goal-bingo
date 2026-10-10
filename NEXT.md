@@ -14,11 +14,10 @@ has press-and-hold marking, a clear moment, category cues, the "Show advanced ti
 light and dark modes, shared UI primitives, and responsive layout. WP-01–WP-11 in
 `work-packages/cut.md` and WP-12–WP-20 in `work-packages/ux-cut.md` are all closed.
 
-**Link 6 — presentation verification:** GB-FUN-069–GB-FUN-088 are all `verified` on `main`
-([#169](https://github.com/goatindex/goal-bingo/pull/169) metadata pass plus vitest in
-`app/src/presentation.test.ts` for the last seven). **Next verification priority:** GB-FUN-009,
-GB-FUN-014, and GB-FUN-045 (hold marking, clear-moment focal point, advanced marking) where
-tests still lag the built behaviour.
+**Link 6 — marking verification:** GB-FUN-009, GB-FUN-014, and GB-FUN-045 are `verified`
+(`app/src/markingVerification.test.ts` plus cited suites). Presentation requirements
+GB-FUN-069–GB-FUN-088 are all `verified` ([#169](https://github.com/goatindex/goal-bingo/pull/169),
+[#171](https://github.com/goatindex/goal-bingo/pull/171)).
 
 **Phone playtest still gates tuning, not the UX build.** Q25 (hold and moment durations),
 the provisional category-unlock threshold (`D-2026-09-20-7`), and the revisit triggers on
@@ -35,16 +34,13 @@ The chain gates are wired: `tests.yml` (typecheck and vitest, zero-tests guard),
 the adversarial review. The session merge gate asks the human on every merge
 (claude-workflow#44, merged 2026-09-27).
 
-**255 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**263 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
 
 ## Next up
 
-- **Verification pass (marking and moment):** GB-FUN-009, GB-FUN-014, GB-FUN-045 — add or cite
-  tests in `hold.test.ts`, `moment.test.ts`, and `shell.test.ts`, then update
-  `requirements/functional.md` metadata only.
 - **iOS retest** of GB-CON-001 and GB-CON-002 (install, one-thumb reach), both
   `in-progress` on the Android pass (`D-2026-09-26-10`).
 - **Playtest WP-11 on a phone**, then set Q25's durations from what players do, and act on
