@@ -15,3 +15,5 @@ skills/record-contract/scripts/record_index.py                 scripts/record_in
 skills/record-contract/scripts/standing_check.py               scripts/standing_check.py
 skills/record-contract/scripts/citation_check.py               scripts/citation_check.py
 skills/wrap-up/scripts/figures_check.py                        scripts/figures_check.py
+skills/wrap-up/scripts/next_on_merge.py                    scripts/next_on_merge.py
+skills/wrap-up/workflows/next-on-merge.yml                 .github/workflows/next-on-merge.yml

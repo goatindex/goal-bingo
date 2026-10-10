@@ -1,0 +1,58 @@
+# GENERATED COPY - DO NOT EDIT
+#
+# Master: goatindex/claude-workflow
+#         skills/wrap-up/workflows/next-on-merge.yml
+# Commit: 26f9ba0
+# Copied: 2026-10-10
+#
+# Edit the master and re-run scripts/refresh_copies.py. A change made here is
+# lost at the next refresh, and drift is reported by --check.
+# --- end generated header ---
+# Record a merged pull request as one of the five newest Done lines.
+#
+# Master: goatindex/claude-workflow
+#         skills/wrap-up/workflows/next-on-merge.yml
+#
+# A repository opts in by listing this file and scripts/next_on_merge.py in
+# copies.txt. A repository with no NEXT.md is left alone. The job pushes to
+# the base branch, so that branch has to accept a push from github-actions[bot].
+
+name: next-on-merge
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: next-on-merge-${{ github.repository }}-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: false
+
+jobs:
+  record:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write the Done line
+        id: next
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          MERGED_AT: ${{ github.event.pull_request.merged_at }}
+        run: python3 scripts/next_on_merge.py --file NEXT.md
+
+      - name: Push the summary
+        if: steps.next.outputs.changed == 'true'
+        run: |
+          git add NEXT.md
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "Record the merged pull request in NEXT.md."
+          git push origin "HEAD:${{ github.event.pull_request.base.ref }}"
