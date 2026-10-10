@@ -192,14 +192,17 @@ verification-criteria: A press held through the hold duration marks an unmarked 
   once. A press released before the hold duration leaves the cell unmarked and pays no
   board balance. The same hold marks a mini-grid inner cell. The mark path sends no request
   and asks for no confirmation.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Amended 2026-09-26 from "taps" to the press-and-hold (`D-2026-09-26-4`); id kept,
   verification reset. The hold duration is open (Q25): build against one named constant,
-  not a number in this statement. The hold is the mark under every value of the
-  advanced-tile presentation setting (`D-2026-09-26-3`). No `fetch` or
-  `requestPermission` under `app/src` still holds from the earlier verification.
+  not a number in this statement. Verified by `app/src/hold.test.ts` (full hold vs early
+  release), `app/src/markingVerification.test.ts` (shell wires hold to `onMarkCell` /
+  `onMarkMiniCell`; mini-grid inner under "In the cell"), `app/src/miniGrid.test.ts` and
+  `markingVerification.test.ts` (inner mark after hold completes), `app/src/shell.test.ts`
+  (hold behaviour under both advanced-tile settings), and `app/src/board.test.ts`
+  (synchronous mark path). No `fetch` or `requestPermission` under `app/src`.
 
 ### GB-FUN-072 — Thumb bar has no Mark control
 statement: Goal Bingo shall exclude a Mark control from the thumb bar.
@@ -288,14 +291,16 @@ verification-criteria: After a double-clear, the refilled board shows which cell
   and the shared cell has a treatment the other cleared cells do not. A second mark is
   accepted before the moment ends. With reduced motion, the same cells and treatment show
   without motion.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Amended 2026-09-26 from "distinct treatment" to the focal point of the clear moment
   (`D-2026-09-26-1`); id kept, verification reset. How long the moment stays up is open
-  (Q25). The earlier evidence (`intersectionCells` in `app/src/lines.test.ts`, the
-  `board-cell--intersection` class in `app/src/shell.ts`) still identifies the cell; it
-  does not show a moment.
+  (Q25). Verified by `app/src/lines.test.ts` (`intersectionCells` on a double-clear),
+  `app/src/moment.test.ts` (intersection focal point in clear-moment data),
+  `app/src/markingVerification.test.ts` (`board-cell--intersection` vs `board-cell--fresh`
+  on the refilled board), and `app/src/presentation.test.ts` (GB-FUN-074: mark during the
+  moment; GB-FUN-075: reduced-motion CSS keeps the same facts).
 
 ### GB-FUN-015 — Perpendicular progress is lost on a clear
 statement: When a line clears, Goal Bingo shall discard the marks of cells that were
@@ -888,15 +893,16 @@ verification-method: test
 verification-criteria: A multi-completion tile configured for N completions counts as
   marked only after the player has completed N press-and-holds on it. A press released
   before the hold duration records no completion.
-verification-status: not-verified
+verification-status: verified
 owner: k
 priority: must
 notes: Default is 3 completions (`D-2026-09-21-18`); the mechanism itself stays
   parametric to whatever N a tile is created with.
   Criteria amended 2026-09-26 from taps to press-and-holds (`D-2026-09-26-4`); statement
-  and id kept, verification reset. The domain count is still covered by
-  `app/src/board.test.ts` (a tile set for 3 completions stays unmarked until the third
-  completion); the hold gate is not yet built.
+  and id kept, verification reset. Verified by `app/src/markingVerification.test.ts` (early
+  release records no completion; N full holds before marked; sheet hold early release),
+  `app/src/board.test.ts` (completion count before mark), `app/src/hold.test.ts`, and
+  `app/src/presentation.test.ts` (sheet multi-completion hold calls `onMarkCell`).
 
 ### GB-FUN-046 — Multi-completion tile displays progress
 statement: Goal Bingo shall display the current completion count on a multi-completion tile.
