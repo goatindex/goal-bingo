@@ -73,7 +73,8 @@ do not update it by hand from memory.
   records across this repo, `project-tracking`, `weewoo` and `live-action-intel`, and needs
   its own pass.
 - **Stale remote branch** here: `wrap-up/2026-09-27-loop-fixes`, orphaned now that #163
-  merged. (The four branches this line previously named — `smoke/package-b-deep`,
+  merged. The nine merged `cursor/*` cloud-agent branches (#167–#175) were deleted from
+  origin on 2026-10-10. (The four branches this line previously named — `smoke/package-b-deep`,
   `smoke/package-b-mechanical`, `sync/package-a-jq-fix`, `sync/package-b-review-tiers` — are
   gone from the remote; checked 2026-09-27.) Also nine old local branches in
   `claude-workflow`. Ask before deleting.
