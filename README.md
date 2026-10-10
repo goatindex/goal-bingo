@@ -27,7 +27,7 @@ npm install
 npm run dev      # local shell, at /
 npm run build    # installable PWA output in app/dist, base /goal-bingo/
 npm run preview  # that build at http://localhost:4173/goal-bingo/
-npm test         # 243 vitest unit tests, typecheck + suite gated in CI
+npm test         # 255 vitest unit tests, typecheck + suite gated in CI
 ```
 
 A push to `main` publishes that build to
