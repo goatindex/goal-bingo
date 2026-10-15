@@ -1100,6 +1100,17 @@ button:focus-visible {
   border-radius: var(--radius-lg);
 }
 
+.ui-list-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ui-list-row__actions .ui-btn {
+  flex: 1 1 0;
+  min-width: min(100%, 6rem);
+}
+
 @media (min-width: 768px) {
   .home-layout {
     display: grid;

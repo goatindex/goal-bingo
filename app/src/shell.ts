@@ -676,8 +676,10 @@ function renderPool(
           ${renderLabelledControl('Title', `<input class="ui-field__control" data-field="title" value="${escapeHtml(g.title)}" aria-label="Title" />`)}
           ${renderLabelledControl('Category', `<select class="ui-field__control" data-field="category" aria-label="Category">${categoryOptions}</select>`)}
           ${renderLabelledControl('Cadence', `<select class="ui-field__control" data-field="cadence" aria-label="Cadence">${cadenceOpts}</select>`)}
-          ${renderButton({ label: 'Save', testId: 'save-goal', attrs: { 'data-action': 'save' } })}
-          ${renderButton({ label: 'Remove', testId: 'remove-goal', variant: 'secondary', attrs: { 'data-action': 'remove' } })}
+          <div class="ui-list-row__actions">
+            ${renderButton({ label: 'Save', testId: 'save-goal', attrs: { 'data-action': 'save' } })}
+            ${renderButton({ label: 'Remove', testId: 'remove-goal', variant: 'secondary', attrs: { 'data-action': 'remove' } })}
+          </div>
         `,
       })
     })
