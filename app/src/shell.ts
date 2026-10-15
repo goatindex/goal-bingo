@@ -674,8 +674,8 @@ function renderPool(
         attrs: { 'data-goal-id': g.id },
         body: `
           ${renderLabelledControl('Title', `<input class="ui-field__control" data-field="title" value="${escapeHtml(g.title)}" aria-label="Title" />`)}
-          ${renderLabelledControl('Category', `<select class="ui-field__control" data-field="category" aria-label="Category">${categoryOptions}</select>`)}
-          ${renderLabelledControl('Cadence', `<select class="ui-field__control" data-field="cadence" aria-label="Cadence">${cadenceOpts}</select>`)}
+          ${renderLabelledControl('Category', `<select class="ui-field__control" data-field="category" aria-label="Category">${categoryOptions}</select>`, { layout: 'inline' })}
+          ${renderLabelledControl('Cadence', `<select class="ui-field__control" data-field="cadence" aria-label="Cadence">${cadenceOpts}</select>`, { layout: 'inline' })}
           <div class="ui-list-row__actions">
             ${renderButton({ label: 'Save', testId: 'save-goal', attrs: { 'data-action': 'save' } })}
             ${renderButton({ label: 'Remove', testId: 'remove-goal', variant: 'secondary', attrs: { 'data-action': 'remove' } })}
@@ -690,8 +690,8 @@ function renderPool(
     'add-goal-form',
     `
       ${renderLabelledControl('Title', renderTextInput('title', { required: 'true', 'data-testid': 'add-title' }))}
-      ${renderLabelledControl('Category', renderSelect('category', options, { 'data-testid': 'add-category' }))}
-      ${renderLabelledControl('Cadence', renderSelect('cadence', cadenceOptions, { 'data-testid': 'add-cadence' }))}
+      ${renderLabelledControl('Category', renderSelect('category', options, { 'data-testid': 'add-category' }), { layout: 'inline' })}
+      ${renderLabelledControl('Cadence', renderSelect('cadence', cadenceOptions, { 'data-testid': 'add-cadence' }), { layout: 'inline' })}
       ${renderButton({ label: 'Add', attrs: { type: 'submit' } })}
       ${renderFormError('add-error')}
     `,

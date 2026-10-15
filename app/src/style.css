@@ -1063,6 +1063,24 @@ button:focus-visible {
   font-size: var(--text-sm);
 }
 
+.ui-field--inline {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ui-field--inline .ui-field__label {
+  flex: 0 0 auto;
+  min-width: 4.75rem;
+}
+
+.ui-field--inline .ui-field__control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
 .ui-field__control {
   width: 100%;
   min-height: 2.75rem;

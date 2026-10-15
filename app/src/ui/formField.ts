@@ -4,8 +4,13 @@ export function renderFormError(testId: string, hidden = true): string {
   return `<p class="ui-form__error" data-testid="${escapeHtml(testId)}"${hidden ? ' hidden' : ''}></p>`
 }
 
-export function renderLabelledControl(label: string, control: string): string {
-  return `<label class="ui-field">${escapeHtml(label)} ${control}</label>`
+export function renderLabelledControl(
+  label: string,
+  control: string,
+  options?: { layout?: 'stack' | 'inline' },
+): string {
+  const layoutClass = options?.layout === 'inline' ? ' ui-field--inline' : ''
+  return `<label class="ui-field${layoutClass}"><span class="ui-field__label">${escapeHtml(label)}</span> ${control}</label>`
 }
 
 export function renderTextInput(name: string, attrs: Record<string, string> = {}): string {
