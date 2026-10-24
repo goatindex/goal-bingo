@@ -84,6 +84,12 @@ verification pass. The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
 
+## Done (2026-10-24 session)
+
+- **Regenerated `scripts/classify_review_tier.py` from its master**: `refresh_copies.py`'s
+  Stop-hook check caught drift against `goatindex/claude-workflow@50a6b5b`; rewritten to
+  match, no hand edits.
+
 ## Done (2026-10-06 session)
 
 - **GitHub Pages deploy:** production builds use base `/goal-bingo/` so the manifest
@@ -998,4 +1004,4 @@ Current focus matches `vitest`.
 
 ## Last updated
 
-2026-10-06
+2026-10-24
