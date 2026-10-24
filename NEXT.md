@@ -87,6 +87,12 @@ The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
 
+## Done (2026-10-24 session)
+
+- **Regenerated `scripts/classify_review_tier.py` from its master**: `refresh_copies.py`'s
+  Stop-hook check caught drift against `goatindex/claude-workflow@50a6b5b`; rewritten to
+  match, no hand edits.
+
 ## Done (2026-10-10 session)
 
 - **Presentation requirements closed out** ([#171](https://github.com/goatindex/goal-bingo/pull/171)):
@@ -1026,4 +1032,4 @@ Current focus matches `vitest`.
 
 ## Last updated
 
-2026-10-09
+2026-10-24
