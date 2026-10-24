@@ -2,8 +2,8 @@
 #
 # Master: goatindex/claude-workflow
 #         skills/adversarial-review/scripts/classify_review_tier.py
-# Commit: 1e5f559
-# Copied: 2026-09-26
+# Commit: 50a6b5b
+# Copied: 2026-10-24
 #
 # Edit the master and re-run scripts/refresh_copies.py. A change made here is
 # lost at the next refresh, and drift is reported by --check.
@@ -140,16 +140,23 @@ def is_deep_path(path, copy_dests):
     return False
 
 
-def is_mechanical_path(path, copy_dests):
+def is_mechanical_path(path, copy_dests, manifest_path=None):
     path = norm(path)
     if path == ".github/workflows/adversarial-review.yml":
         return True
     if path in copy_dests:
         return True
+    # Adding, removing or reordering a copies.txt line is the same class of change as
+    # syncing the copy it names - a manifest edit alone, with no destination touched,
+    # was misclassified "standard" (project-tracking#56, 2026-09-27): it went to the
+    # agent tier, which then self-skipped because that same diff also touched
+    # adversarial-review.yml, exactly the case the mechanical tier exists to avoid.
+    if manifest_path and path == norm(manifest_path):
+        return True
     return False
 
 
-def classify_paths(paths, copy_dests=None):
+def classify_paths(paths, copy_dests=None, manifest_path=None):
     """Return (tier, reasons) for a list of changed paths."""
     copy_dests = copy_dests or set()
     paths = [norm(p) for p in paths if p and p.strip()]
@@ -159,8 +166,9 @@ def classify_paths(paths, copy_dests=None):
         reasons.append("no changed paths; default standard")
         return "standard", reasons
 
-    if all(is_mechanical_path(p, copy_dests) for p in paths):
-        reasons.append("all paths are adversarial-review.yml or copies.txt destinations")
+    if all(is_mechanical_path(p, copy_dests, manifest_path) for p in paths):
+        reasons.append("all paths are adversarial-review.yml, the copies manifest, "
+                       "or copies.txt destinations")
         return "mechanical", reasons
 
     if all(is_lite_path(p) for p in paths):
@@ -282,7 +290,7 @@ def main(argv=None):
             raise SystemExit("--base and --head are required unless --paths-file is set")
         paths = list_changed_files(repo, args.base, args.head)
 
-    tier, reasons = classify_paths(paths, copy_dests)
+    tier, reasons = classify_paths(paths, copy_dests, args.copies)
     test_gate, evidence = detect_test_gate(repo)
     result = {
         "tier": tier,
