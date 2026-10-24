@@ -4,18 +4,29 @@ _Convention: update at end of each working session. The weekly portfolio review 
 
 ## Current focus
 
-**WP-11, the presentation pass, is built and on `main`** ([#160](https://github.com/goatindex/goal-bingo/pull/160),
-issue [#158](https://github.com/goatindex/goal-bingo/issues/158) closed). The first playtest
-found five problems: a tap mis-marked, Mark did nothing, a clear was only a number changing,
-categories were invisible, and advanced tiles were hard to read. `D-2026-09-26-1` to `-9`
-answer them, GB-FUN-069 to GB-FUN-088 state them, and the app now has press-and-hold
-marking, a clear moment, category cues, the "Show advanced tiles" setting, and light and
-dark modes.
+**WP-11 (presentation) and WP-12–WP-20 (UX refinement) are built and on `main`**
+([#160](https://github.com/goatindex/goal-bingo/pull/160), [#167](https://github.com/goatindex/goal-bingo/pull/167),
+[#168](https://github.com/goatindex/goal-bingo/pull/168); issue [#158](https://github.com/goatindex/goal-bingo/issues/158)
+closed). The first playtest found five problems: a tap mis-marked, Mark did nothing, a clear
+was only a number changing, categories were invisible, and advanced tiles were hard to read.
+`D-2026-09-26-1` to `-9` answer them, GB-FUN-069 to GB-FUN-088 state them, and the app now
+has press-and-hold marking, a clear moment, category cues, the "Show advanced tiles" setting,
+light and dark modes, shared UI primitives, and responsive layout. WP-01–WP-11 in
+`work-packages/cut.md` and WP-12–WP-20 in `work-packages/ux-cut.md` are all closed.
 
-**The next thing is a phone playtest of WP-11, not another build.** Q25 (the hold and
-moment durations), the provisional category-unlock threshold (`D-2026-09-20-7`), and the
-revisit triggers on all nine `D-2026-09-26-*` decisions all wait on real play. WP-01 to
-WP-11 are every package in `work-packages/cut.md`, and all are closed.
+**Link 6 — requirement verification on live rows is complete.** Marking
+GB-FUN-009, GB-FUN-014, and GB-FUN-045 are `verified` (`markingVerification.test.ts` plus cited
+suites, [#173](https://github.com/goatindex/goal-bingo/pull/173)). Presentation GB-FUN-069–088
+are all `verified` ([#169](https://github.com/goatindex/goal-bingo/pull/169),
+[#171](https://github.com/goatindex/goal-bingo/pull/171)). Only deleted functional IDs and
+GB-CON-001/002 (`in-progress`, iOS retest) sit outside `verified` on the requirement set.
+
+**Read-assist on the board:** quick tap enlarges a holdable cell 1.5× for reading; hold still
+marks ([#174](https://github.com/goatindex/goal-bingo/pull/174), `tilePeek.ts`, `INTERACTION.md`).
+
+**Phone playtest still gates tuning, not the UX build.** Q25 (hold and moment durations),
+the provisional category-unlock threshold (`D-2026-09-20-7`), and the revisit triggers on
+all nine `D-2026-09-26-*` decisions wait on real play.
 
 The installable build is published from `main` by `pages.yml` to
 [https://goatindex.github.io/goal-bingo/](https://goatindex.github.io/goal-bingo/).
@@ -28,23 +39,17 @@ The chain gates are wired: `tests.yml` (typecheck and vitest, zero-tests guard),
 the adversarial review. The session merge gate asks the human on every merge
 (claude-workflow#44, merged 2026-09-27).
 
-**233 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
+**268 tests** and the typecheck pass in CI (`tests.yml`, since 2026-09-22 — before that
 no workflow ran either, and every test claim in this file rested on the author's word).
 That number is checked by `figures_check.py` against `vitest` on every pull request;
 do not update it by hand from memory.
 
 ## Next up
 
-- **After the Pages pull request merges:** if the first deploy says Pages is not enabled,
-  set the source to GitHub Actions and re-run `pages.yml`. Then install from
-  [https://goatindex.github.io/goal-bingo/](https://goatindex.github.io/goal-bingo/).
 - **iOS retest** of GB-CON-001 and GB-CON-002 (install, one-thumb reach), both
   `in-progress` on the Android pass (`D-2026-09-26-10`).
 - **Playtest WP-11 on a phone**, then set Q25's durations from what players do, and act on
   the revisit triggers of `D-2026-09-26-1` to `-9` and `D-2026-09-20-7`.
-- **Verification pass for WP-11:** GB-FUN-009, -014, -045 and -069 to -088 are
-  `not-verified`, and most have a test to cite (`hold.test.ts`, `moment.test.ts`,
-  `prefs.test.ts`, `tokens.test.ts`, `shell.test.ts`).
 - **Q19 is simulable now:** extend `sim/` to test whether one free recycle per 24 hours
   outpaces re-jamming.
 - **Re-link the installed `adversarial-review` skill** to
@@ -72,15 +77,13 @@ do not update it by hand from memory.
   "absence read as default" shape already closed for requirements. It spans roughly 220
   records across this repo, `project-tracking`, `weewoo` and `live-action-intel`, and needs
   its own pass.
-- **Stale remote branches** left after housekeeping: `smoke/package-b-deep`,
-  `smoke/package-b-mechanical`, `sync/package-a-jq-fix`, `sync/package-b-review-tiers` here,
-  and nine old local branches in `claude-workflow`. Ask before deleting.
+- **Nine old local branches in `claude-workflow`** (not this repo). Ask before deleting.
 
 ## Done means
 
 A work package is done when its acceptance criteria pass and the code is on `main`.
-WP-01 through WP-11 in `work-packages/cut.md` are done, with WP-11's requirements awaiting a
-verification pass. The chain
+WP-01 through WP-20 are done on `main`; presentation requirements GB-FUN-069–088 are verified.
+The chain
 gates are done when the four checks above run on pull requests and the test count in
 Current focus matches `vitest`.
 
@@ -89,6 +92,31 @@ Current focus matches `vitest`.
 - **Regenerated `scripts/classify_review_tier.py` from its master**: `refresh_copies.py`'s
   Stop-hook check caught drift against `goatindex/claude-workflow@50a6b5b`; rewritten to
   match, no hand edits.
+
+## Done (2026-10-10 session)
+
+- **Presentation requirements closed out** ([#171](https://github.com/goatindex/goal-bingo/pull/171)):
+  `presentation.test.ts`; GB-FUN-072–085 and remaining GB-FUN-069–088 marked `verified`.
+- **Marking requirements verified** ([#173](https://github.com/goatindex/goal-bingo/pull/173)):
+  GB-FUN-009, GB-FUN-014, GB-FUN-045 via `markingVerification.test.ts`.
+- **Quick-tap tile peek merged** ([#174](https://github.com/goatindex/goal-bingo/pull/174)):
+  enlarge holdable cells for reading without changing hold-to-mark.
+- **PWA manifest icons fixed** ([#172](https://github.com/goatindex/goal-bingo/pull/172)):
+  valid `pwa-192.png` / `pwa-512.png` on live Pages.
+- **NEXT and remote housekeeping:** stale-branch note ([#175](https://github.com/goatindex/goal-bingo/pull/175)),
+  cursor remote cleanup logged ([#176](https://github.com/goatindex/goal-bingo/pull/176)),
+  origin cleared of wrap-up / claude / merged `cursor/*` branches ([#177](https://github.com/goatindex/goal-bingo/pull/177));
+  closed #164 superseded by #175. **268 tests** in CI.
+
+## Done (2026-10-09 session)
+
+- **Link-6 presentation verification merged** ([#169](https://github.com/goatindex/goal-bingo/pull/169)):
+  `verification-status` and notes only for GB-FUN-069–088; fourteen marked `verified`, seven
+  left open (072, 074, 075, 078, 080, 083, 085). One `shellUx.test.ts` assertion for home
+  `challenge-row` markup.
+- **UX refinement completion merged** ([#168](https://github.com/goatindex/goal-bingo/pull/168)):
+  Pool/Rewards/Stats on UI primitives, sidebar at ≥768px, sheet focus trap, `INTERACTION.md`;
+  `work-packages/ux-cut.md` WP-12–20 closed. **243 tests** in CI.
 
 ## Done (2026-10-06 session)
 

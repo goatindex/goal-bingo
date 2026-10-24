@@ -4,6 +4,7 @@ import { endMoment, renderShell, type BoardTarget, type ShellView } from './shel
 import { HOLD_MS } from './hold'
 import { MOMENT_MS, clearMoment, type ClearMoment } from './moment'
 import { loadPrefs, savePrefs, type Prefs } from './prefs'
+import { applyLayoutTokens } from './layoutTokens'
 import { applyMode } from './tokens'
 import { applyClearScore, markCellAndResolve } from './lines'
 import { addGoal, removeGoal, updateGoal, type Goal } from './pool'
@@ -59,6 +60,7 @@ let prefs: Prefs = loadPrefs(
   typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches,
 )
 applyMode(document.documentElement, prefs.mode)
+applyLayoutTokens(document.documentElement)
 document.documentElement.style.setProperty('--hold-ms', `${HOLD_MS}ms`)
 document.documentElement.style.setProperty('--moment-ms', `${MOMENT_MS}ms`)
 
@@ -400,7 +402,18 @@ function paint(): void {
       paint()
     },
     onCloseTile: () => {
+      const returnIndex = openTile
       openTile = null
+      paint()
+      if (returnIndex !== null) {
+        app!
+          .querySelector<HTMLElement>(`[data-testid="board-cell-${returnIndex}"]`)
+          ?.focus()
+      }
+    },
+    onCancelBoardTarget: () => {
+      boardTarget = { kind: 'mark' }
+      actionNotice = null
       paint()
     },
     // GB-FUN-080/085: a display preference never touches the game state.
@@ -602,6 +615,9 @@ function paint(): void {
       paint()
     },
   })
+  if (openTile !== null) {
+    app!.querySelector<HTMLElement>('[data-testid="close-sheet"]')?.focus()
+  }
 }
 
 paint()

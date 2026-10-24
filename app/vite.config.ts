@@ -17,10 +17,10 @@ export default defineConfig(({ command, isPreview }) => {
           short_name: 'Goal Bingo',
           description:
             'A continuous bingo game played with your own real-life goals.',
-          theme_color: '#1c1917',
-          background_color: '#1c1917',
+          theme_color: '#1E1537',
+          background_color: '#FFF4E4',
           display: 'standalone',
-          orientation: 'portrait',
+          orientation: 'any',
           start_url: base,
           scope: base,
           icons: [

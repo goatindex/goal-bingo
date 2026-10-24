@@ -27,11 +27,35 @@ import {
   listCustomCategories,
 } from './categories'
 import { attachHold } from './hold'
+import {
+  clearTilePeek,
+  getTilePeek,
+  restoreTilePeek,
+  toggleTilePeek,
+} from './tilePeek'
 import type { ClearMoment } from './moment'
 import { ADVANCED_VIEWS, ADVANCED_VIEW_LABELS, type AdvancedView, type Prefs } from './prefs'
 import { MODES, categorySlot, type Mode } from './tokens'
+import { renderBanner } from './ui/banner'
+import { renderCostRow } from './ui/costRow'
+import { escapeHtml } from './ui/escape'
+import { renderPanel, renderPageSection } from './ui/panel'
+import { renderProgressBar } from './ui/progressBar'
+import { renderSegmented } from './ui/segmented'
+import { renderStatTile } from './ui/statTile'
+import { renderForm, renderFormError, renderLabelledControl, renderSelect, renderTextInput } from './ui/formField'
+import { renderList, renderListRow } from './ui/listRow'
+import { renderSheetChrome } from './ui/sheetChrome'
+import { renderButton } from './ui/button'
 
-export type ShellView = 'home' | 'pool' | 'rewards' | 'stats' | 'actions' | 'challenges' | 'display'
+export type ShellView =
+  | 'home'
+  | 'pool'
+  | 'rewards'
+  | 'stats'
+  | 'actions'
+  | 'challenges'
+  | 'settings'
 
 /** Cell-targeting mode. Not persisted. 'mark' is ordinary play. */
 export type BoardTarget =
@@ -41,13 +65,15 @@ export type BoardTarget =
   | { kind: 'place'; track: AdvancedTileTrack }
 
 const PRIMARY_ACTIONS = [
-  { id: 'board', label: 'Board' },
-  { id: 'pool', label: 'Pool' },
-  { id: 'rewards', label: 'Rewards' },
-  { id: 'stats', label: 'Stats' },
-  { id: 'actions', label: 'Actions' },
-  { id: 'challenges', label: 'Challenges' },
+  { id: 'board', label: 'Board', aria: 'Board' },
+  { id: 'pool', label: 'Pool', aria: 'Goal pool' },
+  { id: 'rewards', label: 'Rewards', aria: 'Personal rewards' },
+  { id: 'stats', label: 'Stats', aria: 'Statistics' },
+  { id: 'actions', label: 'Acts', aria: 'Board actions' },
+  { id: 'challenges', label: 'Chal', aria: 'Challenges' },
 ] as const
+
+let lastShellView: ShellView | null = null
 
 function trackLabel(track: AdvancedTileTrack): string {
   return track === 'multi-completion' ? 'Multi-completion' : 'Mini-grid'
@@ -112,64 +138,96 @@ export type ShellHandlers = {
   onExpand: () => void
   onPurchaseUnlock: (track: AdvancedTileTrack, category: string) => void
   onPurchaseGlobal: (track: AdvancedTileTrack) => void
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
+  onCancelBoardTarget: () => void
 }
 
 /** Shown when a draw is refused because the pool has nothing to draw (GB-FUN-065). */
 export function emptyPoolPromptHtml(show: boolean): string {
   if (!show) return ''
-  return `<p class="shell__banner shell__banner--warn" role="alert" data-testid="empty-pool-prompt">
-                The pool is empty — add a goal before drawing.
-                <button type="button" data-testid="dismiss-empty-prompt">OK</button>
-              </p>`
+  return renderBanner({
+    message: 'The pool is empty — add a goal before drawing.',
+    variant: 'warn',
+    testId: 'empty-pool-prompt',
+    dismissTestId: 'dismiss-empty-prompt',
+  })
+}
+
+function renderSideNav(view: ShellView): string {
+  return `<nav class="shell__aside-nav" aria-label="Primary actions (sidebar)">
+    ${PRIMARY_ACTIONS.map((a) => {
+      const active =
+        (a.id === 'pool' && view === 'pool') ||
+        (a.id === 'rewards' && view === 'rewards') ||
+        (a.id === 'stats' && view === 'stats') ||
+        (a.id === 'actions' && view === 'actions') ||
+        (a.id === 'challenges' && view === 'challenges') ||
+        (a.id === 'board' && view === 'home')
+      return `<button type="button" class="shell__aside-btn${active ? ' shell__aside-btn--active' : ''}" data-action="${a.id}" data-testid="aside-action-${a.id}" aria-label="${escapeHtml(a.aria)}">${a.label}</button>`
+    }).join('')}
+  </nav>`
+}
+
+function renderCategoryLegend(categories: readonly string[]): string {
+  const rows = categories
+    .map((category) => {
+      const slot = categorySlot(categories, category)
+      const style = slot >= 0 ? ` style="--legend-cue: var(--cue-${slot})"` : ''
+      return `<li class="category-legend__item"${style}><span class="category-legend__swatch" aria-hidden="true"></span>${escapeHtml(category)}</li>`
+    })
+    .join('')
+  return `<details class="category-legend" data-testid="category-legend">
+    <summary>Category colors</summary>
+    <ul class="category-legend__list">${rows}</ul>
+  </details>`
 }
 
 export function renderShell(root: HTMLElement, state: GameState, h: ShellHandlers): void {
   const unlockReady = canUnlockCustomCategory(state.score.lifetime)
   const customCategories = listCustomCategories(state.categories)
+  const preserveScroll = lastShellView === h.view && h.view !== 'home'
+  const scrollTop = preserveScroll ? (root.querySelector('.shell__main')?.scrollTop ?? 0) : 0
+  lastShellView = h.view
 
   root.innerHTML = `
-    <div class="shell">
+    <div class="shell shell--with-side">
       <header class="shell__header">
         <p class="shell__brand">Goal Bingo</p>
-        <button type="button" class="shell__display-btn${h.view === 'display' ? ' is-active' : ''}" data-action="display" data-testid="action-display" aria-pressed="${h.view === 'display'}">Display</button>
+        <button type="button" class="ui-btn ui-btn--secondary ui-btn--header${h.view === 'settings' ? ' is-active' : ''}" data-action="settings" data-testid="action-display" aria-pressed="${h.view === 'settings'}">Settings</button>
       </header>
 
       <main class="shell__main">
         ${
           h.softReset
-            ? `<p class="shell__banner" role="status">Saved data could not be read. Starting fresh with a starter pool.</p>`
+            ? renderBanner({
+                message: 'Saved data could not be read. Starting fresh with a starter pool.',
+              })
             : ''
         }
         ${emptyPoolPromptHtml(h.emptyPoolPrompt)}
         ${
           h.actionNotice
-            ? `<p class="shell__banner shell__banner--warn" role="alert" data-testid="action-notice">
-                ${escapeHtml(h.actionNotice)}
-                <button type="button" data-testid="dismiss-action-notice">OK</button>
-              </p>`
+            ? renderBanner({
+                message: h.actionNotice,
+                variant: 'warn',
+                testId: 'action-notice',
+                dismissTestId: 'dismiss-action-notice',
+              })
             : ''
         }
         ${
           h.completionNotice
-            ? `<p class="shell__banner" role="status" data-testid="completion-notice">
-                ${escapeHtml(h.completionNotice)}
-                <button type="button" data-testid="dismiss-completion-notice">OK</button>
-              </p>`
+            ? renderBanner({
+                message: h.completionNotice,
+                testId: 'completion-notice',
+                dismissTestId: 'dismiss-completion-notice',
+              })
             : ''
         }
         ${
           h.view === 'home'
             ? renderHome(state, h)
-            : h.view === 'display'
-              ? renderDisplay(h.prefs)
+            : h.view === 'settings'
+              ? renderSettings(h.prefs)
               : h.view === 'pool'
               ? renderPool(state, unlockReady, customCategories)
               : h.view === 'rewards'
@@ -182,6 +240,8 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
         }
       </main>
 
+      <aside class="shell__aside">${renderSideNav(h.view)}</aside>
+
       <nav class="shell__thumb" aria-label="Primary actions">
         ${PRIMARY_ACTIONS.map((a) => {
           const active =
@@ -191,15 +251,32 @@ export function renderShell(root: HTMLElement, state: GameState, h: ShellHandler
             (a.id === 'actions' && h.view === 'actions') ||
             (a.id === 'challenges' && h.view === 'challenges') ||
             (a.id === 'board' && h.view === 'home')
-          return `<button type="button" class="thumb-btn${active ? ' thumb-btn--active' : ''}" data-action="${a.id}" data-testid="action-${a.id}">${a.label}</button>`
+          return `<button type="button" class="thumb-btn${active ? ' thumb-btn--active' : ''}" data-action="${a.id}" data-testid="action-${a.id}" aria-label="${escapeHtml(a.aria)}">${a.label}</button>`
         }).join('')}
       </nav>
       ${h.view === 'home' ? renderSheet(state, h) : ''}
     </div>
   `
+  const mainEl = root.querySelector('.shell__main')
+  if (mainEl && preserveScroll) mainEl.scrollTop = scrollTop
   if (h.moment) lastAnimatedMomentId = h.moment.id
 
+  let peekIndex: number | null = null
+  if (h.view === 'home' && h.boardTarget.kind === 'mark') {
+    peekIndex = getTilePeek()?.index ?? null
+    if (peekIndex !== null) {
+      const cell = state.board.cells[peekIndex]
+      if (!cell || cell.marked) {
+        clearTilePeek(root)
+        peekIndex = null
+      }
+    }
+  } else {
+    clearTilePeek(root)
+  }
   bindHome(root, h)
+  if (peekIndex !== null) restoreTilePeek(root, peekIndex)
+  bindSheetA11y(root, h)
   bindAdvancedView(root, h)
   bindDisplay(root, h)
   bindPool(root, h)
@@ -220,9 +297,6 @@ let lastAnimatedMomentId = -1
 
 const HOLD_HINT = 'Press and hold a goal when you have done it.'
 
-function statTile(label: string, value: number, testid: string): string {
-  return `<div class="stat-tile"><strong data-testid="${testid}">${value}</strong><span>${label}</span></div>`
-}
 
 function holdHintHtml(): string {
   return `<p class="hold-hint" role="status" data-testid="hold-status">${HOLD_HINT}</p>`
@@ -241,26 +315,38 @@ function renderHome(state: GameState, h: ShellHandlers): string {
   const hint = targetHint(h.boardTarget)
   const universal = state.challenges.find((c) => c.kind === 'universal')
   const pct = universal ? Math.min(100, Math.round((universal.progress / universal.target) * 100)) : 0
-  return `
-    ${hint ? `<p class="shell__banner" role="status" data-testid="target-hint">${escapeHtml(hint)}</p>` : ''}
+  const status = `
     <section class="stat-tiles" aria-label="Local status">
-      ${statTile('Lifetime', state.score.lifetime, 'lifetime')}
-      ${statTile('Rewards', state.score.rewardBalance, 'reward-balance')}
-      ${statTile('Board', state.score.boardBalance, 'board-balance')}
+      ${renderStatTile('Lifetime', state.score.lifetime, 'lifetime')}
+      ${renderStatTile('Rewards', state.score.rewardBalance, 'reward-balance')}
+      ${renderStatTile('Board', state.score.boardBalance, 'board-balance')}
     </section>
+    <p class="ui-hint ui-hint--balances" data-testid="balance-hint">Lifetime is your record. <strong>Rewards</strong> buys personal treats. <strong>Board</strong> pays for recycle, swap, expand, and tiles.</p>
+    ${renderCategoryLegend(state.categories)}
+  `
+  const play = `
+    ${
+      hint
+        ? `<div class="target-hint" data-testid="target-hint">
+            ${renderBanner({ message: hint })}
+            ${renderButton({ label: 'Cancel', testId: 'cancel-board-target', variant: 'secondary', size: 'compact' })}
+          </div>`
+        : ''
+    }
     <div class="moment-slot" data-testid="moment-slot">${renderMoment(h.moment)}</div>
     ${renderBoard(state, h)}
     ${
       universal
         ? `<button type="button" class="challenge-row" data-testid="challenge-row" aria-label="Challenges: mark any ${universal.target} goals, ${universal.progress} of ${universal.target}. Open challenges.">
             <span class="challenge-row__label">Mark any ${universal.target} goals</span>
-            <span class="challenge-row__track" aria-hidden="true"><span style="width: ${pct}%"></span></span>
+            ${renderProgressBar(pct)}
             <span class="challenge-row__count">${universal.progress}/${universal.target}</span>
           </button>`
         : ''
     }
     <p class="shell__hint">Pool: <strong data-testid="pool-count">${state.pool.length}</strong> goals. No account. Works offline. Data stays on this device.</p>
   `
+  return `<div class="home-layout"><div class="home-layout__status">${status}</div><div class="home-layout__play">${play}</div></div>`
 }
 
 /** What a press on a board cell does. In ordinary play a cell is held to mark
@@ -363,12 +449,16 @@ function renderBoard(state: GameState, h: ShellHandlers): string {
 }
 
 function advancedViewControl(prefs: Prefs): string {
-  return `<div class="segmented" role="group" aria-label="Show advanced tiles">
-    ${ADVANCED_VIEWS.map(
-      (v) =>
-        `<button type="button" data-advanced-view="${v}" data-testid="advanced-view-${v}" aria-pressed="${prefs.advancedTiles === v}">${ADVANCED_VIEW_LABELS[v]}</button>`,
-    ).join('')}
-  </div>`
+  return renderSegmented({
+    name: 'Show advanced tiles',
+    dataAttr: 'data-advanced-view',
+    selected: prefs.advancedTiles,
+    options: ADVANCED_VIEWS.map((v) => ({
+      value: v,
+      label: ADVANCED_VIEW_LABELS[v],
+      testId: `advanced-view-${v}`,
+    })),
+  })
 }
 
 function renderSheet(state: GameState, h: ShellHandlers): string {
@@ -399,43 +489,42 @@ function renderSheet(state: GameState, h: ShellHandlers): string {
         aria-label="${escapeHtml(cell.goal.title)}, ${done} of ${req} done. Press and hold to record one."><span class="board-cell__fill" aria-hidden="true"></span><span class="sheet-hold__text">Hold to record one</span></button>
     </div>`
   }
-  return `
-    <div class="sheet-scrim" data-testid="sheet-scrim" aria-hidden="true"></div>
-    <section class="sheet" role="dialog" aria-modal="true" aria-label="${escapeHtml(cell.goal.title)}"${style} data-testid="tile-sheet">
-      <div class="sheet__top">
-        <span class="sheet__chip">${escapeHtml(cell.goal.category)}</span>
-        <span class="sheet__kind">${cell.advanced.kind === 'mini-grid' ? 'Mini-grid' : 'Multi-completion'}</span>
-        <button type="button" class="sheet__close" data-testid="close-sheet" aria-label="Close">Close</button>
-      </div>
-      <h2 class="sheet__title">${escapeHtml(cell.goal.title)}</h2>
-      <p class="shell__hint">${escapeHtml(lead)}</p>
-      ${body}
-      ${holdHintHtml()}
-      <div class="sheet__setting"><span>Show advanced tiles</span>${advancedViewControl(h.prefs)}</div>
-    </section>
-  `
+  return `${renderSheetChrome({
+    title: cell.goal.title,
+    category: cell.goal.category,
+    kindLabel: cell.advanced.kind === 'mini-grid' ? 'Mini-grid' : 'Multi-completion',
+    hint: lead,
+    styleAttr: style,
+    body: `${body}${holdHintHtml()}`,
+  })}`
 }
 
-function renderDisplay(prefs: Prefs): string {
-  return `
-    <section class="pool" aria-label="Display" data-testid="display-view">
-      <h2 class="pool__heading">Display</h2>
-      <div class="pool__form">
-        <h3>Mode</h3>
-        <div class="segmented" role="group" aria-label="Mode">
-          ${MODES.map(
-            (mode) =>
-              `<button type="button" data-mode="${mode}" data-testid="mode-${mode}" aria-pressed="${prefs.mode === mode}">${mode === 'light' ? 'Light' : 'Dark'}</button>`,
-          ).join('')}
-        </div>
-      </div>
-      <div class="pool__form">
-        <h3>Show advanced tiles</h3>
-        ${advancedViewControl(prefs)}
-        <p class="shell__hint">How a mini-grid or multi-completion tile is shown. Changing it marks nothing.</p>
-      </div>
-    </section>
-  `
+function renderSettings(prefs: Prefs): string {
+  const modeControl = renderSegmented({
+    name: 'Mode',
+    dataAttr: 'data-mode',
+    selected: prefs.mode,
+    options: MODES.map((mode) => ({
+      value: mode,
+      label: mode === 'light' ? 'Light' : 'Dark',
+      testId: `mode-${mode}`,
+    })),
+  })
+  return renderPageSection({
+    ariaLabel: 'Settings',
+    testId: 'display-view',
+    heading: 'Settings',
+    body: `
+      ${renderPanel({
+        title: 'Mode',
+        body: modeControl,
+      })}
+      ${renderPanel({
+        title: 'Show advanced tiles',
+        body: `${advancedViewControl(prefs)}<p class="ui-hint">How a mini-grid or multi-completion tile is shown. Changing it marks nothing.</p>`,
+      })}
+    `,
+  })
 }
 
 /** Ends the clear moment without a repaint, so a hold in progress survives it. */
@@ -467,11 +556,16 @@ function renderActions(state: GameState): string {
       (track) => !isAdvancedTileUnlocked(state.advancedTileAccess, track, category),
     ).map((track) => {
       const affordable = canPay(ADVANCED_TILE_UNLOCK_COST)
-      return `<li class="pool-item">
-        <span>${escapeHtml(trackLabel(track))} · ${escapeHtml(category)}</span>
-        <span>${ADVANCED_TILE_UNLOCK_COST}</span>
-        <button type="button" data-testid="purchase-unlock" data-track="${track}" data-category="${escapeHtml(category)}" ${affordable ? '' : 'disabled'}>Unlock</button>
-      </li>`
+      return renderListRow({
+        body: renderCostRow({
+          label: `${trackLabel(track)} · ${category}`,
+          costLabel: `${ADVANCED_TILE_UNLOCK_COST} board`,
+          buttonLabel: 'Unlock',
+          testId: 'purchase-unlock',
+          disabled: !affordable,
+          buttonAttrs: { 'data-track': track, 'data-category': category },
+        }),
+      })
     }),
   )
 
@@ -498,44 +592,59 @@ function renderActions(state: GameState): string {
     return `<button type="button" data-testid="purchase-global" data-track="${track}" ${affordable ? '' : 'disabled'}>${escapeHtml(label)}</button>`
   }).join('')
 
-  return `
-    <section class="pool" aria-label="Board actions" data-testid="actions-view">
-      <h2 class="pool__heading">Board actions</h2>
-      <p>Board balance: <strong data-testid="actions-balance">${balance}</strong></p>
-      <p class="shell__hint">Spent from board balance only.</p>
-
-      <div class="pool__form">
-        <h3>Recycle</h3>
-        <p>Free recycles left: <strong data-testid="free-recycles">${freeRecycles}</strong></p>
-        <button type="button" data-testid="start-recycle" ${freeRecycles > 0 || canPay(RECYCLE_COST) ? '' : 'disabled'}>Recycle a cell</button>
-        <p class="shell__hint">Free while any remain, then ${RECYCLE_COST} board balance.</p>
-        <button type="button" data-testid="upgrade-allowance" ${!atAllowanceCap && canPay(RECYCLE_ALLOWANCE_UPGRADE_COST) ? '' : 'disabled'}>${atAllowanceCap ? 'Free recycles at maximum' : `More free recycles (${RECYCLE_ALLOWANCE_UPGRADE_COST})`}</button>
-      </div>
-
-      <div class="pool__form">
-        <h3>Swap</h3>
-        <button type="button" data-testid="start-swap" ${canPay(SWAP_COST) ? '' : 'disabled'}>Swap adjacent cells (${SWAP_COST})</button>
-      </div>
-
-      <div class="pool__form">
-        <h3>Expand</h3>
-        <button type="button" data-testid="expand-grid" ${!atMaxSize && canPay(GRID_EXPANSION_COST) ? '' : 'disabled'}>${atMaxSize ? 'Board is full size' : `Expand the grid (${GRID_EXPANSION_COST})`}</button>
-      </div>
-
-      <h3>Unlock a tile type</h3>
-      <ul class="pool__list" data-testid="unlock-list">${unlockRows.join('') || '<li class="shell__hint">Every category already has both tile types.</li>'}</ul>
-
-      <div class="pool__form">
-        <h3>Place a tile</h3>
-        ${placeButtons}
-      </div>
-
-      <div class="pool__form">
-        <h3>Unlock a type for every category</h3>
-        ${globalButtons}
-      </div>
-    </section>
+  const recycleBody = `
+    <p>Free recycles left: <strong data-testid="free-recycles">${freeRecycles}</strong></p>
+    ${renderCostRow({
+      label: 'Recycle',
+      costLabel: freeRecycles > 0 ? 'Free' : `${RECYCLE_COST} board`,
+      hint: `Free while any remain, then ${RECYCLE_COST} board balance.`,
+      buttonLabel: 'Recycle a cell',
+      testId: 'start-recycle',
+      disabled: !(freeRecycles > 0 || canPay(RECYCLE_COST)),
+    })}
+    ${renderCostRow({
+      label: 'Allowance upgrade',
+      costLabel: atAllowanceCap ? 'Maxed' : `${RECYCLE_ALLOWANCE_UPGRADE_COST} board`,
+      buttonLabel: atAllowanceCap ? 'Free recycles at maximum' : 'More free recycles',
+      testId: 'upgrade-allowance',
+      disabled: atAllowanceCap || !canPay(RECYCLE_ALLOWANCE_UPGRADE_COST),
+    })}
   `
+
+  return renderPageSection({
+    ariaLabel: 'Board actions',
+    testId: 'actions-view',
+    heading: 'Board actions',
+    body: `
+      <p>Board balance: <strong data-testid="actions-balance">${balance}</strong></p>
+      <p class="ui-hint">Spent from board balance only — not reward balance.</p>
+      ${renderPanel({ title: 'Recycle', body: recycleBody })}
+      ${renderPanel({
+        title: 'Swap',
+        body: renderCostRow({
+          label: 'Adjacent swap',
+          costLabel: `${SWAP_COST} board`,
+          buttonLabel: 'Swap adjacent cells',
+          testId: 'start-swap',
+          disabled: !canPay(SWAP_COST),
+        }),
+      })}
+      ${renderPanel({
+        title: 'Expand',
+        body: renderCostRow({
+          label: 'Grid size',
+          costLabel: atMaxSize ? 'Maximum' : `${GRID_EXPANSION_COST} board`,
+          buttonLabel: atMaxSize ? 'Board is full size' : 'Expand the grid',
+          testId: 'expand-grid',
+          disabled: atMaxSize || !canPay(GRID_EXPANSION_COST),
+        }),
+      })}
+      <h3 class="ui-page__subheading">Unlock a tile type</h3>
+      ${renderList(unlockRows.join('') || '<li class="ui-hint">Every category already has both tile types.</li>', 'unlock-list')}
+      ${renderPanel({ title: 'Place a tile', body: placeButtons })}
+      ${renderPanel({ title: 'Unlock for every category', body: globalButtons })}
+    `,
+  })
 }
 
 function renderPool(
@@ -551,99 +660,118 @@ function renderPool(
   ).join('')
 
   const rows = state.pool
-    .map(
-      (g) => `
-      <li class="pool-item" data-goal-id="${escapeHtml(g.id)}">
-        <input class="pool-item__title" data-field="title" value="${escapeHtml(g.title)}" aria-label="Title" />
-        <select class="pool-item__category" data-field="category" aria-label="Category">
-          ${state.categories
-            .map(
-              (c) =>
-                `<option value="${escapeHtml(c)}"${c === g.category ? ' selected' : ''}>${escapeHtml(c)}</option>`,
-            )
-            .join('')}
-        </select>
-        <select class="pool-item__cadence" data-field="cadence" aria-label="Cadence">
-          ${CADENCES.map(
-            (c) =>
-              `<option value="${c}"${c === g.cadence ? ' selected' : ''}>${c}</option>`,
-          ).join('')}
-        </select>
-        <button type="button" data-testid="save-goal" data-action="save">Save</button>
-        <button type="button" data-testid="remove-goal" data-action="remove">Remove</button>
-      </li>`,
-    )
+    .map((g) => {
+      const categoryOptions = state.categories
+        .map(
+          (c) =>
+            `<option value="${escapeHtml(c)}"${c === g.category ? ' selected' : ''}>${escapeHtml(c)}</option>`,
+        )
+        .join('')
+      const cadenceOpts = CADENCES.map(
+        (c) => `<option value="${c}"${c === g.cadence ? ' selected' : ''}>${c}</option>`,
+      ).join('')
+      return renderListRow({
+        attrs: { 'data-goal-id': g.id },
+        body: `
+          ${renderLabelledControl('Title', `<input class="ui-field__control" data-field="title" value="${escapeHtml(g.title)}" aria-label="Title" />`, { layout: 'inline' })}
+          ${renderLabelledControl('Category', `<select class="ui-field__control" data-field="category" aria-label="Category">${categoryOptions}</select>`, { layout: 'inline' })}
+          ${renderLabelledControl('Cadence', `<select class="ui-field__control" data-field="cadence" aria-label="Cadence">${cadenceOpts}</select>`, { layout: 'inline' })}
+          <div class="ui-list-row__actions">
+            ${renderButton({ label: 'Save', testId: 'save-goal', attrs: { 'data-action': 'save' } })}
+            ${renderButton({ label: 'Remove', testId: 'remove-goal', variant: 'secondary', attrs: { 'data-action': 'remove' } })}
+          </div>
+        `,
+      })
+    })
     .join('')
 
-  return `
-    <section class="pool" aria-label="Goal pool" data-testid="pool-view">
-      <h2 class="pool__heading">Goal pool</h2>
-      <p class="shell__hint">Goals stay in the pool after they are drawn.</p>
-      <ul class="pool__list" data-testid="pool-list">${rows || '<li class="shell__hint">No goals yet.</li>'}</ul>
+  const addGoalForm = renderForm(
+    'Add goal',
+    'add-goal-form',
+    `
+      ${renderLabelledControl('Title', renderTextInput('title', { required: 'true', 'data-testid': 'add-title' }), { layout: 'inline' })}
+      ${renderLabelledControl('Category', renderSelect('category', options, { 'data-testid': 'add-category' }), { layout: 'inline' })}
+      ${renderLabelledControl('Cadence', renderSelect('cadence', cadenceOptions, { 'data-testid': 'add-cadence' }), { layout: 'inline' })}
+      ${renderButton({ label: 'Add', attrs: { type: 'submit' } })}
+      ${renderFormError('add-error')}
+    `,
+  )
 
-      <form class="pool__form" data-testid="add-goal-form">
-        <h3>Add goal</h3>
-        <label>Title <input name="title" required data-testid="add-title" /></label>
-        <label>Category
-          <select name="category" data-testid="add-category">${options}</select>
-        </label>
-        <label>Cadence
-          <select name="cadence" data-testid="add-cadence">${cadenceOptions}</select>
-        </label>
-        <button type="submit">Add</button>
-        <p class="pool__error" data-testid="add-error" hidden></p>
-      </form>
+  const catHint =
+    unlockReady
+      ? customCategories.length >= 1
+        ? 'Custom slot already used.'
+        : 'Unlocked — name a new category.'
+      : `Unlocks at lifetime score ${CUSTOM_CATEGORY_SCORE_GATE} (currently ${state.score.lifetime}).`
 
-      <form class="pool__form" data-testid="add-category-form">
-        <h3>Custom category</h3>
-        <p class="shell__hint">
-          ${
-            unlockReady
-              ? customCategories.length >= 1
-                ? 'Custom slot already used.'
-                : 'Unlocked — name a new category.'
-              : `Unlocks at lifetime score ${CUSTOM_CATEGORY_SCORE_GATE} (currently ${state.score.lifetime}).`
-          }
-        </p>
-        <label>Name <input name="name" data-testid="category-name" ${unlockReady && customCategories.length < 1 ? '' : 'disabled'} /></label>
-        <button type="submit" data-testid="unlock-category-button" ${unlockReady && customCategories.length < 1 ? '' : 'disabled'}>Unlock category</button>
-        <p class="pool__error" data-testid="category-error" hidden></p>
-      </form>
-    </section>
-  `
+  const addCategoryForm = renderForm(
+    'Custom category',
+    'add-category-form',
+    `
+      <p class="ui-hint">${escapeHtml(catHint)}</p>
+      ${renderLabelledControl('Name', renderTextInput('name', { 'data-testid': 'category-name', ...(unlockReady && customCategories.length < 1 ? {} : { disabled: 'disabled' }) }))}
+      ${renderButton({
+        label: 'Unlock category',
+        testId: 'unlock-category-button',
+        disabled: !(unlockReady && customCategories.length < 1),
+        attrs: { type: 'submit' },
+      })}
+      ${renderFormError('category-error')}
+    `,
+  )
+
+  return renderPageSection({
+    ariaLabel: 'Goal pool',
+    testId: 'pool-view',
+    heading: 'Goal pool',
+    body: `
+      <p class="ui-hint">Goals stay in the pool after they are drawn.</p>
+      ${renderList(rows || '<li class="ui-hint">No goals yet.</li>', 'pool-list')}
+      ${renderPanel({ body: addGoalForm })}
+      ${renderPanel({ body: addCategoryForm })}
+    `,
+  })
 }
 
 function renderRewards(state: GameState): string {
   const balance = state.score.rewardBalance
-  const rows = state.rewards
+  const listRows = state.rewards
     .map((r) => {
       const affordable = r.price <= balance
-      return `
-      <li class="pool-item" data-reward-id="${escapeHtml(r.id)}">
-        <span>${escapeHtml(r.name)}</span>
-        <span>${r.price}</span>
-        <button type="button" data-testid="purchase-reward" data-action="purchase" ${affordable ? '' : 'disabled'}>Buy</button>
-        <button type="button" data-testid="remove-reward" data-action="remove">Remove</button>
-      </li>`
+      return renderListRow({
+        attrs: { 'data-reward-id': r.id },
+        body: `
+          <span>${escapeHtml(r.name)}</span>
+          <span>${r.price}</span>
+          ${renderButton({ label: 'Buy', testId: 'purchase-reward', disabled: !affordable, attrs: { 'data-action': 'purchase' } })}
+          ${renderButton({ label: 'Remove', testId: 'remove-reward', variant: 'secondary', attrs: { 'data-action': 'remove' } })}
+        `,
+      })
     })
     .join('')
 
-  return `
-    <section class="pool" aria-label="Personal rewards" data-testid="rewards-view">
-      <h2 class="pool__heading">Personal rewards</h2>
-      <p>Reward balance: <strong data-testid="rewards-view-balance">${balance}</strong></p>
-      <p class="shell__hint">Your own rewards, priced in reward balance only.</p>
-      <ul class="pool__list" data-testid="rewards-list">${rows || '<li class="shell__hint">No rewards yet.</li>'}</ul>
+  const addRewardForm = renderForm(
+    'Add reward',
+    'add-reward-form',
+    `
+      ${renderLabelledControl('Name', renderTextInput('name', { required: 'true', 'data-testid': 'add-reward-name' }))}
+      ${renderLabelledControl('Price', renderTextInput('price', { type: 'number', min: '1', step: '1', required: 'true', 'data-testid': 'add-reward-price' }))}
+      ${renderButton({ label: 'Add', attrs: { type: 'submit' } })}
+      ${renderFormError('add-reward-error')}
+    `,
+  )
 
-      <form class="pool__form" data-testid="add-reward-form">
-        <h3>Add reward</h3>
-        <label>Name <input name="name" required data-testid="add-reward-name" /></label>
-        <label>Price <input name="price" type="number" min="1" step="1" required data-testid="add-reward-price" /></label>
-        <button type="submit">Add</button>
-        <p class="pool__error" data-testid="add-reward-error" hidden></p>
-      </form>
-    </section>
-  `
+  return renderPageSection({
+    ariaLabel: 'Personal rewards',
+    testId: 'rewards-view',
+    heading: 'Personal rewards',
+    body: `
+      <p>Reward balance: <strong data-testid="rewards-view-balance">${balance}</strong></p>
+      <p class="ui-hint">Earn reward balance from line clears. Spend it here — not board balance.</p>
+      ${renderList(listRows || '<li class="ui-empty" data-testid="rewards-empty">No rewards yet — add one below.</li>', 'rewards-list')}
+      ${renderPanel({ body: addRewardForm })}
+    `,
+  })
 }
 
 function challengeName(challenge: Challenge): string {
@@ -655,21 +783,25 @@ function challengeName(challenge: Challenge): string {
 
 function renderChallenges(state: GameState): string {
   const rows = state.challenges
-    .map(
-      (challenge) => `<li class="pool-item" data-testid="challenge-${escapeHtml(challenge.id)}">
-        <span>${escapeHtml(challengeName(challenge))}</span>
-        <strong data-testid="challenge-${escapeHtml(challenge.id)}-progress">${challenge.progress} / ${challenge.target}</strong>
-      </li>`,
-    )
+    .map((challenge) => {
+      const pct = Math.min(100, Math.round((challenge.progress / challenge.target) * 100))
+      return `<li class="ui-challenge-row pool-item" data-testid="challenge-${escapeHtml(challenge.id)}">
+        <span class="ui-challenge-row__label">${escapeHtml(challengeName(challenge))}</span>
+        ${renderProgressBar(pct, `challenge-${escapeHtml(challenge.id)}-bar`)}
+        <strong class="ui-challenge-row__count" data-testid="challenge-${escapeHtml(challenge.id)}-progress">${challenge.progress} / ${challenge.target}</strong>
+      </li>`
+    })
     .join('')
 
-  return `
-    <section class="pool" aria-label="Challenges" data-testid="challenges-view">
-      <h2 class="pool__heading">Challenges</h2>
-      <p class="shell__hint">A mark counts toward every challenge it qualifies for.</p>
-      <ul class="pool__list" data-testid="challenge-list">${rows}</ul>
-    </section>
-  `
+  return renderPageSection({
+    ariaLabel: 'Challenges',
+    testId: 'challenges-view',
+    heading: 'Challenges',
+    body: `
+      <p class="ui-hint">A mark counts toward every challenge it qualifies for.</p>
+      ${renderList(rows, 'challenge-list')}
+    `,
+  })
 }
 
 function renderStats(state: GameState): string {
@@ -691,38 +823,62 @@ function renderStats(state: GameState): string {
     </li>`
   }).join('')
 
-  return `
-    <section class="pool" aria-label="Statistics" data-testid="stats-view">
-      <h2 class="pool__heading">Statistics</h2>
-      <p>Lifetime score: <strong data-testid="stats-lifetime">${state.score.lifetime}</strong></p>
-      <p>Average clears per day: <strong data-testid="stats-average">${averageClearsPerDay(state.stats).toFixed(2)}</strong></p>
-
-      <h3>Clears by category</h3>
-      <ul class="pool__list" data-testid="stats-categories">${categoryRows || '<li class="shell__hint">No clears yet.</li>'}</ul>
-
-      <h3>Clear history</h3>
-      <ul class="pool__list" data-testid="stats-history">${dateRows || '<li class="shell__hint">No clears yet.</li>'}</ul>
-
-      <h3>Achievements</h3>
-      <ul class="pool__list" data-testid="stats-achievements">${achievementRows}</ul>
-    </section>
-  `
+  return renderPageSection({
+    ariaLabel: 'Statistics',
+    testId: 'stats-view',
+    heading: 'Statistics',
+    body: `
+      ${renderPanel({
+        title: 'Overview',
+        body: `<p>Lifetime score: <strong data-testid="stats-lifetime">${state.score.lifetime}</strong></p>
+          <p>Average clears per day: <strong data-testid="stats-average">${averageClearsPerDay(state.stats).toFixed(2)}</strong></p>`,
+      })}
+      ${renderPanel({
+        title: 'Clears by category',
+        body: renderList(categoryRows || '<li class="ui-hint">No clears yet.</li>', 'stats-categories'),
+      })}
+      ${renderPanel({
+        title: 'Clear history',
+        body: renderList(dateRows || '<li class="ui-hint">No clears yet.</li>', 'stats-history'),
+      })}
+      ${renderPanel({
+        title: 'Achievements',
+        body: renderList(achievementRows, 'stats-achievements'),
+      })}
+    `,
+  })
 }
 
 function bindNav(root: HTMLElement, h: ShellHandlers): void {
-  root.querySelector('[data-action="board"]')?.addEventListener('click', () => h.onNavigate('home'))
-  root.querySelector('[data-action="pool"]')?.addEventListener('click', () => h.onNavigate('pool'))
-  root.querySelector('[data-action="rewards"]')?.addEventListener('click', () => h.onNavigate('rewards'))
-  root.querySelector('[data-action="stats"]')?.addEventListener('click', () => h.onNavigate('stats'))
-  root.querySelector('[data-action="display"]')?.addEventListener('click', () => h.onNavigate('display'))
-  root.querySelector('[data-action="actions"]')?.addEventListener('click', () => h.onNavigate('actions'))
-  root.querySelector('[data-action="challenges"]')?.addEventListener('click', () => h.onNavigate('challenges'))
+  const go = (action: string, view: ShellView) => {
+    root.querySelectorAll(`[data-action="${action}"]`).forEach((el) => {
+      el.addEventListener('click', () => h.onNavigate(view))
+    })
+  }
+  go('board', 'home')
+  go('pool', 'pool')
+  go('rewards', 'rewards')
+  go('stats', 'stats')
+  go('settings', 'settings')
+  go('actions', 'actions')
+  go('challenges', 'challenges')
 }
 
 function bindHome(root: HTMLElement, h: ShellHandlers): void {
   const onEarly = () => showEarlyRelease(root)
+  const markMode = h.boardTarget.kind === 'mark'
   root.querySelectorAll<HTMLElement>('[data-hold="cell"]').forEach((el) => {
-    attachHold(el, { onComplete: () => h.onMarkCell(Number(el.dataset.index)), onEarly })
+    const index = Number(el.dataset.index)
+    attachHold(el, {
+      onComplete: () => {
+        clearTilePeek(root)
+        h.onMarkCell(index)
+      },
+      onEarly,
+      onQuickTap: markMode
+        ? () => toggleTilePeek(root, index)
+        : undefined,
+    })
   })
   root.querySelectorAll<HTMLElement>('[data-hold="mini"]').forEach((el) => {
     attachHold(el, {
@@ -742,9 +898,47 @@ function bindHome(root: HTMLElement, h: ShellHandlers): void {
   root.querySelector('[data-testid="close-sheet"]')?.addEventListener('click', () => h.onCloseTile())
   root.querySelector('[data-testid="sheet-scrim"]')?.addEventListener('click', () => h.onCloseTile())
   root.querySelector('[data-testid="challenge-row"]')?.addEventListener('click', () => h.onNavigate('challenges'))
+  root.querySelector('[data-testid="cancel-board-target"]')?.addEventListener('click', () => {
+    h.onCancelBoardTarget()
+  })
   root.querySelector('[data-testid="dismiss-empty-prompt"]')?.addEventListener('click', () => {
     h.onDismissEmptyPrompt()
   })
+}
+
+let sheetEscapeHandler: ((event: KeyboardEvent) => void) | null = null
+
+function bindSheetA11y(root: HTMLElement, h: ShellHandlers): void {
+  if (sheetEscapeHandler) {
+    document.removeEventListener('keydown', sheetEscapeHandler)
+    sheetEscapeHandler = null
+  }
+  const sheet = root.querySelector<HTMLElement>('[data-testid="tile-sheet"]')
+  if (!sheet) return
+  const focusables = () =>
+    [...sheet.querySelectorAll<HTMLElement>('button, [href], input, select, textarea')].filter(
+      (el) => !el.hasAttribute('disabled'),
+    )
+  sheetEscapeHandler = (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      h.onCloseTile()
+      return
+    }
+    if (event.key !== 'Tab') return
+    const items = focusables()
+    if (items.length === 0) return
+    const first = items[0]!
+    const last = items[items.length - 1]!
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+  document.addEventListener('keydown', sheetEscapeHandler)
 }
 
 function bindAdvancedView(root: HTMLElement, h: ShellHandlers): void {
@@ -831,7 +1025,7 @@ function bindPool(root: HTMLElement, h: ShellHandlers): void {
     }
   })
 
-  root.querySelectorAll<HTMLElement>('.pool-item').forEach((item) => {
+  root.querySelectorAll<HTMLElement>('[data-goal-id]').forEach((item) => {
     const id = item.dataset.goalId
     if (!id) return
     item.querySelector('[data-action="remove"]')?.addEventListener('click', () => {

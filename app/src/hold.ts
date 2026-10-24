@@ -6,6 +6,9 @@
 /** Provisional (Q25): the hold duration is open; this is the one constant to tune. */
 export const HOLD_MS = 600
 
+/** A release before this counts as a quick tap (peek), not an early hold release. */
+export const TAP_MS = 250
+
 export const HOLDING_CLASS = 'is-holding'
 
 type Listener = (event: HoldEvent) => void
@@ -18,6 +21,8 @@ export type HoldTarget = {
 export type HoldOptions = {
   onComplete: () => void
   onEarly?: () => void
+  /** Fired when the press ends before the hold completes within TAP_MS. */
+  onQuickTap?: () => void
   ms?: number
 }
 
@@ -28,9 +33,11 @@ function isHoldKey(event: HoldEvent): boolean {
 export function attachHold(target: HoldTarget, options: HoldOptions): void {
   const ms = options.ms ?? HOLD_MS
   let timer: ReturnType<typeof setTimeout> | null = null
+  let pressedAt = 0
 
   const start = () => {
     if (timer !== null) return
+    pressedAt = Date.now()
     target.classList.add(HOLDING_CLASS)
     timer = setTimeout(() => {
       timer = null
@@ -40,10 +47,12 @@ export function attachHold(target: HoldTarget, options: HoldOptions): void {
   }
   const stop = () => {
     if (timer === null) return
+    const elapsed = Date.now() - pressedAt
     clearTimeout(timer)
     timer = null
     target.classList.remove(HOLDING_CLASS)
-    options.onEarly?.()
+    if (options.onQuickTap && elapsed <= TAP_MS) options.onQuickTap()
+    else options.onEarly?.()
   }
 
   target.addEventListener('pointerdown', (event) => {
